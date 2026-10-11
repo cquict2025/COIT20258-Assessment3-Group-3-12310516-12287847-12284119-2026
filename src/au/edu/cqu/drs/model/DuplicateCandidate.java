@@ -1,12 +1,17 @@
 package au.edu.cqu.drs.model;
 
+import java.io.Serializable;
+
 /**
  * A report that resembles another closely enough to warrant a coordinator's
  * attention, together with the reasons for the match (UC-04, creative
  * feature 2). The class exists so that the screen can explain a match instead
  * of presenting an unexplained score.
  */
-public class DuplicateCandidate {
+public class DuplicateCandidate implements Serializable {
+
+    /** Version of the serialised form sent between client and server. */
+    private static final long serialVersionUID = 1L;
 
     private DisasterReport candidateReport;
     private double similarityScore;

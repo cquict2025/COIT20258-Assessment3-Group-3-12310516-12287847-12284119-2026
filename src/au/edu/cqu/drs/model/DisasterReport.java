@@ -1,5 +1,6 @@
 package au.edu.cqu.drs.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -8,7 +9,10 @@ import java.time.format.DateTimeFormatter;
  * coordinator (UC-02, FR-02). Several reports may support one incident, so a
  * report keeps its own identity and never becomes the incident itself.
  */
-public class DisasterReport {
+public class DisasterReport implements Serializable {
+
+    /** Version of the serialised form sent between client and server. */
+    private static final long serialVersionUID = 1L;
 
     private static final DateTimeFormatter TIMESTAMP_FORMAT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");

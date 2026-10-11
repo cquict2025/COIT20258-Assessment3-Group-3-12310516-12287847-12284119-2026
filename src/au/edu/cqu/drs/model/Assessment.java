@@ -1,5 +1,6 @@
 package au.edu.cqu.drs.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -8,7 +9,10 @@ import java.time.LocalDateTime;
  * recommendation remains explainable, which was the central design commitment
  * of Assessment 1: the system recommends, a coordinator decides.
  */
-public class Assessment {
+public class Assessment implements Serializable {
+
+    /** Version of the serialised form sent between client and server. */
+    private static final long serialVersionUID = 1L;
 
     /** Lowest value accepted for any assessment factor. */
     public static final int MIN_FACTOR = 0;
