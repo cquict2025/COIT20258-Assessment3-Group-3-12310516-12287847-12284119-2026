@@ -86,17 +86,22 @@ public class ProtocolFilter implements ObjectInputFilter {
 
     /**
      * Tells whether a {@code java.util} class is a collection, a map, a map
-     * entry, or the proxy that {@code List.of} and {@code Map.of} serialise
-     * through.
+     * entry, or a proxy that collections serialise through: {@code CollSer}
+     * for {@code List.of} and {@code Map.of}, and classes nested in a
+     * collection such as {@code EnumSet$SerializationProxy}.
      *
      * @param type a class in {@code java.util}
      * @return {@code true} for the collection classes
      */
     private boolean isCollectionType(Class<?> type) {
-        return Collection.class.isAssignableFrom(type)
+        if (Collection.class.isAssignableFrom(type)
                 || Map.class.isAssignableFrom(type)
                 || Map.Entry.class.isAssignableFrom(type)
-                || type.getName().equals("java.util.CollSer");
+                || type.getName().equals("java.util.CollSer")) {
+            return true;
+        }
+        Class<?> enclosing = type.getEnclosingClass();
+        return enclosing != null && isCollectionType(enclosing);
     }
 
     /**
