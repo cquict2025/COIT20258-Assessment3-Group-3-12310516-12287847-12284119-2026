@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="header-bar">
+            <Label styleClass="header-title" text="Disaster Response System (DRS-Initial)" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="currentUserLabel" styleClass="header-user" />
+            <Button fx:id="signOutButton" onAction="#handleSignOut" text="Sign out" />
+        </HBox>
+    </top>
+    <left>
+        <VBox spacing="8" styleClass="side-bar">
+            <Label styleClass="section-title" text="Navigate" />
+            <Button fx:id="dashboardButton" onAction="#showDashboard"
+                    styleClass="nav-button" text="1. Operational dashboard" />
+            <Button fx:id="reportButton" onAction="#showReportForm"
+                    styleClass="nav-button" text="2. Report a disaster" />
+            <Button fx:id="triageButton" onAction="#showAssessment"
+                    styleClass="nav-button" text="3. Triage and prioritise" />
+            <Button fx:id="coordinationButton" onAction="#showCoordination"
+                    styleClass="nav-button" text="4. Coordinate departments" />
+            <Button fx:id="fieldUpdateButton" onAction="#showFieldUpdate"
+                    styleClass="nav-button" text="5. Field update" />
+        </VBox>
+    </left>
+    <center>
+        <VBox fx:id="contentArea" />
+    </center>
+</BorderPane>

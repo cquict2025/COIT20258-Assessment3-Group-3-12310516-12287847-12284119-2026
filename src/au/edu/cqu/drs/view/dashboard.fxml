@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="12" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+    <Label styleClass="screen-title" text="Operational dashboard" />
+    <Label styleClass="hint-label"
+           text="Open incidents ordered by confirmed priority and then by age. Escalation shows how much of the target response time has been used." />
+
+    <HBox alignment="CENTER_LEFT" spacing="10">
+        <Label text="Filter by priority" />
+        <ComboBox fx:id="priorityFilterCombo" />
+        <Button fx:id="refreshButton" onAction="#handleRefresh" text="Refresh" />
+        <Label fx:id="countLabel" styleClass="hint-label" />
+    </HBox>
+
+    <TableView fx:id="incidentTable" prefHeight="260">
+        <columns>
+            <TableColumn fx:id="idColumn" prefWidth="90" text="Incident" />
+            <TableColumn fx:id="titleColumn" prefWidth="230" text="Title" />
+            <TableColumn fx:id="priorityColumn" prefWidth="110" text="Priority" />
+            <TableColumn fx:id="statusColumn" prefWidth="100" text="Status" />
+            <TableColumn fx:id="ageColumn" prefWidth="90" text="Age (min)" />
+            <TableColumn fx:id="escalationColumn" prefWidth="170" text="Escalation" />
+            <TableColumn fx:id="assignmentColumn" prefWidth="110" text="Assignments" />
+        </columns>
+    </TableView>
+
+    <TitledPane expanded="true" text="Escalation alerts (creative feature 1)">
+        <VBox spacing="8">
+            <Label styleClass="hint-label"
+                   text="An incident is At risk once 75% of its target response time has passed, and Breached once the target is exceeded. P1 targets 15 minutes, P2 60, P3 240, P4 1440." />
+            <TableView fx:id="alertTable" prefHeight="150">
+                <columns>
+                    <TableColumn fx:id="alertIncidentColumn" prefWidth="90" text="Incident" />
+                    <TableColumn fx:id="alertPriorityColumn" prefWidth="110" text="Priority" />
+                    <TableColumn fx:id="alertStateColumn" prefWidth="110" text="State" />
+                    <TableColumn fx:id="alertElapsedColumn" prefWidth="120" text="Elapsed (min)" />
+                    <TableColumn fx:id="alertRemainingColumn" prefWidth="160" text="Remaining (min)" />
+                    <TableColumn fx:id="alertPercentColumn" prefWidth="120" text="Target used" />
+                </columns>
+            </TableView>
+        </VBox>
+    </TitledPane>
+
+    <Label fx:id="messageLabel" styleClass="hint-label" />
+</VBox>

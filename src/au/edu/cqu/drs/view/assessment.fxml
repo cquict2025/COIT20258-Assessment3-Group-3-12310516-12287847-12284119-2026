@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="12" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+    <Label styleClass="screen-title" text="Triage and prioritise" />
+
+    <TitledPane expanded="true" text="Step 1 - Decide submitted reports">
+        <VBox spacing="8">
+            <Label styleClass="hint-label"
+                   text="Validate a report to create an incident from it, or reject it with a reason. Every decision is audited." />
+            <ListView fx:id="reportList" prefHeight="120" />
+            <HBox spacing="10">
+                <Label text="Reason (required to reject)" />
+                <TextField fx:id="decisionReasonField" prefWidth="260" />
+            </HBox>
+            <HBox spacing="10">
+                <Button fx:id="validateButton" onAction="#handleValidate"
+                        text="Validate and create incident" />
+                <Button fx:id="rejectButton" onAction="#handleReject" text="Reject report" />
+                <Button fx:id="refreshReportsButton" onAction="#handleRefresh" text="Refresh" />
+            </HBox>
+        </VBox>
+    </TitledPane>
+
+    <TitledPane expanded="true" text="Step 2 - Score and confirm priority">
+        <VBox spacing="8">
+            <Label styleClass="hint-label"
+                   text="Each factor is scored 0 to 5. Severity = threat to life x4 + scale x3 + infrastructure x2, normalised to 0-100. Thresholds: 75+ = P1, 50-74 = P2, 25-49 = P3, below 25 = P4. Source confidence never raises the score." />
+
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Incident" />
+                <ComboBox fx:id="incidentCombo" prefWidth="380" />
+            </HBox>
+
+            <GridPane hgap="10" vgap="8">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="180" />
+                    <ColumnConstraints minWidth="110" />
+                    <ColumnConstraints minWidth="180" />
+                    <ColumnConstraints minWidth="110" />
+                </columnConstraints>
+                <Label text="Threat to life (0-5)" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+                <Spinner fx:id="threatSpinner" prefWidth="100"
+                         GridPane.rowIndex="0" GridPane.columnIndex="1" />
+                <Label text="Scale (0-5)" GridPane.rowIndex="0" GridPane.columnIndex="2" />
+                <Spinner fx:id="scaleSpinner" prefWidth="100"
+                         GridPane.rowIndex="0" GridPane.columnIndex="3" />
+                <Label text="Infrastructure impact (0-5)"
+                       GridPane.rowIndex="1" GridPane.columnIndex="0" />
+                <Spinner fx:id="infrastructureSpinner" prefWidth="100"
+                         GridPane.rowIndex="1" GridPane.columnIndex="1" />
+                <Label text="Source confidence (0-5)"
+                       GridPane.rowIndex="1" GridPane.columnIndex="2" />
+                <Spinner fx:id="confidenceSpinner" prefWidth="100"
+                         GridPane.rowIndex="1" GridPane.columnIndex="3" />
+            </GridPane>
+
+            <HBox spacing="10">
+                <Button fx:id="scoreButton" onAction="#handleScore" text="Calculate recommendation" />
+                <Label fx:id="scoreLabel" styleClass="section-title" />
+            </HBox>
+
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Confirm priority" />
+                <ComboBox fx:id="confirmPriorityCombo" prefWidth="160" />
+                <Label text="Override reason" />
+                <TextField fx:id="overrideReasonField" prefWidth="260" />
+            </HBox>
+            <HBox spacing="10">
+                <Button fx:id="confirmButton" onAction="#handleConfirm" text="Confirm priority" />
+            </HBox>
+
+            <Label text="Assessment record" />
+            <TextArea fx:id="assessmentDetailArea" editable="false" prefRowCount="3"
+                      wrapText="true" />
+        </VBox>
+    </TitledPane>
+
+    <Label fx:id="messageLabel" styleClass="error-label" />
+</VBox>

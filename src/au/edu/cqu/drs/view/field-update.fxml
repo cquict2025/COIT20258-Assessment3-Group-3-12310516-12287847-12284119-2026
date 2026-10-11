@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="12" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+    <Label styleClass="screen-title" text="Field update" />
+    <Label styleClass="hint-label"
+           text="A short form for responders working under time pressure. Required fields fit one screen and every entry records who submitted it and when." />
+
+    <GridPane hgap="10" vgap="8">
+        <columnConstraints>
+            <ColumnConstraints minWidth="150" />
+            <ColumnConstraints minWidth="380" />
+        </columnConstraints>
+        <Label text="Incident" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+        <ComboBox fx:id="incidentCombo" prefWidth="380"
+                  GridPane.rowIndex="0" GridPane.columnIndex="1" />
+        <Label text="Next review (HH:mm)" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+        <TextField fx:id="nextReviewField" prefWidth="120" promptText="17:30"
+                   GridPane.rowIndex="1" GridPane.columnIndex="1" />
+    </GridPane>
+
+    <Label text="Progress note *" />
+    <TextArea fx:id="progressArea" prefRowCount="2" wrapText="true" />
+    <Label text="Observed impact" />
+    <TextArea fx:id="impactArea" prefRowCount="2" wrapText="true" />
+    <Label text="Resource needs" />
+    <TextArea fx:id="needsArea" prefRowCount="2" wrapText="true" />
+
+    <HBox spacing="10">
+        <Button fx:id="submitButton" defaultButton="true" onAction="#handleSubmit"
+                text="Submit update" />
+        <Button fx:id="refreshButton" onAction="#handleRefresh" text="Refresh timeline" />
+    </HBox>
+
+    <Label fx:id="messageLabel" styleClass="error-label" />
+
+    <Label styleClass="section-title" text="Incident timeline" />
+    <ListView fx:id="timelineList" prefHeight="160" />
+</VBox>
