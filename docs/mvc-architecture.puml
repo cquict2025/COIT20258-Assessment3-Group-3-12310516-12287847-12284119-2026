@@ -1,0 +1,150 @@
+@startuml
+title DRS-Initial - MVC and Three-Tier Structure (COIT20258 Assessment 2)
+
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam nodesep 12
+skinparam ranksep 30
+skinparam package {
+  BackgroundColor #f5f6f8
+  BorderColor #52606d
+}
+skinparam class {
+  BackgroundColor White
+  BorderColor #1f2933
+}
+
+package "View - FXML built in Scene Builder" as V {
+  class "login.fxml" as v1
+  class "main.fxml" as v2
+  class "dashboard.fxml" as v3
+  class "report-form.fxml" as v4
+  class "assessment.fxml" as v5
+  class "coordination.fxml" as v6
+  class "field-update.fxml" as v7
+  v1 -[hidden]right- v2
+  v2 -[hidden]right- v3
+  v3 -[hidden]right- v4
+  v4 -[hidden]right- v5
+  v5 -[hidden]right- v6
+  v6 -[hidden]right- v7
+}
+
+package "Controller - JavaFX event handling" as C {
+  class LoginController
+  class MainController
+  class DashboardController
+  class ReportFormController
+  class AssessmentController
+  class CoordinationController
+  class FieldUpdateController
+  LoginController -[hidden]right- MainController
+  MainController -[hidden]right- DashboardController
+  DashboardController -[hidden]right- ReportFormController
+  ReportFormController -[hidden]right- AssessmentController
+  AssessmentController -[hidden]right- CoordinationController
+  CoordinationController -[hidden]right- FieldUpdateController
+}
+
+package "Model - application services (all business rules)" as S {
+  class AuthenticationService {
+    + login(username, password) : ServiceResult<User>
+    + isAuthorised(user, roles...) : boolean
+  }
+  class ReportService {
+    + submitReport(report) : ServiceResult<DisasterReport>
+    + decideReport(...) : ServiceResult<DisasterReport>
+  }
+  class AssessmentService {
+    + calculateScore(threat, scale, infra) : int
+    + recommendPriority(score) : Priority
+    + confirmPriority(...) : ServiceResult<Assessment>
+  }
+  class IncidentService {
+    + createFromReport(...) : ServiceResult<Incident>
+    + closeIncident(...) : ServiceResult<Incident>
+    + findOpenIncidentsByPriority() : List<Incident>
+  }
+  class CoordinationService {
+    + createAssignment(...) : ServiceResult<DepartmentAssignment>
+    + allocateResource(...) : ServiceResult<ResourceAllocation>
+  }
+  class EscalationService <<creative feature 1>> {
+    + evaluate(incident, now) : EscalationAlert
+    + findAlerts(now) : List<EscalationAlert>
+  }
+  class DuplicateDetectionService <<creative feature 2>> {
+    + similarity(first, second) : double
+    + findCandidates(report) : List<DuplicateCandidate>
+  }
+  class AuditService {
+    + record(actor, action, entity, id, detail) : AuditEvent
+  }
+  AuthenticationService -[hidden]right- ReportService
+  ReportService -[hidden]right- AssessmentService
+  AssessmentService -[hidden]right- IncidentService
+  CoordinationService -[hidden]right- EscalationService
+  EscalationService -[hidden]right- DuplicateDetectionService
+  DuplicateDetectionService -[hidden]right- AuditService
+}
+
+package "Model - domain objects" as D {
+  class Incident
+  class DisasterReport
+  class Assessment
+  class DepartmentAssignment
+  class ResourceAllocation
+  class FieldUpdate
+  class User
+  class AuditEvent
+  Incident -[hidden]right- DisasterReport
+  DisasterReport -[hidden]right- Assessment
+  Assessment -[hidden]right- DepartmentAssignment
+  ResourceAllocation -[hidden]right- FieldUpdate
+  FieldUpdate -[hidden]right- User
+  User -[hidden]right- AuditEvent
+}
+
+package "Data access - interfaces only" as R {
+  interface UserRepository
+  interface ReportRepository
+  interface IncidentRepository
+  interface AssessmentRepository
+  interface AssignmentRepository
+  interface FieldUpdateRepository
+  interface AuditRepository
+  interface PartnerGateway
+  UserRepository -[hidden]right- ReportRepository
+  ReportRepository -[hidden]right- IncidentRepository
+  IncidentRepository -[hidden]right- AssessmentRepository
+  AssignmentRepository -[hidden]right- FieldUpdateRepository
+  FieldUpdateRepository -[hidden]right- AuditRepository
+  AuditRepository -[hidden]right- PartnerGateway
+}
+
+package "Adapters" as A {
+  class "Sqlite*Repository" as sq
+  class "InMemory*Repository - JUnit test doubles" as mem
+  class "SimulatedPartnerGateway" as gw
+  class "SQLite file drs.db" as db
+  sq -[hidden]right- mem
+  mem -[hidden]right- gw
+  gw -[hidden]right- db
+}
+
+v4 ..> ReportFormController : user events
+ReportFormController --> ReportService : command, typed ServiceResult
+ReportService --> DisasterReport : reads and changes
+ReportService --> ReportRepository : persists through
+ReportRepository <|.. sq
+ReportRepository <|.. mem
+PartnerGateway <|.. gw
+sq --> db
+
+note bottom of A
+  Controllers hold no validation, no scoring and no SQL.
+  Because every service depends on a repository interface,
+  all 94 JUnit tests run without JavaFX and without a database file.
+end note
+
+@enduml
