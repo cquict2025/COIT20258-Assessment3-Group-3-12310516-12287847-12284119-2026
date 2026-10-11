@@ -1,11 +1,16 @@
 package au.edu.cqu.drs.model;
 
+import java.io.Serializable;
+
 /**
  * Where a disaster was observed. Latitude and longitude are held as well as the
  * street address so that duplicate detection can measure real distance between
  * two reports rather than comparing address text (creative feature 2).
  */
-public class Location {
+public class Location implements Serializable {
+
+    /** Version of the serialised form sent between client and server. */
+    private static final long serialVersionUID = 1L;
 
     private static final double EARTH_RADIUS_KM = 6371.0;
 

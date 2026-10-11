@@ -1,5 +1,6 @@
 package au.edu.cqu.drs.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 /**
@@ -7,7 +8,10 @@ import java.time.LocalDateTime;
  * password: only a salt and the hash derived from it are stored, which is what
  * NFR-04 requires.
  */
-public class User {
+public class User implements Serializable {
+
+    /** Version of the serialised form sent between client and server. */
+    private static final long serialVersionUID = 1L;
 
     private String userId;
     private String username;

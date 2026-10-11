@@ -1,11 +1,16 @@
 package au.edu.cqu.drs.model;
 
+import java.io.Serializable;
+
 /**
  * The escalation position of one incident against its priority target
  * (creative feature 1). The alert is calculated, never stored, so that it can
  * never disagree with the incident it describes.
  */
-public class EscalationAlert {
+public class EscalationAlert implements Serializable {
+
+    /** Version of the serialised form sent between client and server. */
+    private static final long serialVersionUID = 1L;
 
     private Incident incident;
     private EscalationState state;
