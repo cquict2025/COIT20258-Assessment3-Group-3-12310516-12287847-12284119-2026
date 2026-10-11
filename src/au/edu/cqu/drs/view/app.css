@@ -1,0 +1,87 @@
+/*
+ * DRS-Initial stylesheet.
+ * Colour is always paired with a text label in the interface, because NFR-06
+ * requires the priority and escalation state to be readable without relying on
+ * colour perception alone.
+ */
+
+.root {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: #f5f6f8;
+}
+
+.screen-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2933;
+}
+
+.section-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2933;
+}
+
+.hint-label {
+    -fx-text-fill: #52606d;
+    -fx-wrap-text: true;
+}
+
+.error-label {
+    -fx-text-fill: #a4161a;
+    -fx-font-weight: bold;
+    -fx-wrap-text: true;
+}
+
+.success-label {
+    -fx-text-fill: #1b5e20;
+    -fx-font-weight: bold;
+    -fx-wrap-text: true;
+}
+
+.nav-button {
+    -fx-min-width: 190px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cbd2d9;
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+    -fx-padding: 8 12 8 12;
+}
+
+.nav-button:hover {
+    -fx-background-color: #e4e7eb;
+}
+
+.side-bar {
+    -fx-background-color: #e4e7eb;
+    -fx-padding: 16;
+}
+
+.content-area {
+    -fx-padding: 18;
+}
+
+.header-bar {
+    -fx-background-color: #1f2933;
+    -fx-padding: 12 18 12 18;
+}
+
+.header-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.header-user {
+    -fx-text-fill: #cbd2d9;
+}
+
+/* Focus is always visible so that the interface can be operated by keyboard. */
+.button:focused, .text-field:focused, .combo-box:focused, .spinner:focused,
+.text-area:focused, .date-picker:focused, .table-view:focused {
+    -fx-border-color: #0b5fff;
+    -fx-border-width: 2;
+    -fx-border-radius: 3;
+}
