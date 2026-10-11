@@ -1,0 +1,276 @@
+@startuml
+title DRS-Initial - Domain Model Class Diagram (COIT20258 Assessment 2)
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+skinparam class {
+  BackgroundColor White
+  BorderColor #1f2933
+  ArrowColor #1f2933
+}
+
+class DisasterReport {
+  - reportId : String
+  - disasterType : DisasterType
+  - otherTypeDescription : String
+  - location : Location
+  - observedAt : LocalDateTime
+  - submittedAt : LocalDateTime
+  - description : String
+  - immediateRisks : String
+  - reporterName : String
+  - reporterContact : String
+  - status : ReportStatus
+  - decisionReason : String
+  - linkedIncidentId : String
+  --
+  + getTypeLabel() : String
+  + toString() : String
+}
+
+class Incident {
+  - incidentId : String
+  - title : String
+  - disasterType : DisasterType
+  - location : Location
+  - status : IncidentStatus
+  - priority : Priority
+  - createdAt : LocalDateTime
+  - firstResponseAt : LocalDateTime
+  - closedAt : LocalDateTime
+  - closureOutcome : String
+  - residualRisks : String
+  - version : int
+  - sourceReportIds : List<String>
+  --
+  + addAssignment(a : DepartmentAssignment) : void
+  + addFieldUpdate(u : FieldUpdate) : void
+  + hasUnresolvedAssignments() : boolean
+  + incrementVersion() : void
+  + toString() : String
+}
+
+class Assessment {
+  - assessmentId : String
+  - incidentId : String
+  - threatToLife : int
+  - scale : int
+  - infrastructureImpact : int
+  - sourceConfidence : int
+  - calculatedScore : int
+  - recommendedPriority : Priority
+  - confirmedPriority : Priority
+  - overrideReason : String
+  - assessedBy : String
+  - assessedAt : LocalDateTime
+  - version : int
+  --
+  + isOverridden() : boolean
+  + toString() : String
+}
+
+class DepartmentAssignment {
+  - assignmentId : String
+  - incidentId : String
+  - department : Department
+  - requestedAction : String
+  - urgency : String
+  - targetResponseBy : LocalDateTime
+  - status : AssignmentStatus
+  - createdAt : LocalDateTime
+  - respondedAt : LocalDateTime
+  - responseReason : String
+  - estimatedArrival : LocalDateTime
+  - deliveryAttempts : int
+  --
+  + recordDeliveryAttempt() : void
+  + addAllocation(a : ResourceAllocation) : void
+  + toString() : String
+}
+
+class ResourceAllocation {
+  - allocationId : String
+  - assignmentId : String
+  - resourceName : String
+  - department : Department
+  - quantity : int
+  - availableFrom : LocalDateTime
+  - availableTo : LocalDateTime
+  - stagingPoint : String
+  --
+  + overlaps(other : ResourceAllocation) : boolean
+  + toString() : String
+}
+
+class FieldUpdate {
+  - updateId : String
+  - incidentId : String
+  - submittedBy : String
+  - submittedAt : LocalDateTime
+  - progressNote : String
+  - observedImpact : String
+  - resourceNeeds : String
+  - nextReviewAt : LocalDateTime
+  - incidentVersionSeen : int
+  --
+  + toString() : String
+}
+
+class User {
+  - userId : String
+  - username : String
+  - fullName : String
+  - role : UserRole
+  - department : Department
+  - passwordSalt : String
+  - passwordHash : String
+  - active : boolean
+  - lastLoginAt : LocalDateTime
+  --
+  + hasRole(required : UserRole) : boolean
+  + toString() : String
+}
+
+class AuditEvent {
+  - eventId : String
+  - actor : String
+  - action : String
+  - entityType : String
+  - entityId : String
+  - detail : String
+  - occurredAt : LocalDateTime
+  --
+  + toString() : String
+}
+
+class Location {
+  - addressLine : String
+  - suburb : String
+  - latitude : double
+  - longitude : double
+  --
+  + distanceKmTo(other : Location) : double
+  + toString() : String
+}
+
+class DuplicateCandidate {
+  - candidateReport : DisasterReport
+  - similarityScore : double
+  - distanceKm : double
+  - minutesApart : long
+  - sameType : boolean
+  --
+  + getMatchReason() : String
+  + toString() : String
+}
+
+class EscalationAlert {
+  - incident : Incident
+  - state : EscalationState
+  - minutesElapsed : long
+  - minutesRemaining : long
+  - percentageOfTargetUsed : int
+  --
+  + toString() : String
+}
+
+enum DisasterType {
+  FIRE
+  EARTHQUAKE
+  HURRICANE
+  FLOOD
+  STORM
+  HAZARDOUS_MATERIAL
+  OTHER
+}
+
+enum Priority {
+  P1
+  P2
+  P3
+  P4
+  --
+  - targetResponseMinutes : int
+  + getRank() : int
+}
+
+enum ReportStatus {
+  DRAFT
+  SUBMITTED
+  VALIDATED
+  REJECTED
+  LINKED
+}
+
+enum IncidentStatus {
+  ACTIVE
+  MONITORING
+  CLOSED
+  REOPENED
+  --
+  + canTransitionTo(t : IncidentStatus) : boolean
+}
+
+enum AssignmentStatus {
+  PENDING_TRANSMISSION
+  DELIVERY_FAILED
+  AWAITING_RESPONSE
+  ACCEPTED
+  REJECTED
+  CLARIFICATION_REQUESTED
+  COMPLETED
+  --
+  + isResolved() : boolean
+}
+
+enum EscalationState {
+  ON_TRACK
+  AT_RISK
+  BREACHED
+}
+
+enum Department {
+  FIRE_AND_EMERGENCY
+  HOSPITAL
+  ELECTRICITY
+  TRANSPORTATION
+  WASTE_MANAGEMENT
+  WATER_SUPPLY
+  SCHOOLS
+  LAW_ENFORCEMENT
+}
+
+enum UserRole {
+  COORDINATOR
+  LIAISON
+  RESPONDER
+  ADMINISTRATOR
+}
+
+' ----- Associations with multiplicities -----
+Incident "1" o-- "1..*" DisasterReport : is evidenced by >
+Incident "1" *-- "0..*" Assessment : is scored by >
+Incident "1" *-- "0..*" DepartmentAssignment : coordinates >
+Incident "1" *-- "0..*" FieldUpdate : records >
+DepartmentAssignment "1" *-- "0..*" ResourceAllocation : commits >
+DisasterReport "1" *-- "1" Location : occurs at >
+Incident "1" *-- "1" Location : occurs at >
+User "1" -- "0..*" AuditEvent : is attributed in >
+DuplicateCandidate "0..*" --> "1" DisasterReport : proposes >
+EscalationAlert "0..*" --> "1" Incident : evaluates >
+
+DisasterReport --> DisasterType
+DisasterReport --> ReportStatus
+Incident --> DisasterType
+Incident --> IncidentStatus
+Incident --> Priority
+Assessment --> Priority
+DepartmentAssignment --> Department
+DepartmentAssignment --> AssignmentStatus
+ResourceAllocation --> Department
+User --> UserRole
+User --> Department
+EscalationAlert --> EscalationState
+
+@enduml
