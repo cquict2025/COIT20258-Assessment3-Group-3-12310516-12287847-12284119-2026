@@ -18,7 +18,7 @@ import au.edu.cqu.drs.service.ServiceResult;
  */
 public class ClientSession implements ModuleContext, AutoCloseable {
 
-    private final ServerConnection connection;
+    private volatile ServerConnection connection;
     private volatile String sessionToken;
     private volatile User currentUser;
 
@@ -29,6 +29,22 @@ public class ClientSession implements ModuleContext, AutoCloseable {
      */
     public ClientSession(ServerConnection connection) {
         this.connection = connection;
+    }
+
+    /**
+     * Points the session at another server, closing the old connection.
+     * Ignored while signed in, and when the address is unchanged.
+     *
+     * @param host the server host
+     * @param port the server port
+     */
+    public synchronized void connectTo(String host, int port) {
+        if (isSignedIn() || (this.connection.getHost().equals(host)
+                && this.connection.getPort() == port)) {
+            return;
+        }
+        this.connection.close();
+        this.connection = new ServerConnection(host, port);
     }
 
     /**

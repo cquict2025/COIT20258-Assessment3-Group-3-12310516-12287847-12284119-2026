@@ -24,6 +24,11 @@
                    GridPane.rowIndex="0" GridPane.columnIndex="1" />
         <Label text="Password" GridPane.rowIndex="1" GridPane.columnIndex="0" />
         <PasswordField fx:id="passwordField" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+        <Label text="Server" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+        <HBox spacing="6" GridPane.rowIndex="2" GridPane.columnIndex="1">
+            <TextField fx:id="hostField" promptText="localhost" HBox.hgrow="ALWAYS" />
+            <TextField fx:id="portField" promptText="5050" prefColumnCount="5" />
+        </HBox>
     </GridPane>
 
     <HBox spacing="10">
