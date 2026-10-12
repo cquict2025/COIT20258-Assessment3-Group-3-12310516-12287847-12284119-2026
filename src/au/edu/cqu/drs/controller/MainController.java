@@ -62,7 +62,7 @@ public class MainController {
 
     @FXML
     private void showDashboard() {
-        display(new DashboardController(this.context).getView());
+        display(new DashboardController(this.services).getView());
     }
 
     @FXML

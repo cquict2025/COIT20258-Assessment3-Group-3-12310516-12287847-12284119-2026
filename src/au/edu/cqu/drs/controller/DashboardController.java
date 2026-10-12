@@ -1,9 +1,11 @@
 package au.edu.cqu.drs.controller;
 
-import au.edu.cqu.drs.AppContext;
+import au.edu.cqu.drs.client.BackgroundCall;
+import au.edu.cqu.drs.client.RemoteServices;
 import au.edu.cqu.drs.model.EscalationAlert;
 import au.edu.cqu.drs.model.Incident;
 import au.edu.cqu.drs.model.Priority;
+import au.edu.cqu.drs.service.ServiceResult;
 import au.edu.cqu.drs.util.ViewLoader;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -16,7 +18,9 @@ import javafx.scene.control.TableView;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The prioritised operational dashboard (UC-12, FR-11) and the escalation alert
@@ -29,8 +33,10 @@ public class DashboardController {
 
     private static final String ALL_PRIORITIES = "All priorities";
 
-    private final AppContext context;
+    private final RemoteServices services;
     private final Parent view;
+
+    private Map<String, EscalationAlert> escalationByIncident = Map.of();
 
     @FXML
     private ComboBox<String> priorityFilterCombo;
@@ -69,8 +75,13 @@ public class DashboardController {
     @FXML
     private TableColumn<EscalationAlert, String> alertPercentColumn;
 
-    public DashboardController(AppContext context) {
-        this.context = context;
+    /**
+     * Creates the dashboard and loads it from the server.
+     *
+     * @param services the services on the server
+     */
+    public DashboardController(RemoteServices services) {
+        this.services = services;
         this.view = ViewLoader.load("dashboard.fxml", this);
         configureFilter();
         configureIncidentColumns();
@@ -82,25 +93,75 @@ public class DashboardController {
         return this.view;
     }
 
+    /**
+     * Reloads the open incidents, then their escalation state, from the
+     * server.
+     */
     @FXML
     private void handleRefresh() {
-        LocalDateTime now = LocalDateTime.now();
         String selected = this.priorityFilterCombo.getValue();
+        Priority filter = null;
+        if (selected != null && !ALL_PRIORITIES.equals(selected)) {
+            filter = Priority.valueOf(selected);
+        }
+        Priority priority = filter;
+        BackgroundCall.run(this.view, () -> priority == null
+                ? this.services.findOpenIncidents()
+                : this.services.findOpenIncidents(priority),
+                this::showIncidents);
+    }
 
-        List<Incident> incidents = ALL_PRIORITIES.equals(selected)
-                || selected == null
-                ? this.context.getIncidentService()
-                        .findOpenIncidentsByPriority()
-                : this.context.getIncidentService()
-                        .findOpenIncidentsByPriority(Priority
-                                .valueOf(selected));
-
+    /**
+     * Shows the incidents and asks for their escalation state.
+     *
+     * @param result the open incidents, or the failure
+     */
+    private void showIncidents(ServiceResult<List<Incident>> result) {
+        if (result.isFailure()) {
+            this.messageLabel.setText(result.getMessage());
+            return;
+        }
+        List<Incident> incidents = result.getValue();
         this.incidentTable.setItems(FXCollections
                 .observableArrayList(incidents));
-        this.alertTable.setItems(FXCollections.observableArrayList(
-                this.context.getEscalationService().findAlerts(now)));
-
         this.countLabel.setText(incidents.size() + " open incident(s)");
+        BackgroundCall.run(this.view, this.services::evaluateEscalations,
+                this::showEscalationColumn);
+    }
+
+    /**
+     * Fills the escalation column and asks for the alerts.
+     *
+     * @param result one alert per open incident, or the failure
+     */
+    private void showEscalationColumn(
+            ServiceResult<List<EscalationAlert>> result) {
+        if (result.isFailure()) {
+            this.messageLabel.setText(result.getMessage());
+            return;
+        }
+        Map<String, EscalationAlert> byIncident = new HashMap<>();
+        for (EscalationAlert alert : result.getValue()) {
+            byIncident.put(alert.getIncident().getIncidentId(), alert);
+        }
+        this.escalationByIncident = byIncident;
+        this.incidentTable.refresh();
+        BackgroundCall.run(this.view, this.services::findAlerts,
+                this::showAlerts);
+    }
+
+    /**
+     * Shows the incidents that need attention now.
+     *
+     * @param result the at-risk and breached alerts, or the failure
+     */
+    private void showAlerts(ServiceResult<List<EscalationAlert>> result) {
+        if (result.isFailure()) {
+            this.messageLabel.setText(result.getMessage());
+            return;
+        }
+        this.alertTable.setItems(FXCollections.observableArrayList(
+                result.getValue()));
         this.messageLabel.setText(this.alertTable.getItems().isEmpty()
                 ? "No incident has passed 75% of its target response time."
                 : this.alertTable.getItems()
@@ -130,8 +191,11 @@ public class DashboardController {
                 String.valueOf(Duration.between(cell.getValue().getCreatedAt(),
                         LocalDateTime.now()).toMinutes())));
         this.escalationColumn.setCellValueFactory(cell -> {
-            EscalationAlert alert = this.context.getEscalationService()
-                    .evaluate(cell.getValue(), LocalDateTime.now());
+            EscalationAlert alert = this.escalationByIncident
+                    .get(cell.getValue().getIncidentId());
+            if (alert == null) {
+                return new SimpleStringProperty("-");
+            }
             return new SimpleStringProperty(String.format("%s (%d%% of target)",
                     alert.getState().getDisplayName(), alert
                             .getPercentageOfTargetUsed()));
