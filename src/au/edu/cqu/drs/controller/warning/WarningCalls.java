@@ -27,6 +27,10 @@ public final class WarningCalls {
     public static final DateTimeFormatter TIME_FORMAT =
             DateTimeFormatter.ofPattern("EEE d MMM, h:mm a", Locale.ENGLISH);
 
+    /** A shorter form for narrow columns and lists. */
+    public static final DateTimeFormatter SHORT_TIME =
+            DateTimeFormatter.ofPattern("d MMM h:mm a", Locale.ENGLISH);
+
     private final ModuleContext context;
 
     /**

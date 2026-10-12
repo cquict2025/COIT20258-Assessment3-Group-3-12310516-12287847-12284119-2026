@@ -54,6 +54,8 @@ public class WarningBoardController {
      */
     @FXML
     private void initialize() {
+        this.messageLabel.managedProperty().bind(
+                this.messageLabel.textProperty().isNotEmpty());
         handleRefresh();
     }
 
