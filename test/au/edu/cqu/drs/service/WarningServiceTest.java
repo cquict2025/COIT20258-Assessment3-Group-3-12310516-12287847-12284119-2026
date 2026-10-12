@@ -15,6 +15,7 @@ import au.edu.cqu.drs.model.warning.WarningAcknowledgement;
 import au.edu.cqu.drs.model.warning.WarningLevel;
 import au.edu.cqu.drs.model.warning.WarningStatus;
 import au.edu.cqu.drs.repository.memory.InMemoryAuditRepository;
+import au.edu.cqu.drs.repository.memory.InMemoryFieldUpdateRepository;
 import au.edu.cqu.drs.repository.memory.InMemoryIncidentRepository;
 import au.edu.cqu.drs.repository.memory.InMemoryUserRepository;
 import au.edu.cqu.drs.repository.memory.InMemoryWarningRepository;
@@ -40,6 +41,7 @@ class WarningServiceTest {
             LocalDateTime.of(2026, 10, 13, 10, 0);
 
     private InMemoryIncidentRepository incidents;
+    private IncidentService incidentService;
     private InMemoryWarningRepository warnings;
     private InMemoryAuditRepository audit;
     private WarningService service;
@@ -57,8 +59,11 @@ class WarningServiceTest {
         AuthenticationService authentication = new AuthenticationService(
                 new InMemoryUserRepository(), auditService);
         Clock clock = Clock.fixed(NOW.atZone(ZONE).toInstant(), ZONE);
-        this.service = new WarningService(this.warnings, this.incidents,
-                authentication, auditService, clock);
+        this.incidentService = new IncidentService(this.incidents,
+                new InMemoryFieldUpdateRepository(), authentication,
+                auditService);
+        this.service = new WarningService(this.warnings,
+                this.incidentService, authentication, auditService, clock);
         this.coordinator = new User("USR-001", "coordinator",
                 "Alex Coordinator", UserRole.COORDINATOR);
         this.liaison = new User("USR-002", "liaison", "Sam Liaison",
@@ -324,7 +329,7 @@ class WarningServiceTest {
         expired.setExpiresAt(NOW.plusMinutes(1));
         this.service.issue(this.coordinator, expired);
         WarningService later = new WarningService(this.warnings,
-                this.incidents, new AuthenticationService(
+                this.incidentService, new AuthenticationService(
                         new InMemoryUserRepository(),
                         new AuditService(this.audit)),
                 new AuditService(this.audit),

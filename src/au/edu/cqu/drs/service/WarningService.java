@@ -11,7 +11,6 @@ import au.edu.cqu.drs.model.warning.Warning;
 import au.edu.cqu.drs.model.warning.WarningAcknowledgement;
 import au.edu.cqu.drs.model.warning.WarningLevel;
 import au.edu.cqu.drs.model.warning.WarningStatus;
-import au.edu.cqu.drs.repository.IncidentRepository;
 import au.edu.cqu.drs.repository.WarningRepository;
 
 import java.time.Clock;
@@ -51,7 +50,7 @@ public class WarningService {
             EnumSet.of(Priority.P1, Priority.P2);
 
     private final WarningRepository warningRepository;
-    private final IncidentRepository incidentRepository;
+    private final IncidentService incidentService;
     private final AuthenticationService authenticationService;
     private final AuditService auditService;
     private final Clock clock;
@@ -60,7 +59,7 @@ public class WarningService {
      * Creates the service.
      *
      * @param warningRepository     where warnings are stored
-     * @param incidentRepository    used to check the incident and its
+     * @param incidentService       used to check the incident and its
      *                              priority
      * @param authenticationService used for role checks
      * @param auditService          records every change
@@ -68,11 +67,11 @@ public class WarningService {
      *                              time
      */
     public WarningService(WarningRepository warningRepository,
-            IncidentRepository incidentRepository,
+            IncidentService incidentService,
             AuthenticationService authenticationService,
             AuditService auditService, Clock clock) {
         this.warningRepository = warningRepository;
-        this.incidentRepository = incidentRepository;
+        this.incidentService = incidentService;
         this.authenticationService = authenticationService;
         this.auditService = auditService;
         this.clock = clock;
@@ -319,7 +318,7 @@ public class WarningService {
                     "incidentId");
         }
         Optional<Incident> incident =
-                this.incidentRepository.findById(warning.getIncidentId());
+                this.incidentService.findById(warning.getIncidentId());
         if (incident.isEmpty()) {
             return ServiceResult.failure(ErrorCode.NOT_FOUND,
                     "Incident " + warning.getIncidentId()
