@@ -215,7 +215,7 @@ public class ModuleRegistry {
      */
     private void skip(String message) {
         this.problems.add(message);
-        LOGGER.log(Level.WARNING, message);
+        LOGGER.log(Level.FINE, message);
     }
 
     /**

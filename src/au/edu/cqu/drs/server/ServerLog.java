@@ -2,6 +2,9 @@ package au.edu.cqu.drs.server;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
@@ -13,20 +16,37 @@ import java.util.function.Consumer;
  * <p>Each line carries the time and the name of the thread that wrote it,
  * which shows which worker served each client. Listeners are held in a
  * {@link CopyOnWriteArrayList} because many client threads log at once
- * while listeners are rarely added.</p>
+ * while listeners are rarely added. The latest lines are kept so a window
+ * opened after start-up can show what has already happened.</p>
  */
 public class ServerLog {
+
+    /** Number of recent lines kept. */
+    public static final int HISTORY_SIZE = 500;
 
     private static final DateTimeFormatter TIME =
             DateTimeFormatter.ofPattern("HH:mm:ss");
 
     private final List<Consumer<String>> listeners;
+    private final Deque<String> history;
 
     /**
      * Creates a log with no listeners.
      */
     public ServerLog() {
         this.listeners = new CopyOnWriteArrayList<>();
+        this.history = new ArrayDeque<>();
+    }
+
+    /**
+     * Returns the most recent lines, oldest first.
+     *
+     * @return a copy of up to {@link #HISTORY_SIZE} lines
+     */
+    public List<String> recentLines() {
+        synchronized (this.history) {
+            return new ArrayList<>(this.history);
+        }
     }
 
     /**
@@ -66,6 +86,12 @@ public class ServerLog {
     private void publish(String message) {
         String line = LocalTime.now().format(TIME) + " ["
                 + Thread.currentThread().getName() + "] " + message;
+        synchronized (this.history) {
+            this.history.addLast(line);
+            if (this.history.size() > HISTORY_SIZE) {
+                this.history.removeFirst();
+            }
+        }
         for (Consumer<String> listener : this.listeners) {
             listener.accept(line);
         }
