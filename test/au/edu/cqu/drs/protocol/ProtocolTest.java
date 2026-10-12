@@ -237,7 +237,7 @@ class ProtocolTest {
     }
 
     @Test
-    @DisplayName("TC-PR-09 only PING, LOGIN, SUBMIT_REPORT and "
+    @DisplayName("TC-PR-09 only PING, LOGIN, SUBMIT_REPORT, SAVE_DRAFT and "
             + "LIST_PUBLIC_WARNINGS work without a login")
     void publicCommands() {
         EnumSet<Command> open = EnumSet.noneOf(Command.class);
@@ -248,7 +248,8 @@ class ProtocolTest {
         }
 
         assertEquals(EnumSet.of(Command.PING, Command.LOGIN,
-                Command.SUBMIT_REPORT, Command.LIST_PUBLIC_WARNINGS), open);
+                Command.SUBMIT_REPORT, Command.SAVE_DRAFT,
+                Command.LIST_PUBLIC_WARNINGS), open);
     }
 
     @Test
