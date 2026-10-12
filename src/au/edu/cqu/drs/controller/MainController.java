@@ -67,7 +67,7 @@ public class MainController {
 
     @FXML
     private void showReportForm() {
-        display(new ReportFormController(this.context).getView());
+        display(new ReportFormController(this.services).getView());
     }
 
     @FXML
