@@ -1,5 +1,6 @@
 package au.edu.cqu.drs.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -8,7 +9,10 @@ import java.time.format.DateTimeFormatter;
  * Every update carries the actor and the time because Assessment 1 required
  * the timeline to record provenance rather than anonymous status changes.
  */
-public class FieldUpdate {
+public class FieldUpdate implements Serializable {
+
+    /** Version of the serialised form sent between client and server. */
+    private static final long serialVersionUID = 1L;
 
     private static final DateTimeFormatter TIMESTAMP_FORMAT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");

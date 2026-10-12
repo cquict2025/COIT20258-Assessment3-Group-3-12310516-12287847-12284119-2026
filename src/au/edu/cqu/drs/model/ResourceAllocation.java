@@ -1,5 +1,6 @@
 package au.edu.cqu.drs.model;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -8,7 +9,10 @@ import java.time.format.DateTimeFormatter;
  * (UC-08, FR-09). The availability window is held so that the coordination
  * service can reject an allocation that clashes with an existing commitment.
  */
-public class ResourceAllocation {
+public class ResourceAllocation implements Serializable {
+
+    /** Version of the serialised form sent between client and server. */
+    private static final long serialVersionUID = 1L;
 
     private static final DateTimeFormatter TIMESTAMP_FORMAT =
             DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
