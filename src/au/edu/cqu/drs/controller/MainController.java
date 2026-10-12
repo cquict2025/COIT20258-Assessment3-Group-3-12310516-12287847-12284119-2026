@@ -82,7 +82,7 @@ public class MainController {
 
     @FXML
     private void showFieldUpdate() {
-        display(new FieldUpdateController(this.context).getView());
+        display(new FieldUpdateController(this.services).getView());
     }
 
     /**
