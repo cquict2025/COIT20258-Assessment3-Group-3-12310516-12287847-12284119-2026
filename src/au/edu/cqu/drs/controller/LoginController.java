@@ -1,6 +1,8 @@
 package au.edu.cqu.drs.controller;
 
 import au.edu.cqu.drs.AppContext;
+import au.edu.cqu.drs.client.ModuleViewLoader;
+import au.edu.cqu.drs.client.UnconnectedModuleContext;
 import au.edu.cqu.drs.model.User;
 import au.edu.cqu.drs.service.ServiceResult;
 import au.edu.cqu.drs.util.ViewLoader;
@@ -19,6 +21,9 @@ import javafx.stage.Stage;
  * message; it contains no authentication logic of its own.
  */
 public class LoginController {
+
+    /** View supplied by the warning module for the public. */
+    public static final String WARNING_BOARD_VIEW = "warning-board.fxml";
 
     private final AppContext context;
     private final Parent view;
@@ -75,6 +80,24 @@ public class LoginController {
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setTitle("Report a disaster");
         Scene scene = new Scene(controller.getView(), 860, 720);
+        scene.getStylesheets().add(
+                getClass().getResource("/au/edu/cqu/drs/view/app.css")
+                        .toExternalForm());
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    /**
+     * Opens the public warnings board without signing in, or a message if
+     * the warning module is not installed.
+     */
+    @FXML
+    private void handlePublicWarnings() {
+        Stage stage = new Stage();
+        stage.setTitle("Public warnings");
+        Scene scene = new Scene(ModuleViewLoader.loadOrExplain(
+                WARNING_BOARD_VIEW, new UnconnectedModuleContext(null),
+                MainController.WARNINGS_MISSING), 860, 600);
         scene.getStylesheets().add(
                 getClass().getResource("/au/edu/cqu/drs/view/app.css")
                         .toExternalForm());

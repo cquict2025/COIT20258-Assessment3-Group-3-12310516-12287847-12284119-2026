@@ -30,6 +30,8 @@
         <Button fx:id="signInButton" defaultButton="true" onAction="#handleSignIn" text="Sign in" />
         <Button fx:id="publicReportButton" onAction="#handlePublicReport"
                 text="Report a disaster without signing in" />
+        <Button fx:id="publicWarningsButton" onAction="#handlePublicWarnings"
+                text="Public warnings" />
     </HBox>
 
     <Label fx:id="messageLabel" styleClass="error-label" />

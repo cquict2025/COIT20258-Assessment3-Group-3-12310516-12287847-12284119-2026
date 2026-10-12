@@ -29,6 +29,8 @@
                     styleClass="nav-button" text="4. Coordinate departments" />
             <Button fx:id="fieldUpdateButton" onAction="#showFieldUpdate"
                     styleClass="nav-button" text="5. Field update" />
+            <Button fx:id="warningsButton" onAction="#showWarnings"
+                    styleClass="nav-button" text="6. Public warnings" />
         </VBox>
     </left>
     <center>
