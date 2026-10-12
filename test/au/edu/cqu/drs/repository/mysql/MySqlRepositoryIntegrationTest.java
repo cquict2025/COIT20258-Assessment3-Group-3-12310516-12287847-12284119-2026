@@ -16,6 +16,7 @@ import au.edu.cqu.drs.model.ReportStatus;
 import au.edu.cqu.drs.model.ResourceAllocation;
 import au.edu.cqu.drs.model.User;
 import au.edu.cqu.drs.model.UserRole;
+import au.edu.cqu.drs.security.FieldCipher;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
@@ -189,6 +190,37 @@ class MySqlRepositoryIntegrationTest {
                 loaded.getObservedAt());
         assertEquals(1, reports.findByStatus(ReportStatus.SUBMITTED).size());
         assertTrue(reports.findByStatus(ReportStatus.REJECTED).isEmpty());
+    }
+
+    @Test
+    @DisplayName("TC-MY-23 reporter details are encrypted in the database "
+            + "and readable through the repository")
+    void reporterDetailsAreEncrypted() throws Exception {
+        MySqlReportRepository encrypted = new MySqlReportRepository(database,
+                new FieldCipher(FieldCipher.generateKey()));
+        DisasterReport report = newReport();
+        report.setReporterName("Priya Shah");
+        report.setReporterContact("0400 111 222");
+
+        encrypted.save(report);
+        String[] raw = database.withConnection(connection -> {
+            try (var statement = connection.prepareStatement(
+                    "SELECT reporter_name, reporter_contact FROM reports "
+                            + "WHERE report_id = ?")) {
+                statement.setString(1, report.getReportId());
+                try (var rs = statement.executeQuery()) {
+                    rs.next();
+                    return new String[] {rs.getString(1), rs.getString(2)};
+                }
+            }
+        });
+
+        assertFalse(raw[0].contains("Priya"), raw[0]);
+        assertFalse(raw[1].contains("0400"), raw[1]);
+        DisasterReport loaded =
+                encrypted.findById(report.getReportId()).orElseThrow();
+        assertEquals("Priya Shah", loaded.getReporterName());
+        assertEquals("0400 111 222", loaded.getReporterContact());
     }
 
     @Test

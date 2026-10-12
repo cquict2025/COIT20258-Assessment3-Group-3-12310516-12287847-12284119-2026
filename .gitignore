@@ -1,0 +1,2 @@
+# Server keystores hold the field-encryption key; never commit them.
+*.p12
