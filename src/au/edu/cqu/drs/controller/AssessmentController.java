@@ -1,6 +1,7 @@
 package au.edu.cqu.drs.controller;
 
-import au.edu.cqu.drs.AppContext;
+import au.edu.cqu.drs.client.BackgroundCall;
+import au.edu.cqu.drs.client.RemoteServices;
 import au.edu.cqu.drs.model.Assessment;
 import au.edu.cqu.drs.model.DisasterReport;
 import au.edu.cqu.drs.model.Incident;
@@ -31,7 +32,7 @@ import java.util.List;
  */
 public class AssessmentController {
 
-    private final AppContext context;
+    private final RemoteServices services;
     private final Parent view;
 
     private List<DisasterReport> submittedReports = List.of();
@@ -63,8 +64,13 @@ public class AssessmentController {
     @FXML
     private Label messageLabel;
 
-    public AssessmentController(AppContext context) {
-        this.context = context;
+    /**
+     * Creates the triage screen and loads it from the server.
+     *
+     * @param services the services on the server
+     */
+    public AssessmentController(RemoteServices services) {
+        this.services = services;
         this.view = ViewLoader.load("assessment.fxml", this);
         configureSpinners();
         this.confirmPriorityCombo.setItems(FXCollections
@@ -76,16 +82,46 @@ public class AssessmentController {
         return this.view;
     }
 
+    /**
+     * Reloads the reports awaiting a decision, then the open incidents.
+     */
     @FXML
     private void handleRefresh() {
-        this.submittedReports = this.context.getReportService()
-                .findByStatus(ReportStatus.SUBMITTED);
+        BackgroundCall.run(this.view,
+                () -> this.services.findReportsByStatus(
+                        ReportStatus.SUBMITTED),
+                this::showReports);
+    }
+
+    /**
+     * Lists the reports awaiting a decision and asks for the incidents.
+     *
+     * @param result the submitted reports, or the failure
+     */
+    private void showReports(ServiceResult<List<DisasterReport>> result) {
+        if (result.isFailure()) {
+            showError(result.getMessage());
+            return;
+        }
+        this.submittedReports = result.getValue();
         this.reportList.setItems(FXCollections.observableArrayList(
                 this.submittedReports.stream().map(DisasterReport::toString)
                         .toList()));
+        BackgroundCall.run(this.view, this.services::findOpenIncidents,
+                this::showIncidents);
+    }
 
-        this.openIncidents = this.context.getIncidentService()
-                .findOpenIncidentsByPriority();
+    /**
+     * Lists the open incidents and summarises the work waiting.
+     *
+     * @param result the open incidents, or the failure
+     */
+    private void showIncidents(ServiceResult<List<Incident>> result) {
+        if (result.isFailure()) {
+            showError(result.getMessage());
+            return;
+        }
+        this.openIncidents = result.getValue();
         this.incidentCombo.setItems(FXCollections.observableArrayList(
                 this.openIncidents.stream().map(Incident::toString).toList()));
 
@@ -96,6 +132,9 @@ public class AssessmentController {
                 + this.openIncidents.size() + " open incident(s).");
     }
 
+    /**
+     * Validates the selected report and creates an incident from it.
+     */
     @FXML
     private void handleValidate() {
         DisasterReport report = selectedReport();
@@ -103,20 +142,39 @@ public class AssessmentController {
             showError("Select a report first.");
             return;
         }
+        String reason = this.decisionReasonField.getText();
+        BackgroundCall.run(this.view,
+                () -> this.services.decideReport(report.getReportId(),
+                        ReportStatus.VALIDATED, reason),
+                decision -> validated(report, decision));
+    }
 
-        ServiceResult<DisasterReport> decision = this.context.getReportService()
-                .decideReport(this.context.getCurrentUser(),
-                        report.getReportId(),
-                        ReportStatus.VALIDATED,
-                                this.decisionReasonField.getText());
+    /**
+     * Creates the incident once the report is validated.
+     *
+     * @param report   the report decided
+     * @param decision the validated report, or the failure
+     */
+    private void validated(DisasterReport report,
+                           ServiceResult<DisasterReport> decision) {
         if (decision.isFailure()) {
             showError(decision.getMessage());
             return;
         }
+        BackgroundCall.run(this.view,
+                () -> this.services.createIncidentFromReport(
+                        report.getReportId()),
+                created -> incidentCreated(report, created));
+    }
 
-        ServiceResult<Incident> created = this.context.getIncidentService()
-                .createFromReport(this.context.getCurrentUser(),
-                                  decision.getValue());
+    /**
+     * Confirms the new incident, or shows why it was not created.
+     *
+     * @param report  the validated report
+     * @param created the incident, or the failure
+     */
+    private void incidentCreated(DisasterReport report,
+                                 ServiceResult<Incident> created) {
         if (created.isFailure()) {
             showError(created.getMessage());
             return;
@@ -129,6 +187,9 @@ public class AssessmentController {
         handleRefresh();
     }
 
+    /**
+     * Rejects the selected report with the reason given.
+     */
     @FXML
     private void handleReject() {
         DisasterReport report = selectedReport();
@@ -136,11 +197,21 @@ public class AssessmentController {
             showError("Select a report first.");
             return;
         }
-        ServiceResult<DisasterReport> result = this.context.getReportService()
-                .decideReport(this.context.getCurrentUser(),
-                        report.getReportId(),
-                        ReportStatus.REJECTED,
-                                this.decisionReasonField.getText());
+        String reason = this.decisionReasonField.getText();
+        BackgroundCall.run(this.view,
+                () -> this.services.decideReport(report.getReportId(),
+                        ReportStatus.REJECTED, reason),
+                result -> rejected(report, result));
+    }
+
+    /**
+     * Confirms a rejection, or shows why it was refused.
+     *
+     * @param report the report decided
+     * @param result the rejected report, or the failure
+     */
+    private void rejected(DisasterReport report,
+                          ServiceResult<DisasterReport> result) {
         if (result.isFailure()) {
             showError(result.getMessage());
             if ("reason".equals(result.getAffectedField())) {
@@ -154,6 +225,9 @@ public class AssessmentController {
         handleRefresh();
     }
 
+    /**
+     * Asks the server to score the selected incident.
+     */
     @FXML
     private void handleScore() {
         Incident incident = selectedIncident();
@@ -166,11 +240,17 @@ public class AssessmentController {
                 this.threatSpinner.getValue(), this.scaleSpinner.getValue(),
                 this.infrastructureSpinner.getValue(),
                         this.confidenceSpinner.getValue());
+        BackgroundCall.run(this.view,
+                () -> this.services.scoreAssessment(assessment),
+                this::scored);
+    }
 
-        ServiceResult<Assessment> result =
-                this.context.getAssessmentService().score(this.context
-                        .getCurrentUser(),
-                                                     assessment);
+    /**
+     * Shows the score and recommended priority.
+     *
+     * @param result the scored assessment, or the failure
+     */
+    private void scored(ServiceResult<Assessment> result) {
         if (result.isFailure()) {
             this.scoreLabel.setText("");
             showError(result.getMessage());
@@ -190,6 +270,9 @@ public class AssessmentController {
                 + "with a reason.");
     }
 
+    /**
+     * Confirms the recommended priority, or overrides it with a reason.
+     */
     @FXML
     private void handleConfirm() {
         if (this.currentAssessment == null) {
@@ -197,12 +280,21 @@ public class AssessmentController {
                     + "priority.");
             return;
         }
-        ServiceResult<Assessment> result = this.context.getAssessmentService()
-                .confirmPriority(this.context.getCurrentUser(),
-                        this.currentAssessment,
-                        this.confirmPriorityCombo.getValue(),
-                                this.overrideReasonField
-                                .getText());
+        Assessment assessment = this.currentAssessment;
+        Priority priority = this.confirmPriorityCombo.getValue();
+        String reason = this.overrideReasonField.getText();
+        BackgroundCall.run(this.view,
+                () -> this.services.confirmPriority(assessment, priority,
+                        reason),
+                this::confirmed);
+    }
+
+    /**
+     * Shows the confirmed priority, or why it was refused.
+     *
+     * @param result the confirmed assessment, or the failure
+     */
+    private void confirmed(ServiceResult<Assessment> result) {
         if (result.isFailure()) {
             showError(result.getMessage());
             if ("overrideReason".equals(result.getAffectedField())) {
