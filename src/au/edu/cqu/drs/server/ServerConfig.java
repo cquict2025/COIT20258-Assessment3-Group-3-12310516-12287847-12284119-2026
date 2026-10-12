@@ -59,6 +59,21 @@ public class ServerConfig {
      * @throws IOException if a settings file cannot be read
      */
     public static ServerConfig load(Path overrideFile) throws IOException {
+        return new ServerConfig(loadProperties(overrideFile));
+    }
+
+    /**
+     * Merges the defaults with the local file, so a caller can adjust a
+     * value before creating the settings.
+     *
+     * @param overrideFile a settings file to apply last, or null to use
+     *                     {@code drs-server.properties} in the working folder
+     *                     when it exists
+     * @return the merged properties
+     * @throws IOException if a settings file cannot be read
+     */
+    public static Properties loadProperties(Path overrideFile)
+            throws IOException {
         Properties properties = defaults();
         Path file = overrideFile;
         if (file == null) {
@@ -72,7 +87,7 @@ public class ServerConfig {
         } else if (overrideFile != null) {
             throw new IOException("Settings file not found: " + overrideFile);
         }
-        return new ServerConfig(properties);
+        return properties;
     }
 
     /**
