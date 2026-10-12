@@ -1,6 +1,7 @@
 package au.edu.cqu.drs.controller;
 
-import au.edu.cqu.drs.AppContext;
+import au.edu.cqu.drs.client.BackgroundCall;
+import au.edu.cqu.drs.client.RemoteServices;
 import au.edu.cqu.drs.model.FieldUpdate;
 import au.edu.cqu.drs.model.Incident;
 import au.edu.cqu.drs.service.ServiceResult;
@@ -24,7 +25,7 @@ import java.util.List;
  */
 public class FieldUpdateController {
 
-    private final AppContext context;
+    private final RemoteServices services;
     private final Parent view;
 
     private List<Incident> openIncidents = List.of();
@@ -44,8 +45,13 @@ public class FieldUpdateController {
     @FXML
     private ListView<String> timelineList;
 
-    public FieldUpdateController(AppContext context) {
-        this.context = context;
+    /**
+     * Creates the field update screen and loads it from the server.
+     *
+     * @param services the services on the server
+     */
+    public FieldUpdateController(RemoteServices services) {
+        this.services = services;
         this.view = ViewLoader.load("field-update.fxml", this);
         this.incidentCombo.setOnAction(event -> loadTimeline());
         handleRefresh();
@@ -55,10 +61,26 @@ public class FieldUpdateController {
         return this.view;
     }
 
+    /**
+     * Reloads the open incidents from the server.
+     */
     @FXML
     private void handleRefresh() {
-        this.openIncidents = this.context.getIncidentService()
-                .findOpenIncidentsByPriority();
+        BackgroundCall.run(this.view, this.services::findOpenIncidents,
+                this::showIncidents);
+    }
+
+    /**
+     * Lists the open incidents and loads the first one's timeline.
+     *
+     * @param result the open incidents, or the failure
+     */
+    private void showIncidents(ServiceResult<List<Incident>> result) {
+        if (result.isFailure()) {
+            showError(result.getMessage());
+            return;
+        }
+        this.openIncidents = result.getValue();
         this.incidentCombo.setItems(FXCollections.observableArrayList(
                 this.openIncidents.stream().map(Incident::toString).toList()));
         if (!this.openIncidents.isEmpty()) {
@@ -67,6 +89,9 @@ public class FieldUpdateController {
         loadTimeline();
     }
 
+    /**
+     * Sends the field update for the selected incident.
+     */
     @FXML
     private void handleSubmit() {
         Incident incident = selectedIncident();
@@ -85,10 +110,16 @@ public class FieldUpdateController {
                 .orElse(null));
         update.setIncidentVersionSeen(incident.getVersion());
 
-        ServiceResult<FieldUpdate> result =
-                this.context.getIncidentService()
-                        .addFieldUpdate(this.context.getCurrentUser(),
-                                                            update);
+        BackgroundCall.run(this.view,
+                () -> this.services.addFieldUpdate(update), this::recorded);
+    }
+
+    /**
+     * Confirms the update, or shows why it was refused.
+     *
+     * @param result the saved update, or the failure
+     */
+    private void recorded(ServiceResult<FieldUpdate> result) {
         if (result.isFailure()) {
             showError(result.getMessage());
             if ("progressNote".equals(result.getAffectedField())) {
@@ -108,17 +139,28 @@ public class FieldUpdateController {
         handleRefresh();
     }
 
+    /**
+     * Loads the selected incident's field updates.
+     */
     private void loadTimeline() {
         Incident incident = selectedIncident();
         if (incident == null) {
             this.timelineList.setItems(FXCollections.observableArrayList());
             return;
         }
-        this.timelineList.setItems(FXCollections.observableArrayList(
-                this.context.getIncidentService()
-                        .findTimeline(incident.getIncidentId()).stream()
-                        .map(FieldUpdate::toString)
-                        .toList()));
+        BackgroundCall.run(this.view,
+                () -> this.services.findTimeline(incident.getIncidentId()),
+                result -> {
+                    if (result.isFailure()) {
+                        showError(result.getMessage());
+                        return;
+                    }
+                    this.timelineList.setItems(
+                            FXCollections.observableArrayList(
+                                    result.getValue().stream()
+                                            .map(FieldUpdate::toString)
+                                            .toList()));
+                });
     }
 
     private Incident selectedIncident() {
