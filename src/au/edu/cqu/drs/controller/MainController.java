@@ -77,7 +77,7 @@ public class MainController {
 
     @FXML
     private void showCoordination() {
-        display(new CoordinationController(this.context).getView());
+        display(new CoordinationController(this.services).getView());
     }
 
     @FXML
