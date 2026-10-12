@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox fx:id="root" spacing="10" styleClass="content-area"
+      stylesheets="@warning.css"
+      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="au.edu.cqu.drs.controller.warning.WarningMainController">
+    <Label styleClass="screen-title" text="Public warnings" />
+    <Label fx:id="hintLabel" styleClass="hint-label"
+           text="Issue a warning to the public at one of the three Australian Warning System levels. Every change is kept as a new version." />
+
+    <TableView fx:id="warningTable" prefHeight="170">
+        <columns>
+            <TableColumn fx:id="codeColumn" text="Warning" prefWidth="90" />
+            <TableColumn fx:id="versionColumn" text="Ver." prefWidth="45" />
+            <TableColumn fx:id="levelColumn" text="Level" prefWidth="150" />
+            <TableColumn fx:id="areaColumn" text="Affected area" prefWidth="210" />
+            <TableColumn fx:id="statusColumn" text="Status" prefWidth="90" />
+            <TableColumn fx:id="expiresColumn" text="Expires" prefWidth="150" />
+            <TableColumn fx:id="ackColumn" text="Acknowledged" prefWidth="105" />
+        </columns>
+    </TableView>
+
+    <HBox spacing="18">
+        <VBox spacing="8" HBox.hgrow="ALWAYS">
+            <Label styleClass="section-title" text="Warning details" />
+            <GridPane hgap="10" vgap="6">
+                <columnConstraints>
+                    <ColumnConstraints minWidth="140" />
+                    <ColumnConstraints minWidth="320" />
+                </columnConstraints>
+                <Label text="Incident *" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+                <ComboBox fx:id="incidentCombo" prefWidth="320"
+                          GridPane.rowIndex="0" GridPane.columnIndex="1" />
+                <Label text="Level *" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+                <ComboBox fx:id="levelCombo" prefWidth="200"
+                          GridPane.rowIndex="1" GridPane.columnIndex="1" />
+                <Label text="Affected area *" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+                <TextField fx:id="areaField" promptText="Laverton, Altona North"
+                           GridPane.rowIndex="2" GridPane.columnIndex="1" />
+                <Label text="Message *" GridPane.rowIndex="3" GridPane.columnIndex="0" />
+                <TextArea fx:id="messageArea" prefRowCount="2" wrapText="true"
+                          promptText="What is happening"
+                          GridPane.rowIndex="3" GridPane.columnIndex="1" />
+                <Label text="What to do" GridPane.rowIndex="4" GridPane.columnIndex="0" />
+                <TextArea fx:id="actionArea" prefRowCount="2" wrapText="true"
+                          promptText="Keep windows and doors closed"
+                          GridPane.rowIndex="4" GridPane.columnIndex="1" />
+                <Label text="Evacuation centre" GridPane.rowIndex="5" GridPane.columnIndex="0" />
+                <HBox spacing="8" GridPane.rowIndex="5" GridPane.columnIndex="1">
+                    <TextField fx:id="centreField" promptText="Name, if any"
+                               HBox.hgrow="ALWAYS" />
+                    <TextField fx:id="capacityField" promptText="Capacity"
+                               prefWidth="90" />
+                </HBox>
+                <Label text="Expires *" GridPane.rowIndex="6" GridPane.columnIndex="0" />
+                <HBox spacing="8" GridPane.rowIndex="6" GridPane.columnIndex="1">
+                    <DatePicker fx:id="expiryDate" prefWidth="150" />
+                    <TextField fx:id="expiryTime" promptText="18:00" prefWidth="80" />
+                </HBox>
+            </GridPane>
+            <HBox spacing="10">
+                <Button fx:id="issueButton" defaultButton="true"
+                        onAction="#handleIssue" text="Issue new warning" />
+                <Button fx:id="updateButton" onAction="#handleUpdate"
+                        text="Update selected" />
+                <Button fx:id="clearButton" onAction="#handleClear" text="Clear form" />
+                <Button onAction="#handleRefresh" text="Refresh" />
+            </HBox>
+            <HBox spacing="10">
+                <TextField fx:id="reasonField" promptText="Reason for cancelling"
+                           HBox.hgrow="ALWAYS" />
+                <Button fx:id="cancelButton" onAction="#handleCancel"
+                        text="Cancel selected" />
+            </HBox>
+            <Label fx:id="messageLabel" styleClass="error-label" />
+        </VBox>
+
+        <VBox spacing="6" prefWidth="290">
+            <Label styleClass="section-title" text="Acknowledged by" />
+            <ListView fx:id="acknowledgedList" prefHeight="90" />
+            <Label styleClass="section-title" text="Not yet acknowledged" />
+            <ListView fx:id="pendingList" prefHeight="110" />
+            <Label styleClass="section-title" text="Version history" />
+            <ListView fx:id="historyList" prefHeight="110" />
+        </VBox>
+    </HBox>
+</VBox>

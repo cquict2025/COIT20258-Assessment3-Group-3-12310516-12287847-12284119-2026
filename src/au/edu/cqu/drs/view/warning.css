@@ -62,9 +62,10 @@
     -fx-wrap-text: true;
 }
 
+/* A glow rather than a border, so it shows on every control, focused
+   or not. */
 .field-error {
-    -fx-border-color: #a4161a;
-    -fx-border-width: 2;
+    -fx-effect: dropshadow(gaussian, #a4161a, 8, 0.6, 0, 0);
 }
 
 .empty-state {
