@@ -37,7 +37,7 @@ import java.time.Clock;
 
 /**
  * Wires the repositories chosen in the {@link ServerConfig} to the existing
- * services, exactly as {@code AppContext} does for the single-user client.
+ * services, as {@code AppContext} did for the single-user DRS-Initial.
  *
  * <p>The services are unchanged: they depend only on the repository
  * interfaces, so the server can run them on SQLite, in memory, or on MySQL

@@ -19,10 +19,6 @@ import java.util.List;
  */
 public class DrsApplication extends Application {
 
-    /** Name of the SQLite file used by screens not yet moved to the server. */
-    public static final String DATABASE_FILE = "drs.db";
-
-    private AppContext context;
     private ClientSession session;
 
     /**
@@ -42,11 +38,8 @@ public class DrsApplication extends Application {
             port = Integer.parseInt(args.get(1));
         }
         this.session = new ClientSession(new ServerConnection(host, port));
-        // TODO(T4): remove once every screen talks to the server.
-        this.context = new AppContext(DATABASE_FILE);
 
-        LoginController loginController =
-                new LoginController(this.context, this.session);
+        LoginController loginController = new LoginController(this.session);
         Scene scene = new Scene(loginController.getView(), 560, 460);
         scene.getStylesheets().add(
                 getClass().getResource("/au/edu/cqu/drs/view/app.css")
@@ -65,9 +58,6 @@ public class DrsApplication extends Application {
         if (this.session != null) {
             this.session.logout();
             this.session.close();
-        }
-        if (this.context != null) {
-            this.context.shutdown();
         }
     }
 
