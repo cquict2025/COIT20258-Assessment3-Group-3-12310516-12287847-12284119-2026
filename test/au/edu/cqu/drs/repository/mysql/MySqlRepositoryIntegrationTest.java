@@ -16,6 +16,7 @@ import au.edu.cqu.drs.model.ReportStatus;
 import au.edu.cqu.drs.model.ResourceAllocation;
 import au.edu.cqu.drs.model.User;
 import au.edu.cqu.drs.model.UserRole;
+import au.edu.cqu.drs.security.ChainVerification;
 import au.edu.cqu.drs.security.FieldCipher;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assumptions;
@@ -350,6 +351,80 @@ class MySqlRepositoryIntegrationTest {
     }
 
     @Test
+    @DisplayName("TC-MY-24 an untouched audit chain verifies")
+    void untouchedChainVerifies() {
+        saveAuditTrail(3);
+
+        ChainVerification result = audit.verifyChain();
+
+        assertTrue(result.isIntact(), result.toString());
+        assertEquals(3, result.getChecked());
+    }
+
+    @Test
+    @DisplayName("TC-MY-25 an edited audit row breaks the chain at that row")
+    void editedRowBreaksTheChain() throws Exception {
+        saveAuditTrail(3);
+        execute("UPDATE audit_events SET detail = 'REJECTED' "
+                + "WHERE event_id = 'AUD-00002'");
+
+        ChainVerification result = audit.verifyChain();
+
+        assertFalse(result.isIntact());
+        assertEquals("AUD-00002", result.getFirstBrokenEventId());
+        assertEquals("its content was changed", result.getReason());
+    }
+
+    @Test
+    @DisplayName("TC-MY-26 a deleted audit row breaks the chain at the next "
+            + "row")
+    void deletedRowBreaksTheChain() throws Exception {
+        saveAuditTrail(3);
+        execute("DELETE FROM audit_events WHERE event_id = 'AUD-00002'");
+
+        ChainVerification result = audit.verifyChain();
+
+        assertFalse(result.isIntact());
+        assertEquals("AUD-00003", result.getFirstBrokenEventId());
+    }
+
+    @Test
+    @DisplayName("TC-MY-27 a back-dated time stamp breaks the chain")
+    void changedTimeStampBreaksTheChain() throws Exception {
+        saveAuditTrail(2);
+        execute("UPDATE audit_events SET occurred_at = '2026-01-01 00:00:00'"
+                + " WHERE event_id = 'AUD-00001'");
+
+        assertEquals("AUD-00001",
+                audit.verifyChain().getFirstBrokenEventId());
+    }
+
+    @Test
+    @DisplayName("TC-MY-28 audit rows written by ten clients at once still "
+            + "form one chain")
+    void concurrentAuditWritesStayChained() throws Exception {
+        ExecutorService pool = Executors.newFixedThreadPool(10);
+        try {
+            List<Callable<AuditEvent>> tasks = new ArrayList<>();
+            for (int i = 0; i < 10; i++) {
+                String detail = "client " + i;
+                tasks.add(() -> audit.save(new AuditEvent("coordinator",
+                        "LOGIN_SUCCESS", "User", "USR-001", detail,
+                        LocalDateTime.now())));
+            }
+            for (Future<AuditEvent> future : pool.invokeAll(tasks)) {
+                future.get();
+            }
+        } finally {
+            pool.shutdownNow();
+        }
+
+        ChainVerification result = audit.verifyChain();
+        assertTrue(result.isIntact(), result.toString());
+        assertEquals(10, result.getChecked());
+    }
+
+    @Test
     @DisplayName("TC-MY-20 ten clients saving at once all get different "
             + "codes")
     void concurrentSavesGetUniqueCodes() throws Exception {
@@ -421,6 +496,22 @@ class MySqlRepositoryIntegrationTest {
         } catch (SQLException e) {
             // No drs_test yet, or no MySQL: MySqlDatabase reports which.
         }
+    }
+
+    private void saveAuditTrail(int count) {
+        for (int i = 1; i <= count; i++) {
+            audit.save(new AuditEvent("coordinator", "DECIDE_REPORT",
+                    "DisasterReport", "RPT-000" + i, "VALIDATED",
+                    LocalDateTime.of(2026, 10, 13, 9, i)));
+        }
+    }
+
+    private void execute(String sql) throws Exception {
+        database.withConnection(connection -> {
+            try (Statement statement = connection.createStatement()) {
+                return statement.executeUpdate(sql);
+            }
+        });
     }
 
     private static MySqlSettings testSettings() {
