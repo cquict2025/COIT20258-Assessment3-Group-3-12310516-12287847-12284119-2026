@@ -1,6 +1,5 @@
 package au.edu.cqu.drs.controller;
 
-import au.edu.cqu.drs.AppContext;
 import au.edu.cqu.drs.client.BackgroundCall;
 import au.edu.cqu.drs.client.ClientSession;
 import au.edu.cqu.drs.client.ModuleViewLoader;
@@ -30,7 +29,6 @@ public class MainController {
     public static final String WARNINGS_MISSING =
             "Warnings module not installed";
 
-    private final AppContext context;
     private final RemoteServices services;
     private final Parent view;
 
@@ -42,12 +40,9 @@ public class MainController {
     /**
      * Creates the application shell for the signed-in user.
      *
-     * @param context  the in-process context still used by screens that
-     *                 have not moved to the server
      * @param services the services on the server
      */
-    public MainController(AppContext context, RemoteServices services) {
-        this.context = context;
+    public MainController(RemoteServices services) {
         this.services = services;
         this.view = ViewLoader.load("main.fxml", this);
         User user = services.getSession().getCurrentUser();
@@ -113,9 +108,7 @@ public class MainController {
      * @param session the session, now signed out
      */
     private void showSignIn(ClientSession session) {
-        this.context.setCurrentUser(null);
-        LoginController loginController =
-                new LoginController(this.context, session);
+        LoginController loginController = new LoginController(session);
         Stage stage = (Stage) this.view.getScene().getWindow();
         Scene scene = new Scene(loginController.getView(), 560, 460);
         scene.getStylesheets().add(

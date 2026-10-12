@@ -1,6 +1,5 @@
 package au.edu.cqu.drs.controller;
 
-import au.edu.cqu.drs.AppContext;
 import au.edu.cqu.drs.client.BackgroundCall;
 import au.edu.cqu.drs.client.ClientSession;
 import au.edu.cqu.drs.client.ModuleViewLoader;
@@ -27,7 +26,6 @@ public class LoginController {
     /** View supplied by the warning module for the public. */
     public static final String WARNING_BOARD_VIEW = "warning-board.fxml";
 
-    private final AppContext context;
     private final ClientSession session;
     private final Parent view;
 
@@ -45,12 +43,9 @@ public class LoginController {
     /**
      * Creates the sign-in screen.
      *
-     * @param context the in-process context still used by screens that have
-     *                not moved to the server
      * @param session the session with the server
      */
-    public LoginController(AppContext context, ClientSession session) {
-        this.context = context;
+    public LoginController(ClientSession session) {
         this.session = session;
         this.view = ViewLoader.load("login.fxml", this);
         this.hostField.setText(session.getConnection().getHost());
@@ -96,9 +91,8 @@ public class LoginController {
             focusAffectedField(result.getAffectedField());
             return;
         }
-        this.context.setCurrentUser(result.getValue());
-        MainController mainController = new MainController(this.context,
-                new RemoteServices(this.session));
+        MainController mainController =
+                new MainController(new RemoteServices(this.session));
         Stage stage = (Stage) this.view.getScene().getWindow();
         Scene scene = new Scene(mainController.getView(), 1180, 760);
         scene.getStylesheets().add(

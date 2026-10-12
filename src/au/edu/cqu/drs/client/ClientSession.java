@@ -12,7 +12,7 @@ import au.edu.cqu.drs.service.ServiceResult;
  * The client's sign-in state: the connection to the server, the session
  * token and the signed-in user.
  *
- * <p>It replaces {@code AppContext.currentUser} on the client side, and is
+ * <p>It replaces DRS-Initial's {@code AppContext.currentUser}, and is
  * the {@link ModuleContext} given to module screens, so they share the same
  * connection and session as the core screens.</p>
  */
