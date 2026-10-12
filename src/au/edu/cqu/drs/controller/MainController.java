@@ -72,7 +72,7 @@ public class MainController {
 
     @FXML
     private void showAssessment() {
-        display(new AssessmentController(this.context).getView());
+        display(new AssessmentController(this.services).getView());
     }
 
     @FXML
