@@ -1,6 +1,8 @@
 package au.edu.cqu.drs.controller;
 
 import au.edu.cqu.drs.AppContext;
+import au.edu.cqu.drs.client.ModuleViewLoader;
+import au.edu.cqu.drs.client.UnconnectedModuleContext;
 import au.edu.cqu.drs.util.ViewLoader;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -16,6 +18,13 @@ import javafx.stage.Stage;
  * view in the content area.
  */
 public class MainController {
+
+    /** View supplied by the warning module for staff. */
+    public static final String WARNINGS_VIEW = "warning-main.fxml";
+
+    /** Shown in place of a module screen that is not installed. */
+    public static final String WARNINGS_MISSING =
+            "Warnings module not installed";
 
     private final AppContext context;
     private final Parent view;
@@ -60,6 +69,17 @@ public class MainController {
     @FXML
     private void showFieldUpdate() {
         display(new FieldUpdateController(this.context).getView());
+    }
+
+    /**
+     * Shows the warning module's staff screen, or a message if the module
+     * is not installed.
+     */
+    @FXML
+    private void showWarnings() {
+        display(ModuleViewLoader.loadOrExplain(WARNINGS_VIEW,
+                new UnconnectedModuleContext(this.context.getCurrentUser()),
+                WARNINGS_MISSING));
     }
 
     @FXML
