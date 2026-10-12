@@ -154,8 +154,8 @@ public class MySqlDatabase implements AutoCloseable {
              Statement statement = connection.createStatement()) {
             // The name has been checked to be a plain identifier.
             statement.executeUpdate("CREATE DATABASE IF NOT EXISTS "
-                    + this.settings.getDatabase()
-                    + " CHARACTER SET utf8mb4");
+                    + this.settings.getDatabase() + " "
+                    + MySqlSchema.CHARSET);
         }
     }
 

@@ -30,8 +30,16 @@ public final class MySqlSchema {
             "audit_events", "warnings", "warning_acknowledgements",
             "user_keys");
 
+    /** Character set and collation of the database and every table. */
+    public static final String CHARSET =
+            "CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci";
+
+    /**
+     * The collation is named rather than left to the server default, because
+     * a foreign key between columns with different collations is refused.
+     */
     private static final String TABLE_OPTIONS =
-            " ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+            " ENGINE=InnoDB DEFAULT " + CHARSET;
 
     private static final List<String> STATEMENTS = List.of(
             """
@@ -290,7 +298,7 @@ public final class MySqlSchema {
                 .append("-- The server creates the same tables on start-up.")
                 .append("\n\n")
                 .append("CREATE DATABASE IF NOT EXISTS ").append(databaseName)
-                .append(" CHARACTER SET utf8mb4;\n")
+                .append(' ').append(CHARSET).append(";\n")
                 .append("USE ").append(databaseName).append(";\n");
         for (String statement : STATEMENTS) {
             script.append('\n').append(statement).append(";\n");
