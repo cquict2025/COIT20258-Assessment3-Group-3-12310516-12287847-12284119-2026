@@ -1,6 +1,7 @@
 package au.edu.cqu.drs.controller;
 
-import au.edu.cqu.drs.AppContext;
+import au.edu.cqu.drs.client.BackgroundCall;
+import au.edu.cqu.drs.client.RemoteServices;
 import au.edu.cqu.drs.model.DisasterReport;
 import au.edu.cqu.drs.model.DisasterType;
 import au.edu.cqu.drs.model.DuplicateCandidate;
@@ -34,7 +35,7 @@ import java.util.Optional;
  */
 public class ReportFormController {
 
-    private final AppContext context;
+    private final RemoteServices services;
     private final Parent view;
 
     @FXML
@@ -68,8 +69,14 @@ public class ReportFormController {
     @FXML
     private ListView<String> duplicateList;
 
-    public ReportFormController(AppContext context) {
-        this.context = context;
+    /**
+     * Creates the report form.
+     *
+     * @param services the services on the server; a session that is not
+     *                 signed in is enough for the public form
+     */
+    public ReportFormController(RemoteServices services) {
+        this.services = services;
         this.view = ViewLoader.load("report-form.fxml", this);
         this.typeCombo.setItems(FXCollections
                 .observableArrayList(DisasterType.values()));
@@ -109,9 +116,17 @@ public class ReportFormController {
 
         DisasterReport report = buildReport(observedAt.get(), latitude,
                                             longitude);
-        ServiceResult<DisasterReport> result = this.context.getReportService()
-                .submitReport(report);
+        BackgroundCall.run(this.view,
+                () -> this.services.submitReport(report), this::submitted);
+    }
 
+    /**
+     * Confirms a submitted report and looks for possible duplicates, or
+     * shows why it was refused.
+     *
+     * @param result the saved report, or the failure
+     */
+    private void submitted(ServiceResult<DisasterReport> result) {
         if (result.isFailure()) {
             this.messageLabel.setText(result.getMessage());
             focusField(result.getAffectedField());
@@ -122,8 +137,10 @@ public class ReportFormController {
         this.messageLabel.getStyleClass().setAll("success-label");
         this.messageLabel.setText("Report " + saved.getReportId()
                 + " submitted. Thank you - response staff have been notified.");
-        showDuplicates(saved);
         clearForm();
+        BackgroundCall.run(this.view,
+                () -> this.services.findDuplicateCandidates(saved),
+                this::showDuplicates);
     }
 
     @FXML
@@ -137,12 +154,11 @@ public class ReportFormController {
                         ? 0 : parseCoordinate(this.latitudeField.getText()),
                 parseCoordinate(this.longitudeField.getText()) == null
                         ? 0 : parseCoordinate(this.longitudeField.getText()));
-        ServiceResult<DisasterReport> result = this.context.getReportService()
-                .saveDraft(report);
-        this.messageLabel.setText(result.isSuccess()
-                ? "Draft " + result.getValue()
-                        .getReportId() + " saved. You can complete it later."
-                : result.getMessage());
+        BackgroundCall.run(this.view, () -> this.services.saveDraft(report),
+                result -> this.messageLabel.setText(result.isSuccess()
+                        ? "Draft " + result.getValue().getReportId()
+                                + " saved. You can complete it later."
+                        : result.getMessage()));
     }
 
     @FXML
@@ -169,13 +185,19 @@ public class ReportFormController {
         return report;
     }
 
-    private void showDuplicates(DisasterReport saved) {
-        List<DuplicateCandidate> candidates =
-                this.context.getDuplicateDetectionService()
-                        .findCandidates(saved);
-        if (candidates.isEmpty()) {
+    /**
+     * Lists possible duplicates of the report just saved. Members of the
+     * public are not signed in, so the server refuses the search and
+     * nothing is shown.
+     *
+     * @param result the candidates, or the failure
+     */
+    private void showDuplicates(
+            ServiceResult<List<DuplicateCandidate>> result) {
+        if (result.isFailure() || result.getValue().isEmpty()) {
             return;
         }
+        List<DuplicateCandidate> candidates = result.getValue();
         this.duplicateList.setItems(FXCollections.observableArrayList(
                 candidates.stream()
                         .map(c -> String.format("%s - similarity %.0f%% (%s)",

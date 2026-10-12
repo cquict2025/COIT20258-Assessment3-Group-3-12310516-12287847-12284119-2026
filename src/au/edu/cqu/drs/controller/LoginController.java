@@ -114,8 +114,11 @@ public class LoginController {
      */
     @FXML
     private void handlePublicReport() {
-        ReportFormController controller = new
-                ReportFormController(this.context);
+        if (!applyServerAddress()) {
+            return;
+        }
+        ReportFormController controller = new ReportFormController(
+                new RemoteServices(this.session));
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
         stage.setTitle("Report a disaster");
