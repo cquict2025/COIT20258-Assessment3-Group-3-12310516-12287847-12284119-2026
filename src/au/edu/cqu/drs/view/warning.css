@@ -1,0 +1,75 @@
+/*
+ * Feature 1 stylesheet: the three Australian Warning System levels.
+ * Each colour is always shown next to the level's name, because NFR-06
+ * requires severity to be readable without relying on colour alone.
+ */
+
+.level-badge {
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 3;
+    -fx-font-weight: bold;
+}
+
+.level-advice {
+    -fx-background-color: #f7d417;
+    -fx-text-fill: #1f2933;
+}
+
+.level-watch-and-act {
+    -fx-background-color: #f07f13;
+    -fx-text-fill: #1f2933;
+}
+
+.level-emergency-warning {
+    -fx-background-color: #c8102e;
+    -fx-text-fill: #ffffff;
+}
+
+.warning-card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cbd2d9;
+    -fx-border-width: 1 1 1 8;
+    -fx-padding: 12 14 12 14;
+    -fx-spacing: 6;
+}
+
+.warning-card.card-advice {
+    -fx-border-color: #cbd2d9 #cbd2d9 #cbd2d9 #f7d417;
+}
+
+.warning-card.card-watch-and-act {
+    -fx-border-color: #cbd2d9 #cbd2d9 #cbd2d9 #f07f13;
+}
+
+.warning-card.card-emergency-warning {
+    -fx-border-color: #cbd2d9 #cbd2d9 #cbd2d9 #c8102e;
+}
+
+.card-area {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2933;
+}
+
+.card-action {
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2933;
+    -fx-wrap-text: true;
+}
+
+.card-detail {
+    -fx-text-fill: #3e4c59;
+    -fx-wrap-text: true;
+}
+
+/* A glow rather than a border, so it shows on every control, focused
+   or not. */
+.field-error {
+    -fx-effect: dropshadow(gaussian, #a4161a, 8, 0.6, 0, 0);
+}
+
+.empty-state {
+    -fx-text-fill: #52606d;
+    -fx-font-size: 14px;
+    -fx-padding: 24 0 24 0;
+}
