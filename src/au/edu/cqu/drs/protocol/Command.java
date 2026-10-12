@@ -28,8 +28,8 @@ public enum Command {
 
     /** A member of the public submits a disaster report. */
     SUBMIT_REPORT(false),
-    /** Saves an incomplete report as a draft. */
-    SAVE_DRAFT(true),
+    /** Saves an incomplete report as a draft; open to the public. */
+    SAVE_DRAFT(false),
     /** A coordinator validates, rejects or links a report. */
     DECIDE_REPORT(true),
     /** Lists every report. */

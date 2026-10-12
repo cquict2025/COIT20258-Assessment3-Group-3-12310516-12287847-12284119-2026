@@ -1,8 +1,11 @@
 package au.edu.cqu.drs.controller;
 
-import au.edu.cqu.drs.AppContext;
+import au.edu.cqu.drs.client.BackgroundCall;
+import au.edu.cqu.drs.client.ClientSession;
 import au.edu.cqu.drs.client.ModuleViewLoader;
-import au.edu.cqu.drs.client.UnconnectedModuleContext;
+import au.edu.cqu.drs.client.RemoteServices;
+import au.edu.cqu.drs.model.User;
+import au.edu.cqu.drs.service.ServiceResult;
 import au.edu.cqu.drs.util.ViewLoader;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
@@ -26,7 +29,7 @@ public class MainController {
     public static final String WARNINGS_MISSING =
             "Warnings module not installed";
 
-    private final AppContext context;
+    private final RemoteServices services;
     private final Parent view;
 
     @FXML
@@ -34,11 +37,17 @@ public class MainController {
     @FXML
     private VBox contentArea;
 
-    public MainController(AppContext context) {
-        this.context = context;
+    /**
+     * Creates the application shell for the signed-in user.
+     *
+     * @param services the services on the server
+     */
+    public MainController(RemoteServices services) {
+        this.services = services;
         this.view = ViewLoader.load("main.fxml", this);
-        this.currentUserLabel.setText(context.getCurrentUser().getFullName()
-                + " - " + context.getCurrentUser().getRole().getDisplayName());
+        User user = services.getSession().getCurrentUser();
+        this.currentUserLabel.setText(user.getFullName() + " - "
+                + user.getRole().getDisplayName());
         showDashboard();
     }
 
@@ -48,27 +57,27 @@ public class MainController {
 
     @FXML
     private void showDashboard() {
-        display(new DashboardController(this.context).getView());
+        display(new DashboardController(this.services).getView());
     }
 
     @FXML
     private void showReportForm() {
-        display(new ReportFormController(this.context).getView());
+        display(new ReportFormController(this.services).getView());
     }
 
     @FXML
     private void showAssessment() {
-        display(new AssessmentController(this.context).getView());
+        display(new AssessmentController(this.services).getView());
     }
 
     @FXML
     private void showCoordination() {
-        display(new CoordinationController(this.context).getView());
+        display(new CoordinationController(this.services).getView());
     }
 
     @FXML
     private void showFieldUpdate() {
-        display(new FieldUpdateController(this.context).getView());
+        display(new FieldUpdateController(this.services).getView());
     }
 
     /**
@@ -78,16 +87,30 @@ public class MainController {
     @FXML
     private void showWarnings() {
         display(ModuleViewLoader.loadOrExplain(WARNINGS_VIEW,
-                new UnconnectedModuleContext(this.context.getCurrentUser()),
-                WARNINGS_MISSING));
+                this.services.getSession(), WARNINGS_MISSING));
     }
 
+    /**
+     * Ends the session on the server and returns to the sign-in screen.
+     */
     @FXML
     private void handleSignOut() {
-        this.context.setCurrentUser(null);
-        LoginController loginController = new LoginController(this.context);
+        ClientSession session = this.services.getSession();
+        BackgroundCall.run(this.view, () -> {
+            session.logout();
+            return ServiceResult.success(Boolean.TRUE);
+        }, result -> showSignIn(session));
+    }
+
+    /**
+     * Replaces the main screen with the sign-in screen.
+     *
+     * @param session the session, now signed out
+     */
+    private void showSignIn(ClientSession session) {
+        LoginController loginController = new LoginController(session);
         Stage stage = (Stage) this.view.getScene().getWindow();
-        Scene scene = new Scene(loginController.getView(), 520, 420);
+        Scene scene = new Scene(loginController.getView(), 560, 460);
         scene.getStylesheets().add(
                 getClass().getResource("/au/edu/cqu/drs/view/app.css")
                         .toExternalForm());

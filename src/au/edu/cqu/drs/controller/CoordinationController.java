@@ -1,6 +1,7 @@
 package au.edu.cqu.drs.controller;
 
-import au.edu.cqu.drs.AppContext;
+import au.edu.cqu.drs.client.BackgroundCall;
+import au.edu.cqu.drs.client.RemoteServices;
 import au.edu.cqu.drs.model.AssignmentStatus;
 import au.edu.cqu.drs.model.Department;
 import au.edu.cqu.drs.model.DepartmentAssignment;
@@ -37,7 +38,7 @@ public class CoordinationController {
     private static final DateTimeFormatter TIME_FORMAT =
             DateTimeFormatter.ofPattern("dd/MM HH:mm");
 
-    private final AppContext context;
+    private final RemoteServices services;
     private final Parent view;
 
     private List<Incident> openIncidents = List.of();
@@ -87,8 +88,13 @@ public class CoordinationController {
     @FXML
     private Label messageLabel;
 
-    public CoordinationController(AppContext context) {
-        this.context = context;
+    /**
+     * Creates the coordination screen and loads it from the server.
+     *
+     * @param services the services on the server
+     */
+    public CoordinationController(RemoteServices services) {
+        this.services = services;
         this.view = ViewLoader.load("coordination.fxml", this);
         this.departmentCombo.setItems(FXCollections
                 .observableArrayList(Department.values()));
@@ -109,10 +115,26 @@ public class CoordinationController {
         return this.view;
     }
 
+    /**
+     * Reloads the open incidents from the server.
+     */
     @FXML
     private void handleRefresh() {
-        this.openIncidents = this.context.getIncidentService()
-                .findOpenIncidentsByPriority();
+        BackgroundCall.run(this.view, this.services::findOpenIncidents,
+                this::showIncidents);
+    }
+
+    /**
+     * Lists the open incidents and loads the first one's assignments.
+     *
+     * @param result the open incidents, or the failure
+     */
+    private void showIncidents(ServiceResult<List<Incident>> result) {
+        if (result.isFailure()) {
+            showError(result.getMessage());
+            return;
+        }
+        this.openIncidents = result.getValue();
         this.incidentCombo.setItems(FXCollections.observableArrayList(
                 this.openIncidents.stream().map(Incident::toString).toList()));
         if (!this.openIncidents.isEmpty()) {
@@ -121,16 +143,31 @@ public class CoordinationController {
         loadAssignments();
     }
 
+    /**
+     * Simulates the partner interfaces going down or coming back.
+     */
     @FXML
     private void handleToggleOutage() {
-        this.context.getPartnerGateway()
-                .setAvailable(!this.simulateOutageCheck.isSelected());
-        showHint(this.simulateOutageCheck.isSelected()
-                ? "Partner interfaces are now simulated as unavailable. New "
-                        + "requests will be saved as Delivery failed."
-                : "Partner interfaces are available again.");
+        boolean outage = this.simulateOutageCheck.isSelected();
+        BackgroundCall.run(this.view,
+                () -> this.services.setPartnerAvailable(!outage),
+                result -> {
+                    if (result.isFailure()) {
+                        this.simulateOutageCheck.setSelected(!outage);
+                        showError(result.getMessage());
+                        return;
+                    }
+                    showHint(outage
+                            ? "Partner interfaces are now simulated as "
+                                    + "unavailable. New requests will be "
+                                    + "saved as Delivery failed."
+                            : "Partner interfaces are available again.");
+                });
     }
 
+    /**
+     * Sends a request for help to the chosen department.
+     */
     @FXML
     private void handleCreateAssignment() {
         Incident incident = selectedIncident();
@@ -138,13 +175,23 @@ public class CoordinationController {
             showError("Select an incident first.");
             return;
         }
-        ServiceResult<DepartmentAssignment> result =
-                this.context.getCoordinationService()
-                .createAssignment(this.context.getCurrentUser(),
-                                  incident.getIncidentId(), 
-                        this.departmentCombo.getValue(), this.actionField
-                                .getText(), this.urgencyCombo.getValue());
+        Department department = this.departmentCombo.getValue();
+        String action = this.actionField.getText();
+        String urgency = this.urgencyCombo.getValue();
+        BackgroundCall.run(this.view,
+                () -> this.services.createAssignment(
+                        incident.getIncidentId(), department, action,
+                        urgency),
+                this::assignmentCreated);
+    }
 
+    /**
+     * Confirms a new assignment, or shows why it was refused.
+     *
+     * @param result the assignment, or the failure
+     */
+    private void assignmentCreated(
+            ServiceResult<DepartmentAssignment> result) {
         if (result.isFailure()) {
             showError(result.getMessage());
             loadAssignments();
@@ -157,6 +204,9 @@ public class CoordinationController {
         loadAssignments();
     }
 
+    /**
+     * Sends the selected undelivered request again.
+     */
     @FXML
     private void handleRetry() {
         DepartmentAssignment assignment = selectedAssignment();
@@ -164,20 +214,26 @@ public class CoordinationController {
             showError("Select a request in the table first.");
             return;
         }
-        ServiceResult<DepartmentAssignment> result =
-                this.context.getCoordinationService()
-                .retryDelivery(this.context.getCurrentUser(),
-                               assignment.getAssignmentId());
-        if (result.isFailure()) {
-            showError(result.getMessage());
-        } else {
-            showSuccess("Request " + assignment.getAssignmentId()
-                    + " delivered on attempt "
-                    + result.getValue().getDeliveryAttempts() + ".");
-        }
-        loadAssignments();
+        BackgroundCall.run(this.view,
+                () -> this.services.retryDelivery(
+                        assignment.getAssignmentId()),
+                result -> {
+                    if (result.isFailure()) {
+                        showError(result.getMessage());
+                    } else {
+                        showSuccess("Request "
+                                + assignment.getAssignmentId()
+                                + " delivered on attempt "
+                                + result.getValue().getDeliveryAttempts()
+                                + ".");
+                    }
+                    loadAssignments();
+                });
     }
 
+    /**
+     * Records the liaison's answer to the selected request.
+     */
     @FXML
     private void handleRespond() {
         DepartmentAssignment assignment = selectedAssignment();
@@ -187,13 +243,22 @@ public class CoordinationController {
         }
         LocalDateTime eta = TimeParser.parseToday(this.etaField.getText())
                 .orElse(null);
-        ServiceResult<DepartmentAssignment> result =
-                this.context.getCoordinationService()
-                .respondToAssignment(this.context.getCurrentUser(),
-                                     assignment.getAssignmentId(), 
-                        this.responseCombo.getValue(),
-                                this.reasonField.getText(), eta);
+        AssignmentStatus response = this.responseCombo.getValue();
+        String reason = this.reasonField.getText();
+        BackgroundCall.run(this.view,
+                () -> this.services.respondToAssignment(
+                        assignment.getAssignmentId(), response, reason, eta),
+                result -> responded(assignment, result));
+    }
 
+    /**
+     * Confirms the response, or shows why it was refused.
+     *
+     * @param assignment the request answered
+     * @param result     the updated assignment, or the failure
+     */
+    private void responded(DepartmentAssignment assignment,
+                           ServiceResult<DepartmentAssignment> result) {
         if (result.isFailure()) {
             showError(result.getMessage());
             if ("estimatedArrival".equals(result.getAffectedField())) {
@@ -210,6 +275,9 @@ public class CoordinationController {
         loadAssignments();
     }
 
+    /**
+     * Allocates a resource to the selected request.
+     */
     @FXML
     private void handleAllocate() {
         DepartmentAssignment assignment = selectedAssignment();
@@ -234,18 +302,24 @@ public class CoordinationController {
                 TimeParser.parseToday(this.fromField.getText()).orElse(null),
                 TimeParser.parseToday(this.toField.getText()).orElse(null));
 
-        ServiceResult<ResourceAllocation> result =
-                this.context.getCoordinationService()
-                .allocateResource(this.context.getCurrentUser(), allocation);
-        if (result.isFailure()) {
-            showError(result.getMessage());
-            return;
-        }
-        showSuccess(result.getValue().getResourceName() + " allocated to "
-                + assignment.getAssignmentId() + ".");
-        loadAssignments();
+        BackgroundCall.run(this.view,
+                () -> this.services.allocateResource(allocation),
+                result -> {
+                    if (result.isFailure()) {
+                        showError(result.getMessage());
+                        return;
+                    }
+                    showSuccess(result.getValue().getResourceName()
+                            + " allocated to "
+                            + assignment.getAssignmentId() + ".");
+                    loadAssignments();
+                });
     }
 
+    /**
+     * Loads the selected incident's assignments, then the recommended
+     * departments.
+     */
     private void loadAssignments() {
         Incident incident = selectedIncident();
         if (incident == null) {
@@ -253,12 +327,44 @@ public class CoordinationController {
             this.recommendationLabel.setText("");
             return;
         }
-        this.assignmentTable.setItems(FXCollections.observableArrayList(
-                this.context.getCoordinationService()
-                        .findByIncident(incident.getIncidentId())));
+        BackgroundCall.run(this.view,
+                () -> this.services.findAssignments(incident.getIncidentId()),
+                result -> showAssignments(incident, result));
+    }
 
-        String recommended = this.context.getCoordinationService()
-                .recommendDepartments(incident.getDisasterType()).stream()
+    /**
+     * Shows the assignments and asks for the recommended departments.
+     *
+     * @param incident the incident shown
+     * @param result   its assignments, or the failure
+     */
+    private void showAssignments(Incident incident,
+            ServiceResult<List<DepartmentAssignment>> result) {
+        if (result.isFailure()) {
+            showError(result.getMessage());
+            return;
+        }
+        this.assignmentTable.setItems(FXCollections.observableArrayList(
+                result.getValue()));
+        BackgroundCall.run(this.view,
+                () -> this.services.recommendDepartments(
+                        incident.getDisasterType()),
+                departments -> showRecommendation(incident, departments));
+    }
+
+    /**
+     * Shows the departments recommended for the incident's disaster type.
+     *
+     * @param incident    the incident shown
+     * @param departments the departments, or the failure
+     */
+    private void showRecommendation(Incident incident,
+            ServiceResult<List<Department>> departments) {
+        if (departments.isFailure()) {
+            this.recommendationLabel.setText("");
+            return;
+        }
+        String recommended = departments.getValue().stream()
                 .map(Department::getDisplayName)
                 .collect(Collectors.joining(", "));
         this.recommendationLabel.setText("Recommended departments for a "
