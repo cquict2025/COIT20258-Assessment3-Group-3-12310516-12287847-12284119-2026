@@ -124,5 +124,40 @@
         </java>
     </target>
 
+    <!--
+        Start the DRS server, then one or more clients. "ant run" also starts
+        a client, because the project's main class is ClientLauncher.
+        Options go in the server.args and client.args properties: see
+        README.md for examples, such as running the server headless or
+        pointing a client at another computer.
+    -->
+    <target name="run-server" depends="jar"
+            description="Start the multi-threaded DRS server.">
+        <property name="server.args" value=""/>
+        <java classname="au.edu.cqu.drs.server.ServerLauncher" fork="true"
+              failonerror="true">
+            <classpath path="${run.classpath}"/>
+            <jvmarg value="--module-path"/>
+            <jvmarg path="${javafx.module.path}"/>
+            <jvmarg value="--add-modules"/>
+            <jvmarg value="${javafx.modules}"/>
+            <arg line="${server.args}"/>
+        </java>
+    </target>
+
+    <target name="run-client" depends="jar"
+            description="Start a DRS client; start the server first.">
+        <property name="client.args" value=""/>
+        <java classname="au.edu.cqu.drs.client.ClientLauncher" fork="true"
+              failonerror="true">
+            <classpath path="${run.classpath}"/>
+            <jvmarg value="--module-path"/>
+            <jvmarg path="${javafx.module.path}"/>
+            <jvmarg value="--add-modules"/>
+            <jvmarg value="${javafx.modules}"/>
+            <arg line="${client.args}"/>
+        </java>
+    </target>
+
 </project>
 
