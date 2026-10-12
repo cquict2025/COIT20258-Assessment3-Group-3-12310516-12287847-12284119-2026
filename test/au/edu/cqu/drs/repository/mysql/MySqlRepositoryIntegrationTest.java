@@ -16,6 +16,11 @@ import au.edu.cqu.drs.model.ReportStatus;
 import au.edu.cqu.drs.model.ResourceAllocation;
 import au.edu.cqu.drs.model.User;
 import au.edu.cqu.drs.model.UserRole;
+import au.edu.cqu.drs.model.warning.EvacuationCentre;
+import au.edu.cqu.drs.model.warning.Warning;
+import au.edu.cqu.drs.model.warning.WarningAcknowledgement;
+import au.edu.cqu.drs.model.warning.WarningLevel;
+import au.edu.cqu.drs.model.warning.WarningStatus;
 import au.edu.cqu.drs.security.ChainVerification;
 import au.edu.cqu.drs.security.FieldCipher;
 import org.junit.jupiter.api.AfterAll;
@@ -425,6 +430,64 @@ class MySqlRepositoryIntegrationTest {
     }
 
     @Test
+    @DisplayName("TC-MY-29 warning versions are stored and the newest is "
+            + "returned")
+    void warningVersionsRoundTrip() {
+        MySqlWarningRepository warnings = new MySqlWarningRepository(database);
+        Incident incident = incidents.save(newIncident());
+        Warning first = newWarning(incident);
+        warnings.saveVersion(first);
+        Warning second = first.copy();
+        second.setVersion(2);
+        second.setLevel(WarningLevel.EMERGENCY_WARNING);
+        second.setEvacuationCentre(
+                new EvacuationCentre("Laverton Community Hall", 250));
+        warnings.saveVersion(second);
+        warnings.saveVersion(newWarning(incident));
+
+        Warning latest = warnings.findLatest("WRN-0001").orElseThrow();
+
+        assertEquals("WRN-0001", first.getWarningId());
+        assertEquals(2, latest.getVersion());
+        assertEquals(WarningLevel.EMERGENCY_WARNING, latest.getLevel());
+        assertEquals(250, latest.getEvacuationCentre().getCapacity());
+        assertEquals(2, warnings.findHistory("WRN-0001").size());
+        assertEquals(List.of("WRN-0001", "WRN-0002"),
+                warnings.findLatestVersions().stream()
+                        .map(Warning::getWarningId).toList());
+    }
+
+    @Test
+    @DisplayName("TC-MY-30 the same warning version cannot be saved twice")
+    void duplicateWarningVersionRefused() {
+        MySqlWarningRepository warnings = new MySqlWarningRepository(database);
+        Warning first = warnings.saveVersion(
+                newWarning(incidents.save(newIncident())));
+        Warning clash = first.copy();
+
+        assertThrows(IllegalStateException.class,
+                () -> warnings.saveVersion(clash));
+    }
+
+    @Test
+    @DisplayName("TC-MY-31 a department acknowledges a warning only once")
+    void acknowledgementsAreUniquePerDepartment() {
+        MySqlWarningRepository warnings = new MySqlWarningRepository(database);
+        Warning warning = warnings.saveVersion(
+                newWarning(incidents.save(newIncident())));
+        WarningAcknowledgement ack = new WarningAcknowledgement(
+                warning.getWarningId(), Department.SCHOOLS, "liaison",
+                LocalDateTime.of(2026, 10, 13, 10, 0));
+
+        warnings.saveAcknowledgement(ack);
+
+        assertThrows(IllegalStateException.class,
+                () -> warnings.saveAcknowledgement(ack));
+        assertEquals(Department.SCHOOLS, warnings.findAcknowledgements(
+                warning.getWarningId()).get(0).getDepartment());
+    }
+
+    @Test
     @DisplayName("TC-MY-20 ten clients saving at once all get different "
             + "codes")
     void concurrentSavesGetUniqueCodes() throws Exception {
@@ -496,6 +559,18 @@ class MySqlRepositoryIntegrationTest {
         } catch (SQLException e) {
             // No drs_test yet, or no MySQL: MySqlDatabase reports which.
         }
+    }
+
+    private Warning newWarning(Incident incident) {
+        Warning warning = new Warning(incident.getIncidentId(),
+                WarningLevel.WATCH_AND_ACT, "Laverton, Altona North",
+                "Smoke from a warehouse fire", LocalDateTime.of(2026, 10,
+                        13, 18, 0));
+        warning.setVersion(1);
+        warning.setStatus(WarningStatus.ACTIVE);
+        warning.setIssuedBy("coordinator");
+        warning.setIssuedAt(LocalDateTime.of(2026, 10, 13, 9, 0));
+        return warning;
     }
 
     private void saveAuditTrail(int count) {
