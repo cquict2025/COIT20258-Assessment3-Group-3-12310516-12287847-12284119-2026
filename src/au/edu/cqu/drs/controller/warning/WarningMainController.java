@@ -28,7 +28,10 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -203,6 +206,9 @@ public class WarningMainController {
             fieldError(this.reasonField, "Give a reason for cancelling.");
             return;
         }
+        if (!confirmCancel(selected)) {
+            return;
+        }
         BackgroundCall.run(this.root,
                 () -> this.calls.send(Command.CANCEL_WARNING, Warning.class,
                         WarningKeys.WARNING_ID, selected.getWarningId(),
@@ -231,6 +237,22 @@ public class WarningMainController {
     }
 
     /**
+     * Builds the question asked before a warning is cancelled. It names the
+     * warning, its level and its area, so a coordinator who has the wrong
+     * row selected sees that before anything changes.
+     *
+     * @param warning the warning about to be cancelled
+     * @return the question
+     */
+    static String cancelQuestion(Warning warning) {
+        return String.format("Cancel %s, %s for %s?%n%nThe public will stop "
+                + "seeing it. A cancelled warning cannot be changed or "
+                + "reissued; issue a new one if it is still needed.",
+                warning.getWarningId(), warning.getLevel(),
+                warning.getAffectedArea());
+    }
+
+    /**
      * Describes the controller.
      *
      * @return the screen it drives
@@ -238,6 +260,30 @@ public class WarningMainController {
     @Override
     public String toString() {
         return "WarningMainController: warning-main.fxml";
+    }
+
+    /**
+     * Asks the coordinator to confirm a cancellation.
+     *
+     * @param warning the selected warning
+     * @return true only if they chose to cancel it
+     */
+    private boolean confirmCancel(Warning warning) {
+        ButtonType cancelIt = new ButtonType("Cancel warning",
+                ButtonBar.ButtonData.OK_DONE);
+        ButtonType keepIt = new ButtonType("Keep it",
+                ButtonBar.ButtonData.CANCEL_CLOSE);
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                cancelQuestion(warning), keepIt, cancelIt);
+        alert.setTitle("Cancel warning");
+        alert.setHeaderText("Cancel " + warning.getWarningId() + "?");
+        alert.initOwner(this.root.getScene().getWindow());
+        // "Keep it" is the default, so Enter never cancels a warning.
+        ((Button) alert.getDialogPane().lookupButton(keepIt))
+                .setDefaultButton(true);
+        ((Button) alert.getDialogPane().lookupButton(cancelIt))
+                .setDefaultButton(false);
+        return alert.showAndWait().filter(cancelIt::equals).isPresent();
     }
 
     private void showAcknowledgementScreen() {
