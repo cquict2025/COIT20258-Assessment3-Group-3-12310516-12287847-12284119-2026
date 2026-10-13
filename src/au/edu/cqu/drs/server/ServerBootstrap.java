@@ -1,5 +1,9 @@
 package au.edu.cqu.drs.server;
 
+import au.edu.cqu.drs.server.event.EventBus;
+import au.edu.cqu.drs.server.event.EscalationMonitor;
+import au.edu.cqu.drs.server.event.EventChannel;
+
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
@@ -26,7 +30,10 @@ public class ServerBootstrap implements AutoCloseable {
     private final SessionManager sessions;
     private final ModuleRegistry modules;
     private final AuthorisationPolicy policy;
+    private final EventBus events;
     private final RequestDispatcher dispatcher;
+    private final EventChannel channel;
+    private final EscalationMonitor monitor;
     private final DrsServer server;
     private final ScheduledExecutorService housekeeping;
 
@@ -50,13 +57,21 @@ public class ServerBootstrap implements AutoCloseable {
         }
         this.policy = AuthorisationPolicy.createDefault();
         log.info("Authorisation: " + this.policy);
+        this.events = new EventBus();
         this.dispatcher = new RequestDispatcher(
                 new CoreCommands(this.context, this.sessions).handlers(),
-                this.modules, this.sessions, this.policy, log);
+                this.modules, this.sessions, this.policy, log, this.events,
+                clock);
         int timeoutMillis = (int) Duration
                 .ofMinutes(config.getClientTimeoutMinutes()).toMillis();
         this.server = new DrsServer(this.dispatcher, log, config.getPort(),
                 config.getThreads(), timeoutMillis);
+        this.channel = new EventChannel(this.events, this.sessions, log,
+                clock);
+        this.server.setEventChannel(this.channel);
+        this.monitor = new EscalationMonitor(
+                this.context.getEscalationService(), this.events, clock, log,
+                this.dispatcher);
         this.housekeeping = Executors.newSingleThreadScheduledExecutor(
                 task -> {
                     Thread thread = new Thread(task, "drs-housekeeping");
@@ -73,6 +88,7 @@ public class ServerBootstrap implements AutoCloseable {
     public void start() throws IOException {
         this.log.info("Storage: " + this.context);
         this.server.start();
+        this.monitor.start();
         this.housekeeping.scheduleAtFixedRate(this::purgeSessions,
                 PURGE_MINUTES, PURGE_MINUTES, TimeUnit.MINUTES);
     }
@@ -83,6 +99,8 @@ public class ServerBootstrap implements AutoCloseable {
     @Override
     public void close() {
         this.housekeeping.shutdownNow();
+        this.monitor.close();
+        this.channel.close();
         this.server.stop();
         this.context.close();
     }
@@ -130,6 +148,33 @@ public class ServerBootstrap implements AutoCloseable {
      */
     public RequestDispatcher getDispatcher() {
         return this.dispatcher;
+    }
+
+    /**
+     * Returns the bus that live events are published on.
+     *
+     * @return the event bus
+     */
+    public EventBus getEvents() {
+        return this.events;
+    }
+
+    /**
+     * Returns the channel that pushes live events to clients.
+     *
+     * @return the event channel
+     */
+    public EventChannel getEventChannel() {
+        return this.channel;
+    }
+
+    /**
+     * Returns the monitor that announces changes of escalation state.
+     *
+     * @return the escalation monitor
+     */
+    public EscalationMonitor getMonitor() {
+        return this.monitor;
     }
 
     /**

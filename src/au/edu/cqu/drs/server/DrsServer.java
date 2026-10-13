@@ -1,5 +1,7 @@
 package au.edu.cqu.drs.server;
 
+import au.edu.cqu.drs.server.event.EventChannel;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -39,6 +41,7 @@ public class DrsServer {
     private final AtomicInteger connectedClients;
     private final Set<Socket> openSockets;
     private final List<IntConsumer> countListeners;
+    private volatile EventChannel events;
     private ServerSocket serverSocket;
     private ExecutorService workers;
     private volatile boolean running;
@@ -139,6 +142,16 @@ public class DrsServer {
     }
 
     /**
+     * Sets the channel that connections asking for live events are handed
+     * to; without one, such requests are refused as not installed.
+     *
+     * @param events the event channel
+     */
+    public void setEventChannel(EventChannel events) {
+        this.events = events;
+    }
+
+    /**
      * Adds a listener told the new count whenever a client connects or
      * leaves.
      *
@@ -167,7 +180,7 @@ public class DrsServer {
             try {
                 this.workers.execute(new ClientHandler(socket,
                         this.dispatcher, this.log, this.timeoutMillis,
-                        () -> clientLeft(socket)));
+                        () -> clientLeft(socket), this.events));
             } catch (RejectedExecutionException e) {
                 clientLeft(socket);
                 closeQuietly(socket);

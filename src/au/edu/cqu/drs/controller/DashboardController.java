@@ -2,17 +2,23 @@ package au.edu.cqu.drs.controller;
 
 import au.edu.cqu.drs.client.BackgroundCall;
 import au.edu.cqu.drs.client.RemoteServices;
+import au.edu.cqu.drs.client.event.EventListener;
 import au.edu.cqu.drs.model.EscalationAlert;
+import au.edu.cqu.drs.model.EscalationState;
 import au.edu.cqu.drs.model.Incident;
 import au.edu.cqu.drs.model.Priority;
+import au.edu.cqu.drs.server.event.EventType;
+import au.edu.cqu.drs.server.event.ServerEvent;
 import au.edu.cqu.drs.service.ServiceResult;
 import au.edu.cqu.drs.util.ViewLoader;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 
@@ -21,6 +27,8 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * The prioritised operational dashboard (UC-12, FR-11) and the escalation alert
@@ -28,15 +36,26 @@ import java.util.Map;
  *
  * <p>Priority and escalation state are shown as text as well as colour, because
  * NFR-06 forbids colour as the only carrier of meaning.</p>
+ *
+ * <p>The dashboard is also the live operating picture (Feature 2). It
+ * listens to the server's events: each change made by any user is added to
+ * the activity feed and the tables reload by themselves, the number of
+ * connected users is shown, and a red banner names every incident that has
+ * Breached its target response time.</p>
  */
 public class DashboardController {
 
     private static final String ALL_PRIORITIES = "All priorities";
 
     private final RemoteServices services;
+    private final EventListener events;
     private final Parent view;
+    private final Consumer<ServerEvent> eventHandler;
+    private final Consumer<String> statusHandler;
 
     private Map<String, EscalationAlert> escalationByIncident = Map.of();
+    private boolean refreshing;
+    private boolean refreshQueued;
 
     @FXML
     private ComboBox<String> priorityFilterCombo;
@@ -44,6 +63,14 @@ public class DashboardController {
     private Label countLabel;
     @FXML
     private Label messageLabel;
+    @FXML
+    private Label breachBanner;
+    @FXML
+    private Label liveLabel;
+    @FXML
+    private Label connectedLabel;
+    @FXML
+    private ListView<String> activityList;
     @FXML
     private TableView<Incident> incidentTable;
     @FXML
@@ -76,39 +103,162 @@ public class DashboardController {
     private TableColumn<EscalationAlert, String> alertPercentColumn;
 
     /**
-     * Creates the dashboard and loads it from the server.
+     * Creates the dashboard without live updates and loads it from the
+     * server.
      *
      * @param services the services on the server
      */
     public DashboardController(RemoteServices services) {
+        this(services, null);
+    }
+
+    /**
+     * Creates the dashboard, loads it from the server and starts following
+     * the live events.
+     *
+     * @param services the services on the server
+     * @param events   the live event listener, or null for none
+     */
+    public DashboardController(RemoteServices services,
+                               EventListener events) {
         this.services = services;
+        this.events = events;
+        this.eventHandler = this::onEvent;
+        this.statusHandler = this::showStatus;
         this.view = ViewLoader.load("dashboard.fxml", this);
         configureFilter();
         configureIncidentColumns();
         configureAlertColumns();
+        configureLiveView();
         handleRefresh();
     }
 
+    /**
+     * Returns the dashboard screen.
+     *
+     * @return the view
+     */
     public Parent getView() {
         return this.view;
     }
 
     /**
+     * Stops following the live events; called when another screen
+     * replaces the dashboard.
+     */
+    public void detach() {
+        if (this.events != null) {
+            this.events.removeListener(this.eventHandler);
+            this.events.removeStatusListener(this.statusHandler);
+        }
+    }
+
+    /**
      * Reloads the open incidents, then their escalation state, from the
-     * server.
+     * server, showing the screen as busy.
      */
     @FXML
     private void handleRefresh() {
+        refresh(this.view);
+    }
+
+    /**
+     * Reloads the tables. If a reload is already running, one more runs
+     * when it ends, so a burst of events causes at most two reloads.
+     *
+     * @param busyScreen the screen to show as busy, or null for a quiet
+     *                   reload after a live event
+     */
+    private void refresh(Node busyScreen) {
+        if (this.refreshing) {
+            this.refreshQueued = true;
+            return;
+        }
+        this.refreshing = true;
         String selected = this.priorityFilterCombo.getValue();
         Priority filter = null;
         if (selected != null && !ALL_PRIORITIES.equals(selected)) {
             filter = Priority.valueOf(selected);
         }
         Priority priority = filter;
-        BackgroundCall.run(this.view, () -> priority == null
+        BackgroundCall.run(busyScreen, () -> priority == null
                 ? this.services.findOpenIncidents()
                 : this.services.findOpenIncidents(priority),
                 this::showIncidents);
+    }
+
+    /**
+     * Ends a reload, starting the queued one if events arrived meanwhile.
+     */
+    private void refreshDone() {
+        this.refreshing = false;
+        if (this.refreshQueued) {
+            this.refreshQueued = false;
+            refresh(null);
+        }
+    }
+
+    /**
+     * Shows a live event in the feed and reloads the tables; runs on the
+     * JavaFX thread.
+     *
+     * @param event the event
+     */
+    private void onEvent(ServerEvent event) {
+        if (event.getType() == EventType.CLIENTS) {
+            showClientCount(event.getClientCount());
+            return;
+        }
+        this.activityList.getItems().add(0, event.toFeedLine());
+        int limit = EventListener.RECENT_LIMIT;
+        if (this.activityList.getItems().size() > limit) {
+            this.activityList.getItems().remove(limit,
+                    this.activityList.getItems().size());
+        }
+        refresh(null);
+    }
+
+    /**
+     * Shows the live connection status.
+     *
+     * @param status the status
+     */
+    private void showStatus(String status) {
+        this.liveLabel.setText(status);
+    }
+
+    /**
+     * Shows how many users are receiving live updates.
+     *
+     * @param count the number of clients
+     */
+    private void showClientCount(int count) {
+        if (count <= 0) {
+            this.connectedLabel.setText("");
+            return;
+        }
+        this.connectedLabel.setText("Connected users: " + count);
+    }
+
+    /**
+     * Shows the red banner naming every Breached incident, or hides it.
+     *
+     * @param alerts the at-risk and breached alerts
+     */
+    private void showBreachBanner(List<EscalationAlert> alerts) {
+        List<String> breached = alerts.stream()
+                .filter(alert -> alert.getState()
+                        == EscalationState.BREACHED)
+                .map(alert -> alert.getIncident().getIncidentId())
+                .collect(Collectors.toList());
+        boolean show = !breached.isEmpty();
+        this.breachBanner.setVisible(show);
+        this.breachBanner.setManaged(show);
+        if (show) {
+            this.breachBanner.setText("BREACHED: " + breached.size()
+                    + " incident(s) past their target response time - "
+                    + String.join(", ", breached));
+        }
     }
 
     /**
@@ -119,13 +269,14 @@ public class DashboardController {
     private void showIncidents(ServiceResult<List<Incident>> result) {
         if (result.isFailure()) {
             this.messageLabel.setText(result.getMessage());
+            refreshDone();
             return;
         }
         List<Incident> incidents = result.getValue();
         this.incidentTable.setItems(FXCollections
                 .observableArrayList(incidents));
         this.countLabel.setText(incidents.size() + " open incident(s)");
-        BackgroundCall.run(this.view, this.services::evaluateEscalations,
+        BackgroundCall.run(null, this.services::evaluateEscalations,
                 this::showEscalationColumn);
     }
 
@@ -138,6 +289,7 @@ public class DashboardController {
             ServiceResult<List<EscalationAlert>> result) {
         if (result.isFailure()) {
             this.messageLabel.setText(result.getMessage());
+            refreshDone();
             return;
         }
         Map<String, EscalationAlert> byIncident = new HashMap<>();
@@ -146,7 +298,7 @@ public class DashboardController {
         }
         this.escalationByIncident = byIncident;
         this.incidentTable.refresh();
-        BackgroundCall.run(this.view, this.services::findAlerts,
+        BackgroundCall.run(null, this.services::findAlerts,
                 this::showAlerts);
     }
 
@@ -156,16 +308,36 @@ public class DashboardController {
      * @param result the at-risk and breached alerts, or the failure
      */
     private void showAlerts(ServiceResult<List<EscalationAlert>> result) {
+        refreshDone();
         if (result.isFailure()) {
             this.messageLabel.setText(result.getMessage());
             return;
         }
         this.alertTable.setItems(FXCollections.observableArrayList(
                 result.getValue()));
+        showBreachBanner(result.getValue());
         this.messageLabel.setText(this.alertTable.getItems().isEmpty()
                 ? "No incident has passed 75% of its target response time."
                 : this.alertTable.getItems()
                         .size() + " incident(s) need attention now.");
+    }
+
+    /**
+     * Fills the feed with the events received before this screen opened
+     * and starts following new ones.
+     */
+    private void configureLiveView() {
+        if (this.events == null) {
+            this.liveLabel.setText("Live updates off");
+            return;
+        }
+        for (ServerEvent event : this.events.getRecentEvents()) {
+            this.activityList.getItems().add(event.toFeedLine());
+        }
+        showStatus(this.events.getStatus());
+        showClientCount(this.events.getClientCount());
+        this.events.addListener(this.eventHandler);
+        this.events.addStatusListener(this.statusHandler);
     }
 
     private void configureFilter() {

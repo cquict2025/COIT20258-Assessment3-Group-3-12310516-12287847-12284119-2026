@@ -39,6 +39,16 @@ or start the client with it:
 
     ant run-client "-Dclient.args=192.168.1.20 5050"
 
+### Live operating picture
+
+Once signed in, each client opens a second connection to the server and
+receives every change as it happens. Sign in on two clients and submit a
+report on one: the other's dashboard shows it in **Live activity** and
+reloads its tables by itself. The dashboard also shows the number of
+connected users and a red **BREACHED** banner for incidents past their
+target response time. The server checks escalation once a minute. See
+`docs/design/feature-2-note.md`.
+
 ## Server settings
 
 The defaults are in `src/au/edu/cqu/drs/server/drs-server.properties`. To
@@ -114,10 +124,14 @@ the file to reset the data. With `repository=memory`, nothing is saved.
                               ClientHandler, RequestDispatcher, CoreCommands,
                               SessionManager, ServerContext, ModuleRegistry,
                               AuthorisationPolicy
+        server/event/         live events: ServerEvent, EventBus,
+                              EventChannel, QueuedSubscriber,
+                              EscalationMonitor
         server/modules/       modules.properties: feature modules plugged in
                               by reflection (see docs/design/hooks.md)
         client/               ClientLauncher, ServerConnection, ClientSession,
                               RemoteServices, BackgroundCall, ModuleViewLoader
+        client/event/         EventListener for the live dashboard
         model/                domain classes (Serializable)
         service/              application services (all business rules)
         repository/           data-access interfaces, SQLite and in-memory
