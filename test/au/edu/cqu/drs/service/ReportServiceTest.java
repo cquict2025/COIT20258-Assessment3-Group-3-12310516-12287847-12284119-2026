@@ -52,6 +52,26 @@ class ReportServiceTest {
     }
 
     @Test
+    @DisplayName("TC-RP-12 the reporter's name never reaches the audit log")
+    void reporterNameStaysOutOfAuditLog() {
+        DisasterReport report = fixtures.validReport(DisasterType.FIRE,
+                "Laverton", -37.8636, 144.7700,
+                LocalDateTime.now().minusMinutes(10));
+        report.setReporterName("Priya Shah");
+        report.setReporterContact("0400 111 222");
+
+        DisasterReport saved =
+                fixtures.reportService.submitReport(report).getValue();
+
+        var events = fixtures.auditRepository.findByEntity("DisasterReport",
+                saved.getReportId());
+        assertEquals(1, events.size());
+        assertEquals(ReportService.PUBLIC_ACTOR, events.get(0).getActor());
+        assertTrue(events.stream().noneMatch(e -> e.toString()
+                .contains("Priya") || e.toString().contains("0400")));
+    }
+
+    @Test
     @DisplayName("TC-RP-02 a report with no disaster type is refused and names "
             + "the field")
     void missingTypeIsRefused() {

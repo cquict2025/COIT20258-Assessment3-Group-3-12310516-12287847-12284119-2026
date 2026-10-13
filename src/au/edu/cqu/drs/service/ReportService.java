@@ -19,6 +19,9 @@ import java.util.Optional;
  */
 public class ReportService {
 
+    /** Audit actor for anything submitted by a member of the public. */
+    public static final String PUBLIC_ACTOR = "public";
+
     /**
      * Longest description accepted, so that a single report cannot fill the
      * display.
@@ -100,10 +103,10 @@ public class ReportService {
         report.setStatus(ReportStatus.SUBMITTED);
         report.setSubmittedAt(LocalDateTime.now());
         DisasterReport saved = this.reportRepository.save(report);
-        this.auditService.record(
-                saved.getReporterName() == null || saved.getReporterName()
-                        .isBlank()
-                        ? "public" : saved.getReporterName(),
+        // The actor is always "public": the reporter's name is personal
+        // data that the report store encrypts, so it must not be copied
+        // into the audit log in plain text. The report code links the two.
+        this.auditService.record(PUBLIC_ACTOR,
                 "SUBMIT_REPORT", "DisasterReport", saved.getReportId(),
                 saved.getTypeLabel() + " at " + location.getSuburb());
         return ServiceResult.success(saved);
