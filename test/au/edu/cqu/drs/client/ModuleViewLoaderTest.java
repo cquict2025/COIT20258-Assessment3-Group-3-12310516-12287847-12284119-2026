@@ -32,8 +32,11 @@ class ModuleViewLoaderTest {
     void detectsInstalledViews() {
         assertTrue(ModuleViewLoader.isInstalled("main.fxml"));
         assertTrue(ModuleViewLoader.isInstalled("login.fxml"));
-        assertFalse(ModuleViewLoader.isInstalled("warning-main.fxml"));
-        assertFalse(ModuleViewLoader.isInstalled("warning-board.fxml"));
+        // The warning module (Feature 1) is installed now, so a made-up
+        // file name stands in for a module that is not.
+        assertTrue(ModuleViewLoader.isInstalled("warning-main.fxml"));
+        assertTrue(ModuleViewLoader.isInstalled("warning-board.fxml"));
+        assertFalse(ModuleViewLoader.isInstalled("no-such-module.fxml"));
     }
 
     @Test

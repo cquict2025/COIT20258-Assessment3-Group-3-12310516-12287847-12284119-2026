@@ -189,11 +189,12 @@ class RequestDispatcherTest {
     @DisplayName("TC-RD-08 a command with no installed module is reported "
             + "as unavailable")
     void uninstalledModuleCommand() {
-        String token = ServerTestSupport.login(this.dispatcher,
-                "coordinator");
+        // The warning module is installed now; the import module (W7) is
+        // not yet, so its commands stand in for an uninstalled module.
+        String token = ServerTestSupport.login(this.dispatcher, "admin");
 
         Response response = this.dispatcher.dispatch(
-                new Request(Command.ISSUE_WARNING, token));
+                new Request(Command.IMPORT_AUDIT, token));
 
         assertEquals(ErrorCode.ADAPTER_UNAVAILABLE, response.getErrorCode());
         assertTrue(response.getMessage().contains("not installed"));

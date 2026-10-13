@@ -132,7 +132,9 @@ class AuthorisationPolicyTest {
         assertNotNull(failing);
         assertFalse(failing.isAllowed(user(UserRole.COORDINATOR),
                 Command.LIST_INCIDENTS));
-        assertInstanceOf(RoleBasedPolicy.class,
+        // The security module's AccessMatrix is installed, so the default
+        // is now the matrix; the fallback is covered by the nulls above.
+        assertInstanceOf(AccessMatrixPolicy.class,
                 AuthorisationPolicy.createDefault());
     }
 

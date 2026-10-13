@@ -68,6 +68,13 @@ public class AuthenticationService {
                     "Username or password is incorrect.");
         }
 
+        if (PasswordHasher.needsRehash(user.getPasswordHash())) {
+            // The password is known to be right only now, so this is the
+            // one moment an old SHA-256 hash can be upgraded to PBKDF2.
+            String salt = PasswordHasher.generateSalt();
+            user.setPasswordSalt(salt);
+            user.setPasswordHash(PasswordHasher.hash(password, salt));
+        }
         user.setLastLoginAt(LocalDateTime.now());
         this.userRepository.save(user);
         this.auditService.record(username, "LOGIN_SUCCESS", "User",

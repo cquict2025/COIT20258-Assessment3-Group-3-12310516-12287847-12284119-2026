@@ -6,6 +6,7 @@ import au.edu.cqu.drs.model.Location;
 import au.edu.cqu.drs.model.ReportStatus;
 import au.edu.cqu.drs.repository.ReportRepository;
 import au.edu.cqu.drs.repository.mysql.MySqlSupport.CodeKey;
+import au.edu.cqu.drs.security.FieldCipher;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,7 +15,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/** MySQL adapter for {@link ReportRepository}. */
+/**
+ * MySQL adapter for {@link ReportRepository}.
+ *
+ * <p>When it is given a {@link FieldCipher}, the reporter's name and contact
+ * are encrypted before they are written and decrypted when they are read, so
+ * the database never holds them in plaintext (spec 2.5).</p>
+ */
 public class MySqlReportRepository implements ReportRepository {
 
     private static final List<String> COLUMNS = List.of(
@@ -25,14 +32,28 @@ public class MySqlReportRepository implements ReportRepository {
             "linked_incident_id");
 
     private final MySqlDatabase database;
+    private final FieldCipher cipher;
+
+    /**
+     * Creates the repository without encryption of personal details.
+     *
+     * @param database the pooled MySQL database
+     */
+    public MySqlReportRepository(MySqlDatabase database) {
+        this(database, null);
+    }
 
     /**
      * Creates the repository.
      *
      * @param database the pooled MySQL database
+     * @param cipher   encrypts the reporter's name and contact, or null to
+     *                 store them as they are
      */
-    public MySqlReportRepository(MySqlDatabase database) {
+    public MySqlReportRepository(MySqlDatabase database,
+            FieldCipher cipher) {
         this.database = database;
+        this.cipher = cipher;
     }
 
     /**
@@ -100,7 +121,8 @@ public class MySqlReportRepository implements ReportRepository {
      */
     @Override
     public String toString() {
-        return "MySqlReportRepository: reports";
+        return "MySqlReportRepository: reports, personal details "
+                + (this.cipher == null ? "not encrypted" : "encrypted");
     }
 
     private List<DisasterReport> query(String sql, String parameter) {
@@ -142,8 +164,10 @@ public class MySqlReportRepository implements ReportRepository {
         MySqlSupport.setDateTime(statement, i++, report.getSubmittedAt());
         statement.setString(i++, report.getDescription());
         statement.setString(i++, report.getImmediateRisks());
-        statement.setString(i++, report.getReporterName());
-        statement.setString(i++, report.getReporterContact());
+        statement.setString(i++,
+                seal(report.getReporterName(), "reporter_name"));
+        statement.setString(i++,
+                seal(report.getReporterContact(), "reporter_contact"));
         statement.setString(i++, MySqlSupport.fromEnum(report.getStatus()));
         statement.setString(i++, report.getDecisionReason());
         statement.setString(i, report.getLinkedIncidentId());
@@ -162,12 +186,23 @@ public class MySqlReportRepository implements ReportRepository {
         report.setSubmittedAt(MySqlSupport.getDateTime(rs, "submitted_at"));
         report.setDescription(rs.getString("description"));
         report.setImmediateRisks(rs.getString("immediate_risks"));
-        report.setReporterName(rs.getString("reporter_name"));
-        report.setReporterContact(rs.getString("reporter_contact"));
+        report.setReporterName(open(rs, "reporter_name"));
+        report.setReporterContact(open(rs, "reporter_contact"));
         report.setStatus(MySqlSupport.toEnum(ReportStatus.class,
                 rs.getString("status")));
         report.setDecisionReason(rs.getString("decision_reason"));
         report.setLinkedIncidentId(rs.getString("linked_incident_id"));
         return report;
+    }
+
+    private String seal(String value, String column) {
+        return this.cipher == null ? value
+                : this.cipher.encrypt(value, column);
+    }
+
+    private String open(ResultSet rs, String column) throws SQLException {
+        String stored = rs.getString(column);
+        return this.cipher == null ? stored
+                : this.cipher.decrypt(stored, column);
     }
 }

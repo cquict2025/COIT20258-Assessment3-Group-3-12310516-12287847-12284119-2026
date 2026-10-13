@@ -16,6 +16,13 @@ import au.edu.cqu.drs.model.ReportStatus;
 import au.edu.cqu.drs.model.ResourceAllocation;
 import au.edu.cqu.drs.model.User;
 import au.edu.cqu.drs.model.UserRole;
+import au.edu.cqu.drs.model.warning.EvacuationCentre;
+import au.edu.cqu.drs.model.warning.Warning;
+import au.edu.cqu.drs.model.warning.WarningAcknowledgement;
+import au.edu.cqu.drs.model.warning.WarningLevel;
+import au.edu.cqu.drs.model.warning.WarningStatus;
+import au.edu.cqu.drs.security.ChainVerification;
+import au.edu.cqu.drs.security.FieldCipher;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
@@ -192,6 +199,37 @@ class MySqlRepositoryIntegrationTest {
     }
 
     @Test
+    @DisplayName("TC-MY-23 reporter details are encrypted in the database "
+            + "and readable through the repository")
+    void reporterDetailsAreEncrypted() throws Exception {
+        MySqlReportRepository encrypted = new MySqlReportRepository(database,
+                new FieldCipher(FieldCipher.generateKey()));
+        DisasterReport report = newReport();
+        report.setReporterName("Priya Shah");
+        report.setReporterContact("0400 111 222");
+
+        encrypted.save(report);
+        String[] raw = database.withConnection(connection -> {
+            try (var statement = connection.prepareStatement(
+                    "SELECT reporter_name, reporter_contact FROM reports "
+                            + "WHERE report_id = ?")) {
+                statement.setString(1, report.getReportId());
+                try (var rs = statement.executeQuery()) {
+                    rs.next();
+                    return new String[] {rs.getString(1), rs.getString(2)};
+                }
+            }
+        });
+
+        assertFalse(raw[0].contains("Priya"), raw[0]);
+        assertFalse(raw[1].contains("0400"), raw[1]);
+        DisasterReport loaded =
+                encrypted.findById(report.getReportId()).orElseThrow();
+        assertEquals("Priya Shah", loaded.getReporterName());
+        assertEquals("0400 111 222", loaded.getReporterContact());
+    }
+
+    @Test
     @DisplayName("TC-MY-14 an incident keeps its source report links")
     void incidentKeepsSourceReports() {
         DisasterReport report = reports.save(newReport());
@@ -318,6 +356,138 @@ class MySqlRepositoryIntegrationTest {
     }
 
     @Test
+    @DisplayName("TC-MY-24 an untouched audit chain verifies")
+    void untouchedChainVerifies() {
+        saveAuditTrail(3);
+
+        ChainVerification result = audit.verifyChain();
+
+        assertTrue(result.isIntact(), result.toString());
+        assertEquals(3, result.getChecked());
+    }
+
+    @Test
+    @DisplayName("TC-MY-25 an edited audit row breaks the chain at that row")
+    void editedRowBreaksTheChain() throws Exception {
+        saveAuditTrail(3);
+        execute("UPDATE audit_events SET detail = 'REJECTED' "
+                + "WHERE event_id = 'AUD-00002'");
+
+        ChainVerification result = audit.verifyChain();
+
+        assertFalse(result.isIntact());
+        assertEquals("AUD-00002", result.getFirstBrokenEventId());
+        assertEquals("its content was changed", result.getReason());
+    }
+
+    @Test
+    @DisplayName("TC-MY-26 a deleted audit row breaks the chain at the next "
+            + "row")
+    void deletedRowBreaksTheChain() throws Exception {
+        saveAuditTrail(3);
+        execute("DELETE FROM audit_events WHERE event_id = 'AUD-00002'");
+
+        ChainVerification result = audit.verifyChain();
+
+        assertFalse(result.isIntact());
+        assertEquals("AUD-00003", result.getFirstBrokenEventId());
+    }
+
+    @Test
+    @DisplayName("TC-MY-27 a back-dated time stamp breaks the chain")
+    void changedTimeStampBreaksTheChain() throws Exception {
+        saveAuditTrail(2);
+        execute("UPDATE audit_events SET occurred_at = '2026-01-01 00:00:00'"
+                + " WHERE event_id = 'AUD-00001'");
+
+        assertEquals("AUD-00001",
+                audit.verifyChain().getFirstBrokenEventId());
+    }
+
+    @Test
+    @DisplayName("TC-MY-28 audit rows written by ten clients at once still "
+            + "form one chain")
+    void concurrentAuditWritesStayChained() throws Exception {
+        ExecutorService pool = Executors.newFixedThreadPool(10);
+        try {
+            List<Callable<AuditEvent>> tasks = new ArrayList<>();
+            for (int i = 0; i < 10; i++) {
+                String detail = "client " + i;
+                tasks.add(() -> audit.save(new AuditEvent("coordinator",
+                        "LOGIN_SUCCESS", "User", "USR-001", detail,
+                        LocalDateTime.now())));
+            }
+            for (Future<AuditEvent> future : pool.invokeAll(tasks)) {
+                future.get();
+            }
+        } finally {
+            pool.shutdownNow();
+        }
+
+        ChainVerification result = audit.verifyChain();
+        assertTrue(result.isIntact(), result.toString());
+        assertEquals(10, result.getChecked());
+    }
+
+    @Test
+    @DisplayName("TC-MY-29 warning versions are stored and the newest is "
+            + "returned")
+    void warningVersionsRoundTrip() {
+        MySqlWarningRepository warnings = new MySqlWarningRepository(database);
+        Incident incident = incidents.save(newIncident());
+        Warning first = newWarning(incident);
+        warnings.saveVersion(first);
+        Warning second = first.copy();
+        second.setVersion(2);
+        second.setLevel(WarningLevel.EMERGENCY_WARNING);
+        second.setEvacuationCentre(
+                new EvacuationCentre("Laverton Community Hall", 250));
+        warnings.saveVersion(second);
+        warnings.saveVersion(newWarning(incident));
+
+        Warning latest = warnings.findLatest("WRN-0001").orElseThrow();
+
+        assertEquals("WRN-0001", first.getWarningId());
+        assertEquals(2, latest.getVersion());
+        assertEquals(WarningLevel.EMERGENCY_WARNING, latest.getLevel());
+        assertEquals(250, latest.getEvacuationCentre().getCapacity());
+        assertEquals(2, warnings.findHistory("WRN-0001").size());
+        assertEquals(List.of("WRN-0001", "WRN-0002"),
+                warnings.findLatestVersions().stream()
+                        .map(Warning::getWarningId).toList());
+    }
+
+    @Test
+    @DisplayName("TC-MY-30 the same warning version cannot be saved twice")
+    void duplicateWarningVersionRefused() {
+        MySqlWarningRepository warnings = new MySqlWarningRepository(database);
+        Warning first = warnings.saveVersion(
+                newWarning(incidents.save(newIncident())));
+        Warning clash = first.copy();
+
+        assertThrows(IllegalStateException.class,
+                () -> warnings.saveVersion(clash));
+    }
+
+    @Test
+    @DisplayName("TC-MY-31 a department acknowledges a warning only once")
+    void acknowledgementsAreUniquePerDepartment() {
+        MySqlWarningRepository warnings = new MySqlWarningRepository(database);
+        Warning warning = warnings.saveVersion(
+                newWarning(incidents.save(newIncident())));
+        WarningAcknowledgement ack = new WarningAcknowledgement(
+                warning.getWarningId(), Department.SCHOOLS, "liaison",
+                LocalDateTime.of(2026, 10, 13, 10, 0));
+
+        warnings.saveAcknowledgement(ack);
+
+        assertThrows(IllegalStateException.class,
+                () -> warnings.saveAcknowledgement(ack));
+        assertEquals(Department.SCHOOLS, warnings.findAcknowledgements(
+                warning.getWarningId()).get(0).getDepartment());
+    }
+
+    @Test
     @DisplayName("TC-MY-20 ten clients saving at once all get different "
             + "codes")
     void concurrentSavesGetUniqueCodes() throws Exception {
@@ -389,6 +559,34 @@ class MySqlRepositoryIntegrationTest {
         } catch (SQLException e) {
             // No drs_test yet, or no MySQL: MySqlDatabase reports which.
         }
+    }
+
+    private Warning newWarning(Incident incident) {
+        Warning warning = new Warning(incident.getIncidentId(),
+                WarningLevel.WATCH_AND_ACT, "Laverton, Altona North",
+                "Smoke from a warehouse fire", LocalDateTime.of(2026, 10,
+                        13, 18, 0));
+        warning.setVersion(1);
+        warning.setStatus(WarningStatus.ACTIVE);
+        warning.setIssuedBy("coordinator");
+        warning.setIssuedAt(LocalDateTime.of(2026, 10, 13, 9, 0));
+        return warning;
+    }
+
+    private void saveAuditTrail(int count) {
+        for (int i = 1; i <= count; i++) {
+            audit.save(new AuditEvent("coordinator", "DECIDE_REPORT",
+                    "DisasterReport", "RPT-000" + i, "VALIDATED",
+                    LocalDateTime.of(2026, 10, 13, 9, i)));
+        }
+    }
+
+    private void execute(String sql) throws Exception {
+        database.withConnection(connection -> {
+            try (Statement statement = connection.createStatement()) {
+                return statement.executeUpdate(sql);
+            }
+        });
     }
 
     private static MySqlSettings testSettings() {
