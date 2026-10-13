@@ -122,8 +122,8 @@ class DrsServerTest {
     }
 
     @Test
-    @DisplayName("TC-DS-04 settings reject bad values and MySQL is refused "
-            + "until it is installed")
+    @DisplayName("TC-DS-04 settings reject bad values, MySQL is the "
+            + "default, and an unreachable MySQL stops the start")
     void settingsValidation() throws Exception {
         Properties badPort = ServerConfig.defaults();
         badPort.setProperty("port", "70000");
@@ -131,13 +131,15 @@ class DrsServerTest {
         badBackend.setProperty("repository", "oracle");
         Properties mysql = ServerConfig.defaults();
         mysql.setProperty("repository", "MySQL");
+        mysql.setProperty("mysql.host", "127.0.0.1");
+        mysql.setProperty("mysql.port", "1");
 
         ServerConfig defaults = new ServerConfig(ServerConfig.defaults());
         ServerConfig mysqlConfig = new ServerConfig(mysql);
 
         assertEquals(5050, defaults.getPort());
         assertEquals(32, defaults.getThreads());
-        assertEquals(ServerConfig.Backend.SQLITE, defaults.getBackend());
+        assertEquals(ServerConfig.Backend.MYSQL, defaults.getBackend());
         assertThrows(IllegalArgumentException.class,
                 () -> new ServerConfig(badPort));
         assertThrows(IllegalArgumentException.class,

@@ -16,6 +16,14 @@ import au.edu.cqu.drs.repository.memory.InMemoryIncidentRepository;
 import au.edu.cqu.drs.repository.memory.InMemoryReportRepository;
 import au.edu.cqu.drs.repository.memory.InMemoryUserRepository;
 import au.edu.cqu.drs.repository.memory.SimulatedPartnerGateway;
+import au.edu.cqu.drs.repository.mysql.MySqlAssessmentRepository;
+import au.edu.cqu.drs.repository.mysql.MySqlAssignmentRepository;
+import au.edu.cqu.drs.repository.mysql.MySqlAuditRepository;
+import au.edu.cqu.drs.repository.mysql.MySqlDatabase;
+import au.edu.cqu.drs.repository.mysql.MySqlFieldUpdateRepository;
+import au.edu.cqu.drs.repository.mysql.MySqlIncidentRepository;
+import au.edu.cqu.drs.repository.mysql.MySqlReportRepository;
+import au.edu.cqu.drs.repository.mysql.MySqlUserRepository;
 import au.edu.cqu.drs.repository.sqlite.Database;
 import au.edu.cqu.drs.repository.sqlite.SqliteAssessmentRepository;
 import au.edu.cqu.drs.repository.sqlite.SqliteAssignmentRepository;
@@ -24,6 +32,7 @@ import au.edu.cqu.drs.repository.sqlite.SqliteFieldUpdateRepository;
 import au.edu.cqu.drs.repository.sqlite.SqliteIncidentRepository;
 import au.edu.cqu.drs.repository.sqlite.SqliteReportRepository;
 import au.edu.cqu.drs.repository.sqlite.SqliteUserRepository;
+import au.edu.cqu.drs.security.FieldCipher;
 import au.edu.cqu.drs.service.AssessmentService;
 import au.edu.cqu.drs.service.AuditService;
 import au.edu.cqu.drs.service.AuthenticationService;
@@ -34,21 +43,28 @@ import au.edu.cqu.drs.service.IncidentService;
 import au.edu.cqu.drs.service.ReportService;
 
 import java.time.Clock;
+import java.util.Arrays;
 
 /**
  * Wires the repositories chosen in the {@link ServerConfig} to the existing
  * services, as {@code AppContext} did for the single-user DRS-Initial.
  *
  * <p>The services are unchanged: they depend only on the repository
- * interfaces, so the server can run them on SQLite, in memory, or on MySQL
- * once those adapters are merged. Modules that take a {@code ServerContext}
- * in their constructor receive this object.</p>
+ * interfaces, so the server runs them on MySQL (the default), SQLite, or in
+ * memory (the Strategy pattern, chosen by {@code repository=} in the
+ * settings). On MySQL the reporter's name and contact are encrypted with the
+ * key in the keystore when a keystore password is set. Modules that take a
+ * {@code ServerContext} in their constructor receive this object, and find
+ * the MySQL database and field cipher through
+ * {@link #getMySqlDatabase()} and {@link #getFieldCipher()}.</p>
  */
 public class ServerContext implements AutoCloseable {
 
     private final ServerConfig config;
     private final Clock clock;
     private final Database database;
+    private final MySqlDatabase mySqlDatabase;
+    private final FieldCipher fieldCipher;
     private final UserRepository userRepository;
     private final SimulatedPartnerGateway partnerGateway;
     private final AuditService auditService;
@@ -79,7 +95,27 @@ public class ServerContext implements AutoCloseable {
         FieldUpdateRepository fieldUpdates;
         AuditRepository audit;
         switch (config.getBackend()) {
+            case MYSQL:
+                this.database = null;
+                this.fieldCipher = openCipher(config);
+                this.mySqlDatabase =
+                        new MySqlDatabase(config.getMySqlSettings());
+                this.userRepository =
+                        new MySqlUserRepository(this.mySqlDatabase);
+                reports = new MySqlReportRepository(this.mySqlDatabase,
+                        this.fieldCipher);
+                incidents = new MySqlIncidentRepository(this.mySqlDatabase);
+                assessments =
+                        new MySqlAssessmentRepository(this.mySqlDatabase);
+                assignments =
+                        new MySqlAssignmentRepository(this.mySqlDatabase);
+                fieldUpdates =
+                        new MySqlFieldUpdateRepository(this.mySqlDatabase);
+                audit = new MySqlAuditRepository(this.mySqlDatabase);
+                break;
             case SQLITE:
+                this.mySqlDatabase = null;
+                this.fieldCipher = null;
                 this.database = new Database(config.getDatabaseFile());
                 this.userRepository = new SqliteUserRepository(this.database);
                 reports = new SqliteReportRepository(this.database);
@@ -90,6 +126,8 @@ public class ServerContext implements AutoCloseable {
                 audit = new SqliteAuditRepository(this.database);
                 break;
             case MEMORY:
+                this.mySqlDatabase = null;
+                this.fieldCipher = null;
                 this.database = null;
                 this.userRepository = new InMemoryUserRepository();
                 reports = new InMemoryReportRepository();
@@ -100,9 +138,8 @@ public class ServerContext implements AutoCloseable {
                 audit = new InMemoryAuditRepository();
                 break;
             default:
-                // TODO(W6): switch when Milan's MySQL adapters are merged.
-                throw new IllegalStateException("The MySQL storage is not "
-                        + "available yet. Set repository=sqlite or memory.");
+                throw new IllegalStateException("Unknown storage "
+                        + config.getBackend() + ".");
         }
         this.auditService = new AuditService(audit);
         this.authenticationService =
@@ -140,6 +177,27 @@ public class ServerContext implements AutoCloseable {
      */
     public Clock getClock() {
         return this.clock;
+    }
+
+    /**
+     * Returns the MySQL database; the warning and import modules look this
+     * getter up by name.
+     *
+     * @return the pooled database, or null when not running on MySQL
+     */
+    public MySqlDatabase getMySqlDatabase() {
+        return this.mySqlDatabase;
+    }
+
+    /**
+     * Returns the cipher for personal details; the import module looks
+     * this getter up by name.
+     *
+     * @return the cipher, or null when not on MySQL or no keystore
+     *         password is set
+     */
+    public FieldCipher getFieldCipher() {
+        return this.fieldCipher;
     }
 
     /**
@@ -240,6 +298,30 @@ public class ServerContext implements AutoCloseable {
         if (this.database != null) {
             this.database.close();
         }
+        if (this.mySqlDatabase != null) {
+            this.mySqlDatabase.close();
+        }
+    }
+
+    /**
+     * Opens the field encryption key from the keystore, creating both on
+     * first start.
+     *
+     * @param config the settings
+     * @return the cipher, or null if no keystore password is set
+     * @throws IllegalStateException if the keystore cannot be opened
+     */
+    private static FieldCipher openCipher(ServerConfig config) {
+        if (!config.hasKeystorePassword()) {
+            return null;
+        }
+        char[] password = config.getKeystorePassword();
+        try {
+            return FieldCipher.fromKeyStore(config.getKeystoreFile(),
+                    password);
+        } finally {
+            Arrays.fill(password, ' ');
+        }
     }
 
     /**
@@ -249,6 +331,15 @@ public class ServerContext implements AutoCloseable {
      */
     @Override
     public String toString() {
-        return "ServerContext: " + this.config.getBackend() + " storage";
+        String encryption = "";
+        if (this.mySqlDatabase != null) {
+            encryption = ", personal details in plain text (no keystore "
+                    + "password)";
+            if (this.fieldCipher != null) {
+                encryption = ", personal details encrypted";
+            }
+        }
+        return "ServerContext: " + this.config.getBackend() + " storage"
+                + encryption;
     }
 }
