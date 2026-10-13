@@ -1,0 +1,449 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2015" height="1183" viewBox="0 0 2015 1183" font-family="Arial, Helvetica, sans-serif">
+<rect width="2015" height="1183" fill="#ffffff"/>
+<text x="20" y="34" font-size="20" font-weight="bold" fill="#1f2933">DRS-Enhanced MySQL schema (ERD)</text>
+<text x="20" y="56" font-size="12" fill="#52606d">Generated from sql/schema.sql. PK primary key, FK foreign key, UK unique key. Foreign keys reference each table's readable code (UK). Crow's foot = zero or more; two bars = exactly one; dashed = link kept without a foreign key.</text>
+<path d="M957 139.5 L894.5 139.5 L894.5 484.5 L832 484.5" stroke="#1f2933" fill="none"/>
+<path d="M951 132.5 L951 146.5" stroke="#1f2933"/>
+<path d="M946 132.5 L946 146.5" stroke="#1f2933"/>
+<path d="M832 484.5 L844 477.5 M832 484.5 L844 491.5 M832 484.5 L844 484.5" stroke="#1f2933" fill="none"/>
+<circle cx="850" cy="484.5" r="4" fill="#ffffff" stroke="#1f2933"/>
+<path d="M448 139.5 L430 139.5 L430 501.5 L448 501.5" stroke="#1f2933" fill="none"/>
+<path d="M442 132.5 L442 146.5" stroke="#1f2933"/>
+<path d="M437 132.5 L437 146.5" stroke="#1f2933"/>
+<path d="M448 501.5 L436 494.5 M448 501.5 L436 508.5 M448 501.5 L436 501.5" stroke="#1f2933" fill="none"/>
+<circle cx="430" cy="501.5" r="4" fill="#ffffff" stroke="#1f2933"/>
+<path d="M1180 139.5 L1242.5 139.5 L1242.5 156.5 L1305 156.5" stroke="#1f2933" fill="none"/>
+<path d="M1186 132.5 L1186 146.5" stroke="#1f2933"/>
+<path d="M1191 132.5 L1191 146.5" stroke="#1f2933"/>
+<path d="M1305 156.5 L1293 149.5 M1305 156.5 L1293 163.5 M1305 156.5 L1293 156.5" stroke="#1f2933" fill="none"/>
+<circle cx="1287" cy="156.5" r="4" fill="#ffffff" stroke="#1f2933"/>
+<path d="M1180 139.5 L1242.5 139.5 L1242.5 450.5 L1305 450.5" stroke="#1f2933" fill="none"/>
+<path d="M1186 132.5 L1186 146.5" stroke="#1f2933"/>
+<path d="M1191 132.5 L1191 146.5" stroke="#1f2933"/>
+<path d="M1305 450.5 L1293 443.5 M1305 450.5 L1293 457.5 M1305 450.5 L1293 450.5" stroke="#1f2933" fill="none"/>
+<circle cx="1287" cy="450.5" r="4" fill="#ffffff" stroke="#1f2933"/>
+<path d="M1556 433.5 L1618.5 433.5 L1618.5 450.5 L1681 450.5" stroke="#1f2933" fill="none"/>
+<path d="M1562 426.5 L1562 440.5" stroke="#1f2933"/>
+<path d="M1567 426.5 L1567 440.5" stroke="#1f2933"/>
+<path d="M1681 450.5 L1669 443.5 M1681 450.5 L1669 457.5 M1681 450.5 L1669 450.5" stroke="#1f2933" fill="none"/>
+<circle cx="1663" cy="450.5" r="4" fill="#ffffff" stroke="#1f2933"/>
+<path d="M1180 139.5 L1242.5 139.5 L1242.5 727.5 L1305 727.5" stroke="#1f2933" fill="none"/>
+<path d="M1186 132.5 L1186 146.5" stroke="#1f2933"/>
+<path d="M1191 132.5 L1191 146.5" stroke="#1f2933"/>
+<path d="M1305 727.5 L1293 720.5 M1305 727.5 L1293 734.5 M1305 727.5 L1293 727.5" stroke="#1f2933" fill="none"/>
+<circle cx="1287" cy="727.5" r="4" fill="#ffffff" stroke="#1f2933"/>
+<path d="M1180 139.5 L1242.5 139.5 L1242.5 970.5 L1305 970.5" stroke="#1f2933" fill="none"/>
+<path d="M1186 132.5 L1186 146.5" stroke="#1f2933"/>
+<path d="M1191 132.5 L1191 146.5" stroke="#1f2933"/>
+<path d="M1305 970.5 L1293 963.5 M1305 970.5 L1293 977.5 M1305 970.5 L1293 970.5" stroke="#1f2933" fill="none"/>
+<circle cx="1287" cy="970.5" r="4" fill="#ffffff" stroke="#1f2933"/>
+<path d="M20 139.5 L2 139.5 L2 365.5 L20 365.5" stroke="#1f2933" fill="none"/>
+<path d="M14 132.5 L14 146.5" stroke="#1f2933"/>
+<path d="M9 132.5 L9 146.5" stroke="#1f2933"/>
+<path d="M20 365.5 L8 358.5 M20 365.5 L8 372.5 M20 365.5 L8 365.5" stroke="#1f2933" fill="none"/>
+<circle cx="2" cy="365.5" r="4" fill="#ffffff" stroke="#1f2933"/>
+<path d="M957 105.0 L894.5 105.0 L894.5 394.5 L832 394.5" stroke="#1f2933" fill="none" stroke-dasharray="6 4"/>
+<path d="M951 98.0 L951 112.0" stroke="#1f2933"/>
+<circle cx="943" cy="105.0" r="4" fill="#ffffff" stroke="#1f2933"/>
+<path d="M832 394.5 L844 387.5 M832 394.5 L844 401.5 M832 394.5 L844 394.5" stroke="#1f2933" fill="none"/>
+<circle cx="850" cy="394.5" r="4" fill="#ffffff" stroke="#1f2933"/>
+<path d="M1556 902.0 L1618.5 902.0 L1618.5 936.5 L1681 936.5" stroke="#1f2933" fill="none" stroke-dasharray="6 4"/>
+<path d="M1562 895.0 L1562 909.0" stroke="#1f2933"/>
+<circle cx="1570" cy="902.0" r="4" fill="#ffffff" stroke="#1f2933"/>
+<path d="M1681 936.5 L1669 929.5 M1681 936.5 L1669 943.5 M1681 936.5 L1669 936.5" stroke="#1f2933" fill="none"/>
+<circle cx="1663" cy="936.5" r="4" fill="#ffffff" stroke="#1f2933"/>
+<rect x="20" y="90" width="303" height="198" fill="#ffffff" stroke="#52606d" stroke-width="1.2"/>
+<rect x="20" y="90" width="303" height="24" fill="#1f2d3d"/>
+<text x="28" y="106" fill="#ffffff" font-weight="bold" font-size="13">users</text>
+<text x="28" y="126.5" font-size="10.5" fill="#7b8794">bigint</text>
+<text x="82" y="126.5" font-size="11.5" fill="#1f2933" font-weight="bold">id</text>
+<text x="315" y="126.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">PK</text>
+<rect x="21" y="131" width="301" height="17" fill="#f2f4f7"/>
+<text x="28" y="143.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="82" y="143.5" font-size="11.5" fill="#1f2933" font-weight="bold">user_id</text>
+<text x="315" y="143.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">UK</text>
+<text x="28" y="160.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="82" y="160.5" font-size="11.5" fill="#1f2933" font-weight="bold">username</text>
+<text x="315" y="160.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">UK</text>
+<rect x="21" y="165" width="301" height="17" fill="#f2f4f7"/>
+<text x="28" y="177.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="82" y="177.5" font-size="11.5" fill="#1f2933">full_name</text>
+<text x="28" y="194.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="82" y="194.5" font-size="11.5" fill="#1f2933">role</text>
+<rect x="21" y="199" width="301" height="17" fill="#f2f4f7"/>
+<text x="28" y="211.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="82" y="211.5" font-size="11.5" fill="#1f2933">department</text>
+<text x="28" y="228.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="82" y="228.5" font-size="11.5" fill="#1f2933">password_salt</text>
+<rect x="21" y="233" width="301" height="17" fill="#f2f4f7"/>
+<text x="28" y="245.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="82" y="245.5" font-size="11.5" fill="#1f2933">password_hash</text>
+<text x="315" y="245.5" font-size="10" fill="#c2410c" text-anchor="end">PBKDF2-HMAC-SHA256</text>
+<text x="28" y="262.5" font-size="10.5" fill="#7b8794">boolean</text>
+<text x="82" y="262.5" font-size="11.5" fill="#1f2933">active</text>
+<rect x="21" y="267" width="301" height="17" fill="#f2f4f7"/>
+<text x="28" y="279.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="82" y="279.5" font-size="11.5" fill="#1f2933">last_login_at</text>
+<rect x="448" y="90" width="384" height="317" fill="#ffffff" stroke="#52606d" stroke-width="1.2"/>
+<rect x="448" y="90" width="384" height="24" fill="#1f2d3d"/>
+<text x="456" y="106" fill="#ffffff" font-weight="bold" font-size="13">reports</text>
+<text x="456" y="126.5" font-size="10.5" fill="#7b8794">bigint</text>
+<text x="510" y="126.5" font-size="11.5" fill="#1f2933" font-weight="bold">id</text>
+<text x="824" y="126.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">PK</text>
+<rect x="449" y="131" width="382" height="17" fill="#f2f4f7"/>
+<text x="456" y="143.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="510" y="143.5" font-size="11.5" fill="#1f2933" font-weight="bold">report_id</text>
+<text x="824" y="143.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">UK</text>
+<text x="456" y="160.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="510" y="160.5" font-size="11.5" fill="#1f2933">disaster_type</text>
+<rect x="449" y="165" width="382" height="17" fill="#f2f4f7"/>
+<text x="456" y="177.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="510" y="177.5" font-size="11.5" fill="#1f2933">other_type_description</text>
+<text x="456" y="194.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="510" y="194.5" font-size="11.5" fill="#1f2933">address_line</text>
+<rect x="449" y="199" width="382" height="17" fill="#f2f4f7"/>
+<text x="456" y="211.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="510" y="211.5" font-size="11.5" fill="#1f2933">suburb</text>
+<text x="456" y="228.5" font-size="10.5" fill="#7b8794">double</text>
+<text x="510" y="228.5" font-size="11.5" fill="#1f2933">latitude</text>
+<rect x="449" y="233" width="382" height="17" fill="#f2f4f7"/>
+<text x="456" y="245.5" font-size="10.5" fill="#7b8794">double</text>
+<text x="510" y="245.5" font-size="11.5" fill="#1f2933">longitude</text>
+<text x="456" y="262.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="510" y="262.5" font-size="11.5" fill="#1f2933">observed_at</text>
+<rect x="449" y="267" width="382" height="17" fill="#f2f4f7"/>
+<text x="456" y="279.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="510" y="279.5" font-size="11.5" fill="#1f2933">submitted_at</text>
+<text x="456" y="296.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="510" y="296.5" font-size="11.5" fill="#1f2933">description</text>
+<rect x="449" y="301" width="382" height="17" fill="#f2f4f7"/>
+<text x="456" y="313.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="510" y="313.5" font-size="11.5" fill="#1f2933">immediate_risks</text>
+<text x="456" y="330.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="510" y="330.5" font-size="11.5" fill="#1f2933">reporter_name</text>
+<text x="824" y="330.5" font-size="10" fill="#c2410c" text-anchor="end">AES-256-GCM encrypted</text>
+<rect x="449" y="335" width="382" height="17" fill="#f2f4f7"/>
+<text x="456" y="347.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="510" y="347.5" font-size="11.5" fill="#1f2933">reporter_contact</text>
+<text x="824" y="347.5" font-size="10" fill="#c2410c" text-anchor="end">AES-256-GCM encrypted</text>
+<text x="456" y="364.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="510" y="364.5" font-size="11.5" fill="#1f2933">status</text>
+<rect x="449" y="369" width="382" height="17" fill="#f2f4f7"/>
+<text x="456" y="381.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="510" y="381.5" font-size="11.5" fill="#1f2933">decision_reason</text>
+<text x="456" y="398.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="510" y="398.5" font-size="11.5" fill="#1f2933">linked_incident_id</text>
+<rect x="957" y="90" width="223" height="300" fill="#ffffff" stroke="#52606d" stroke-width="1.2"/>
+<rect x="957" y="90" width="223" height="24" fill="#1f2d3d"/>
+<text x="965" y="106" fill="#ffffff" font-weight="bold" font-size="13">incidents</text>
+<text x="965" y="126.5" font-size="10.5" fill="#7b8794">bigint</text>
+<text x="1019" y="126.5" font-size="11.5" fill="#1f2933" font-weight="bold">id</text>
+<text x="1172" y="126.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">PK</text>
+<rect x="958" y="131" width="221" height="17" fill="#f2f4f7"/>
+<text x="965" y="143.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1019" y="143.5" font-size="11.5" fill="#1f2933" font-weight="bold">incident_id</text>
+<text x="1172" y="143.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">UK</text>
+<text x="965" y="160.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1019" y="160.5" font-size="11.5" fill="#1f2933">title</text>
+<rect x="958" y="165" width="221" height="17" fill="#f2f4f7"/>
+<text x="965" y="177.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1019" y="177.5" font-size="11.5" fill="#1f2933">disaster_type</text>
+<text x="965" y="194.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1019" y="194.5" font-size="11.5" fill="#1f2933">address_line</text>
+<rect x="958" y="199" width="221" height="17" fill="#f2f4f7"/>
+<text x="965" y="211.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1019" y="211.5" font-size="11.5" fill="#1f2933">suburb</text>
+<text x="965" y="228.5" font-size="10.5" fill="#7b8794">double</text>
+<text x="1019" y="228.5" font-size="11.5" fill="#1f2933">latitude</text>
+<rect x="958" y="233" width="221" height="17" fill="#f2f4f7"/>
+<text x="965" y="245.5" font-size="10.5" fill="#7b8794">double</text>
+<text x="1019" y="245.5" font-size="11.5" fill="#1f2933">longitude</text>
+<text x="965" y="262.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1019" y="262.5" font-size="11.5" fill="#1f2933">status</text>
+<rect x="958" y="267" width="221" height="17" fill="#f2f4f7"/>
+<text x="965" y="279.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1019" y="279.5" font-size="11.5" fill="#1f2933">priority</text>
+<text x="965" y="296.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="1019" y="296.5" font-size="11.5" fill="#1f2933">created_at</text>
+<rect x="958" y="301" width="221" height="17" fill="#f2f4f7"/>
+<text x="965" y="313.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="1019" y="313.5" font-size="11.5" fill="#1f2933">first_response_at</text>
+<text x="965" y="330.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="1019" y="330.5" font-size="11.5" fill="#1f2933">closed_at</text>
+<rect x="958" y="335" width="221" height="17" fill="#f2f4f7"/>
+<text x="965" y="347.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="1019" y="347.5" font-size="11.5" fill="#1f2933">closure_outcome</text>
+<text x="965" y="364.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="1019" y="364.5" font-size="11.5" fill="#1f2933">residual_risks</text>
+<rect x="958" y="369" width="221" height="17" fill="#f2f4f7"/>
+<text x="965" y="381.5" font-size="10.5" fill="#7b8794">int</text>
+<text x="1019" y="381.5" font-size="11.5" fill="#1f2933">version</text>
+<rect x="448" y="435" width="384" height="79" fill="#ffffff" stroke="#52606d" stroke-width="1.2"/>
+<rect x="448" y="435" width="384" height="24" fill="#1f2d3d"/>
+<text x="456" y="451" fill="#ffffff" font-weight="bold" font-size="13">incident_reports</text>
+<text x="456" y="471.5" font-size="10.5" fill="#7b8794">bigint</text>
+<text x="510" y="471.5" font-size="11.5" fill="#1f2933" font-weight="bold">id</text>
+<text x="824" y="471.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">PK</text>
+<rect x="449" y="476" width="382" height="17" fill="#f2f4f7"/>
+<text x="456" y="488.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="510" y="488.5" font-size="11.5" fill="#1f2933" font-weight="bold">incident_id</text>
+<text x="824" y="488.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">FK</text>
+<text x="456" y="505.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="510" y="505.5" font-size="11.5" fill="#1f2933" font-weight="bold">report_id</text>
+<text x="824" y="505.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">FK</text>
+<rect x="1305" y="90" width="251" height="266" fill="#ffffff" stroke="#52606d" stroke-width="1.2"/>
+<rect x="1305" y="90" width="251" height="24" fill="#1f2d3d"/>
+<text x="1313" y="106" fill="#ffffff" font-weight="bold" font-size="13">assessments</text>
+<text x="1313" y="126.5" font-size="10.5" fill="#7b8794">bigint</text>
+<text x="1367" y="126.5" font-size="11.5" fill="#1f2933" font-weight="bold">id</text>
+<text x="1548" y="126.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">PK</text>
+<rect x="1306" y="131" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="143.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="143.5" font-size="11.5" fill="#1f2933" font-weight="bold">assessment_id</text>
+<text x="1548" y="143.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">UK</text>
+<text x="1313" y="160.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="160.5" font-size="11.5" fill="#1f2933" font-weight="bold">incident_id</text>
+<text x="1548" y="160.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">FK</text>
+<rect x="1306" y="165" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="177.5" font-size="10.5" fill="#7b8794">int</text>
+<text x="1367" y="177.5" font-size="11.5" fill="#1f2933">threat_to_life</text>
+<text x="1313" y="194.5" font-size="10.5" fill="#7b8794">int</text>
+<text x="1367" y="194.5" font-size="11.5" fill="#1f2933">scale</text>
+<rect x="1306" y="199" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="211.5" font-size="10.5" fill="#7b8794">int</text>
+<text x="1367" y="211.5" font-size="11.5" fill="#1f2933">infrastructure_impact</text>
+<text x="1313" y="228.5" font-size="10.5" fill="#7b8794">int</text>
+<text x="1367" y="228.5" font-size="11.5" fill="#1f2933">source_confidence</text>
+<rect x="1306" y="233" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="245.5" font-size="10.5" fill="#7b8794">int</text>
+<text x="1367" y="245.5" font-size="11.5" fill="#1f2933">calculated_score</text>
+<text x="1313" y="262.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="262.5" font-size="11.5" fill="#1f2933">recommended_priority</text>
+<rect x="1306" y="267" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="279.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="279.5" font-size="11.5" fill="#1f2933">confirmed_priority</text>
+<text x="1313" y="296.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="1367" y="296.5" font-size="11.5" fill="#1f2933">override_reason</text>
+<rect x="1306" y="301" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="313.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="313.5" font-size="11.5" fill="#1f2933">assessed_by</text>
+<text x="1313" y="330.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="1367" y="330.5" font-size="11.5" fill="#1f2933">assessed_at</text>
+<rect x="1306" y="335" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="347.5" font-size="10.5" fill="#7b8794">int</text>
+<text x="1367" y="347.5" font-size="11.5" fill="#1f2933">version</text>
+<rect x="1305" y="384" width="251" height="249" fill="#ffffff" stroke="#52606d" stroke-width="1.2"/>
+<rect x="1305" y="384" width="251" height="24" fill="#1f2d3d"/>
+<text x="1313" y="400" fill="#ffffff" font-weight="bold" font-size="13">assignments</text>
+<text x="1313" y="420.5" font-size="10.5" fill="#7b8794">bigint</text>
+<text x="1367" y="420.5" font-size="11.5" fill="#1f2933" font-weight="bold">id</text>
+<text x="1548" y="420.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">PK</text>
+<rect x="1306" y="425" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="437.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="437.5" font-size="11.5" fill="#1f2933" font-weight="bold">assignment_id</text>
+<text x="1548" y="437.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">UK</text>
+<text x="1313" y="454.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="454.5" font-size="11.5" fill="#1f2933" font-weight="bold">incident_id</text>
+<text x="1548" y="454.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">FK</text>
+<rect x="1306" y="459" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="471.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="471.5" font-size="11.5" fill="#1f2933">department</text>
+<text x="1313" y="488.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="1367" y="488.5" font-size="11.5" fill="#1f2933">requested_action</text>
+<rect x="1306" y="493" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="505.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="505.5" font-size="11.5" fill="#1f2933">urgency</text>
+<text x="1313" y="522.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="1367" y="522.5" font-size="11.5" fill="#1f2933">target_response_by</text>
+<rect x="1306" y="527" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="539.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="539.5" font-size="11.5" fill="#1f2933">status</text>
+<text x="1313" y="556.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="1367" y="556.5" font-size="11.5" fill="#1f2933">created_at</text>
+<rect x="1306" y="561" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="573.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="1367" y="573.5" font-size="11.5" fill="#1f2933">responded_at</text>
+<text x="1313" y="590.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="1367" y="590.5" font-size="11.5" fill="#1f2933">response_reason</text>
+<rect x="1306" y="595" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="607.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="1367" y="607.5" font-size="11.5" fill="#1f2933">estimated_arrival</text>
+<text x="1313" y="624.5" font-size="10.5" fill="#7b8794">int</text>
+<text x="1367" y="624.5" font-size="11.5" fill="#1f2933">delivery_attempts</text>
+<rect x="1681" y="384" width="209" height="181" fill="#ffffff" stroke="#52606d" stroke-width="1.2"/>
+<rect x="1681" y="384" width="209" height="24" fill="#1f2d3d"/>
+<text x="1689" y="400" fill="#ffffff" font-weight="bold" font-size="13">allocations</text>
+<text x="1689" y="420.5" font-size="10.5" fill="#7b8794">bigint</text>
+<text x="1743" y="420.5" font-size="11.5" fill="#1f2933" font-weight="bold">id</text>
+<text x="1882" y="420.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">PK</text>
+<rect x="1682" y="425" width="207" height="17" fill="#f2f4f7"/>
+<text x="1689" y="437.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1743" y="437.5" font-size="11.5" fill="#1f2933" font-weight="bold">allocation_id</text>
+<text x="1882" y="437.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">UK</text>
+<text x="1689" y="454.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1743" y="454.5" font-size="11.5" fill="#1f2933" font-weight="bold">assignment_id</text>
+<text x="1882" y="454.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">FK</text>
+<rect x="1682" y="459" width="207" height="17" fill="#f2f4f7"/>
+<text x="1689" y="471.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1743" y="471.5" font-size="11.5" fill="#1f2933">resource_name</text>
+<text x="1689" y="488.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1743" y="488.5" font-size="11.5" fill="#1f2933">department</text>
+<rect x="1682" y="493" width="207" height="17" fill="#f2f4f7"/>
+<text x="1689" y="505.5" font-size="10.5" fill="#7b8794">int</text>
+<text x="1743" y="505.5" font-size="11.5" fill="#1f2933">quantity</text>
+<text x="1689" y="522.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="1743" y="522.5" font-size="11.5" fill="#1f2933">available_from</text>
+<rect x="1682" y="527" width="207" height="17" fill="#f2f4f7"/>
+<text x="1689" y="539.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="1743" y="539.5" font-size="11.5" fill="#1f2933">available_to</text>
+<text x="1689" y="556.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1743" y="556.5" font-size="11.5" fill="#1f2933">staging_point</text>
+<rect x="1305" y="661" width="251" height="198" fill="#ffffff" stroke="#52606d" stroke-width="1.2"/>
+<rect x="1305" y="661" width="251" height="24" fill="#1f2d3d"/>
+<text x="1313" y="677" fill="#ffffff" font-weight="bold" font-size="13">field_updates</text>
+<text x="1313" y="697.5" font-size="10.5" fill="#7b8794">bigint</text>
+<text x="1367" y="697.5" font-size="11.5" fill="#1f2933" font-weight="bold">id</text>
+<text x="1548" y="697.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">PK</text>
+<rect x="1306" y="702" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="714.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="714.5" font-size="11.5" fill="#1f2933" font-weight="bold">update_id</text>
+<text x="1548" y="714.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">UK</text>
+<text x="1313" y="731.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="731.5" font-size="11.5" fill="#1f2933" font-weight="bold">incident_id</text>
+<text x="1548" y="731.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">FK</text>
+<rect x="1306" y="736" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="748.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="748.5" font-size="11.5" fill="#1f2933">submitted_by</text>
+<text x="1313" y="765.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="1367" y="765.5" font-size="11.5" fill="#1f2933">submitted_at</text>
+<rect x="1306" y="770" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="782.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="1367" y="782.5" font-size="11.5" fill="#1f2933">progress_note</text>
+<text x="1313" y="799.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="1367" y="799.5" font-size="11.5" fill="#1f2933">observed_impact</text>
+<rect x="1306" y="804" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="816.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="1367" y="816.5" font-size="11.5" fill="#1f2933">resource_needs</text>
+<text x="1313" y="833.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="1367" y="833.5" font-size="11.5" fill="#1f2933">next_review_at</text>
+<rect x="1306" y="838" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="850.5" font-size="10.5" fill="#7b8794">int</text>
+<text x="1367" y="850.5" font-size="11.5" fill="#1f2933">incident_version_seen</text>
+<rect x="20" y="457" width="303" height="215" fill="#ffffff" stroke="#52606d" stroke-width="1.2"/>
+<rect x="20" y="457" width="303" height="24" fill="#1f2d3d"/>
+<text x="28" y="473" fill="#ffffff" font-weight="bold" font-size="13">audit_events</text>
+<text x="28" y="493.5" font-size="10.5" fill="#7b8794">bigint</text>
+<text x="82" y="493.5" font-size="11.5" fill="#1f2933" font-weight="bold">id</text>
+<text x="315" y="493.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">PK</text>
+<rect x="21" y="498" width="301" height="17" fill="#f2f4f7"/>
+<text x="28" y="510.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="82" y="510.5" font-size="11.5" fill="#1f2933" font-weight="bold">event_id</text>
+<text x="315" y="510.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">UK</text>
+<text x="28" y="527.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="82" y="527.5" font-size="11.5" fill="#1f2933">actor</text>
+<rect x="21" y="532" width="301" height="17" fill="#f2f4f7"/>
+<text x="28" y="544.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="82" y="544.5" font-size="11.5" fill="#1f2933">action</text>
+<text x="28" y="561.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="82" y="561.5" font-size="11.5" fill="#1f2933">entity_type</text>
+<rect x="21" y="566" width="301" height="17" fill="#f2f4f7"/>
+<text x="28" y="578.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="82" y="578.5" font-size="11.5" fill="#1f2933">entity_id</text>
+<text x="28" y="595.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="82" y="595.5" font-size="11.5" fill="#1f2933">detail</text>
+<rect x="21" y="600" width="301" height="17" fill="#f2f4f7"/>
+<text x="28" y="612.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="82" y="612.5" font-size="11.5" fill="#1f2933">occurred_at</text>
+<text x="28" y="629.5" font-size="10.5" fill="#7b8794">char</text>
+<text x="82" y="629.5" font-size="11.5" fill="#1f2933">previous_hash</text>
+<text x="315" y="629.5" font-size="10" fill="#c2410c" text-anchor="end">hash chain</text>
+<rect x="21" y="634" width="301" height="17" fill="#f2f4f7"/>
+<text x="28" y="646.5" font-size="10.5" fill="#7b8794">char</text>
+<text x="82" y="646.5" font-size="11.5" fill="#1f2933">entry_hash</text>
+<text x="315" y="646.5" font-size="10" fill="#c2410c" text-anchor="end">hash chain</text>
+<text x="28" y="663.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="82" y="663.5" font-size="11.5" fill="#1f2933">signature</text>
+<rect x="1305" y="887" width="251" height="266" fill="#ffffff" stroke="#52606d" stroke-width="1.2"/>
+<rect x="1305" y="887" width="251" height="24" fill="#1f2d3d"/>
+<text x="1313" y="903" fill="#ffffff" font-weight="bold" font-size="13">warnings</text>
+<text x="1313" y="923.5" font-size="10.5" fill="#7b8794">bigint</text>
+<text x="1367" y="923.5" font-size="11.5" fill="#1f2933" font-weight="bold">id</text>
+<text x="1548" y="923.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">PK</text>
+<rect x="1306" y="928" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="940.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="940.5" font-size="11.5" fill="#1f2933">warning_id</text>
+<text x="1313" y="957.5" font-size="10.5" fill="#7b8794">int</text>
+<text x="1367" y="957.5" font-size="11.5" fill="#1f2933">version</text>
+<rect x="1306" y="962" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="974.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="974.5" font-size="11.5" fill="#1f2933" font-weight="bold">incident_id</text>
+<text x="1548" y="974.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">FK</text>
+<text x="1313" y="991.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="991.5" font-size="11.5" fill="#1f2933">level</text>
+<rect x="1306" y="996" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="1008.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="1008.5" font-size="11.5" fill="#1f2933">affected_area</text>
+<text x="1313" y="1025.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="1367" y="1025.5" font-size="11.5" fill="#1f2933">message</text>
+<rect x="1306" y="1030" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="1042.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="1367" y="1042.5" font-size="11.5" fill="#1f2933">recommended_action</text>
+<text x="1313" y="1059.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="1059.5" font-size="11.5" fill="#1f2933">evacuation_centre</text>
+<rect x="1306" y="1064" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="1076.5" font-size="10.5" fill="#7b8794">int</text>
+<text x="1367" y="1076.5" font-size="11.5" fill="#1f2933">evacuation_capacity</text>
+<text x="1313" y="1093.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="1093.5" font-size="11.5" fill="#1f2933">status</text>
+<rect x="1306" y="1098" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="1110.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1367" y="1110.5" font-size="11.5" fill="#1f2933">issued_by</text>
+<text x="1313" y="1127.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="1367" y="1127.5" font-size="11.5" fill="#1f2933">issued_at</text>
+<rect x="1306" y="1132" width="249" height="17" fill="#f2f4f7"/>
+<text x="1313" y="1144.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="1367" y="1144.5" font-size="11.5" fill="#1f2933">expires_at</text>
+<rect x="1681" y="887" width="209" height="113" fill="#ffffff" stroke="#52606d" stroke-width="1.2"/>
+<rect x="1681" y="887" width="209" height="24" fill="#1f2d3d"/>
+<text x="1689" y="903" fill="#ffffff" font-weight="bold" font-size="13">warning_acknowledgements</text>
+<text x="1689" y="923.5" font-size="10.5" fill="#7b8794">bigint</text>
+<text x="1743" y="923.5" font-size="11.5" fill="#1f2933" font-weight="bold">id</text>
+<text x="1882" y="923.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">PK</text>
+<rect x="1682" y="928" width="207" height="17" fill="#f2f4f7"/>
+<text x="1689" y="940.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1743" y="940.5" font-size="11.5" fill="#1f2933">warning_id</text>
+<text x="1689" y="957.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1743" y="957.5" font-size="11.5" fill="#1f2933">department</text>
+<rect x="1682" y="962" width="207" height="17" fill="#f2f4f7"/>
+<text x="1689" y="974.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="1743" y="974.5" font-size="11.5" fill="#1f2933">acknowledged_by</text>
+<text x="1689" y="991.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="1743" y="991.5" font-size="11.5" fill="#1f2933">acknowledged_at</text>
+<rect x="20" y="316" width="303" height="113" fill="#ffffff" stroke="#52606d" stroke-width="1.2"/>
+<rect x="20" y="316" width="303" height="24" fill="#1f2d3d"/>
+<text x="28" y="332" fill="#ffffff" font-weight="bold" font-size="13">user_keys</text>
+<text x="28" y="352.5" font-size="10.5" fill="#7b8794">bigint</text>
+<text x="82" y="352.5" font-size="11.5" fill="#1f2933" font-weight="bold">id</text>
+<text x="315" y="352.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">PK</text>
+<rect x="21" y="357" width="301" height="17" fill="#f2f4f7"/>
+<text x="28" y="369.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="82" y="369.5" font-size="11.5" fill="#1f2933" font-weight="bold">user_id</text>
+<text x="315" y="369.5" font-size="10" fill="#2563eb" font-weight="bold" text-anchor="end">FK</text>
+<text x="28" y="386.5" font-size="10.5" fill="#7b8794">varchar</text>
+<text x="82" y="386.5" font-size="11.5" fill="#1f2933">algorithm</text>
+<rect x="21" y="391" width="301" height="17" fill="#f2f4f7"/>
+<text x="28" y="403.5" font-size="10.5" fill="#7b8794">text</text>
+<text x="82" y="403.5" font-size="11.5" fill="#1f2933">public_key</text>
+<text x="28" y="420.5" font-size="10.5" fill="#7b8794">datetime</text>
+<text x="82" y="420.5" font-size="11.5" fill="#1f2933">created_at</text>
+<text x="856" y="478.5" font-size="10.5" fill="#52606d" text-anchor="start" stroke="#ffffff" stroke-width="4" paint-order="stroke">raised from</text>
+<text x="424" y="324.5" font-size="10.5" fill="#52606d" text-anchor="end" stroke="#ffffff" stroke-width="4" paint-order="stroke">source of</text>
+<text x="1281" y="150.5" font-size="10.5" fill="#52606d" text-anchor="end" stroke="#ffffff" stroke-width="4" paint-order="stroke">assessed by</text>
+<text x="1281" y="444.5" font-size="10.5" fill="#52606d" text-anchor="end" stroke="#ffffff" stroke-width="4" paint-order="stroke">tasked by</text>
+<text x="1657" y="444.5" font-size="10.5" fill="#52606d" text-anchor="end" stroke="#ffffff" stroke-width="4" paint-order="stroke">resourced by</text>
+<text x="1281" y="721.5" font-size="10.5" fill="#52606d" text-anchor="end" stroke="#ffffff" stroke-width="4" paint-order="stroke">timeline</text>
+<text x="1281" y="964.5" font-size="10.5" fill="#52606d" text-anchor="end" stroke="#ffffff" stroke-width="4" paint-order="stroke">warned by</text>
+<text x="-4" y="256.5" font-size="10.5" fill="#52606d" text-anchor="end" stroke="#ffffff" stroke-width="4" paint-order="stroke">signs with</text>
+<text x="856" y="388.5" font-size="10.5" fill="#52606d" text-anchor="start" stroke="#ffffff" stroke-width="4" paint-order="stroke">linked (no FK)</text>
+<text x="1657" y="930.5" font-size="10.5" fill="#52606d" text-anchor="end" stroke="#ffffff" stroke-width="4" paint-order="stroke">acknowledged by (no FK)</text>
+</svg>
