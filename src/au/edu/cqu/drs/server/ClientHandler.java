@@ -134,7 +134,8 @@ public class ClientHandler implements Runnable {
             }
             if (request.getCommand() == Command.SUBSCRIBE_EVENTS
                     && this.events != null) {
-                if (this.events.open(request, this.socket, out, client)) {
+                if (this.events.open(request, this.socket, in, out,
+                        client)) {
                     return true;
                 }
                 this.log.info("SUBSCRIBE_EVENTS from " + client

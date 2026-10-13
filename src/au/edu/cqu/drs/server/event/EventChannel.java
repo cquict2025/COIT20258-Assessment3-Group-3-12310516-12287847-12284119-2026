@@ -10,6 +10,7 @@ import au.edu.cqu.drs.server.SessionManager;
 import au.edu.cqu.drs.service.ErrorCode;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.time.Clock;
@@ -26,8 +27,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * belongs to a signed-in user, the channel answers with a success and from
  * then on only writes to that socket: each client gets a
  * {@link QueuedSubscriber} with its own queue and writer thread, so the
- * worker thread that accepted the connection is free again at once. The
- * channel publishes the number of subscribed clients whenever it
+ * worker thread that accepted the connection is free again at once. A
+ * small watcher thread waits on the socket's input, so a client that closes
+ * its connection is removed at once rather than at the next failed write.
+ * The channel publishes the number of subscribed clients whenever it
  * changes.</p>
  */
 public class EventChannel implements AutoCloseable {
@@ -82,13 +85,14 @@ public class EventChannel implements AutoCloseable {
      *
      * @param request the subscribe request
      * @param socket  the client's socket
+     * @param in      the input stream already open on the socket
      * @param out     the object stream already open on the socket
      * @param client  the client's address, for the log
      * @return {@code true} if the channel now owns the connection; the
      *         caller must then neither read from nor close it
      * @throws IOException if the answer cannot be sent
      */
-    public boolean open(Request request, Socket socket,
+    public boolean open(Request request, Socket socket, InputStream in,
                         ObjectOutputStream out, String client)
             throws IOException {
         User user = this.sessions.resolve(request.getSessionToken());
@@ -105,10 +109,12 @@ public class EventChannel implements AutoCloseable {
                 this.capacity, this.heartbeatMillis, this.log, this.clock,
                 () -> stopped(holder[0], socket));
         holder[0] = subscriber;
+        socket.setSoTimeout(0);
         MessageStreams.write(out, Response.success(request.getRequestId(),
                 "Subscribed to live events."));
         this.subscribers.add(subscriber);
         subscriber.start();
+        watch(subscriber, in);
         this.bus.subscribe(subscriber);
         this.log.info("Live events: " + name + " subscribed.");
         return true;
@@ -131,6 +137,29 @@ public class EventChannel implements AutoCloseable {
         for (QueuedSubscriber subscriber : this.subscribers) {
             subscriber.close();
         }
+    }
+
+    /**
+     * Starts a thread that closes the subscriber as soon as the client
+     * closes its connection. The client sends nothing after subscribing,
+     * so a read only returns at the end of the stream or on an error.
+     *
+     * @param subscriber the subscriber
+     * @param in         the input stream of its connection
+     */
+    private static void watch(QueuedSubscriber subscriber, InputStream in) {
+        Thread watcher = new Thread(() -> {
+            try {
+                while (in.read() != -1) {
+                    // Ignore anything sent; only the end matters.
+                }
+            } catch (IOException e) {
+                // The connection broke; close below.
+            }
+            subscriber.close();
+        }, "drs-events-watch-" + subscriber.getName());
+        watcher.setDaemon(true);
+        watcher.start();
     }
 
     /**
