@@ -4,8 +4,13 @@ import au.edu.cqu.drs.model.User;
 import au.edu.cqu.drs.protocol.Command;
 import au.edu.cqu.drs.protocol.Request;
 import au.edu.cqu.drs.protocol.Response;
+import au.edu.cqu.drs.server.event.ChangeEvents;
+import au.edu.cqu.drs.server.event.EventBus;
+import au.edu.cqu.drs.server.event.ServerEvent;
 import au.edu.cqu.drs.service.ErrorCode;
 
+import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -14,6 +19,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 
 /**
  * Routes each request to the handler for its command, after checking the
@@ -28,6 +34,11 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * generated with {@code SELECT MAX} and the in-memory stores are plain maps.
  * A {@link ReadWriteLock} therefore lets reads run in parallel and gives each
  * state-changing command exclusive access.</p>
+ *
+ * <p>After a state-changing command succeeds, the dispatcher publishes a
+ * {@link ServerEvent} on the {@link EventBus} so that every client's live
+ * picture updates (Feature 2). This includes the warning commands served by
+ * modules, and needs no change to the services.</p>
  */
 public class RequestDispatcher {
 
@@ -51,9 +62,11 @@ public class RequestDispatcher {
     private final AuthorisationPolicy policy;
     private final ServerLog log;
     private final ReadWriteLock lock;
+    private final EventBus events;
+    private final Clock clock;
 
     /**
-     * Creates the dispatcher.
+     * Creates a dispatcher whose events nobody receives.
      *
      * @param core     the core handlers
      * @param modules  the handlers from modules
@@ -64,6 +77,25 @@ public class RequestDispatcher {
     public RequestDispatcher(Map<Command, CommandHandler> core,
                              ModuleRegistry modules, SessionManager sessions,
                              AuthorisationPolicy policy, ServerLog log) {
+        this(core, modules, sessions, policy, log, new EventBus(),
+                Clock.systemDefaultZone());
+    }
+
+    /**
+     * Creates the dispatcher.
+     *
+     * @param core     the core handlers
+     * @param modules  the handlers from modules
+     * @param sessions the session manager
+     * @param policy   the authorisation policy
+     * @param log      the server log
+     * @param events   the bus that changes are published on
+     * @param clock    the server clock, for the time of each event
+     */
+    public RequestDispatcher(Map<Command, CommandHandler> core,
+                             ModuleRegistry modules, SessionManager sessions,
+                             AuthorisationPolicy policy, ServerLog log,
+                             EventBus events, Clock clock) {
         this.handlers = new EnumMap<>(Command.class);
         this.handlers.putAll(core);
         for (Map.Entry<Command, CommandHandler> entry
@@ -78,6 +110,8 @@ public class RequestDispatcher {
         this.policy = policy;
         this.log = log;
         this.lock = new ReentrantReadWriteLock(true);
+        this.events = events;
+        this.clock = clock;
     }
 
     /**
@@ -118,7 +152,36 @@ public class RequestDispatcher {
             return Response.failure(requestId, ErrorCode.PERMISSION_DENIED,
                     "You do not have permission to do this.");
         }
-        return run(handler, request, user);
+        Response response = run(handler, request, user);
+        publish(request, response, user);
+        return response;
+    }
+
+    /**
+     * Runs work that only reads data while no command is changing it, as
+     * a read-only command would; used by the escalation monitor.
+     *
+     * @param work the work
+     * @param <T>  the type of its result
+     * @return the result
+     */
+    public <T> T whileReading(Supplier<T> work) {
+        Lock held = this.lock.readLock();
+        held.lock();
+        try {
+            return work.get();
+        } finally {
+            held.unlock();
+        }
+    }
+
+    /**
+     * Returns the bus that changes are published on.
+     *
+     * @return the event bus
+     */
+    public EventBus getEvents() {
+        return this.events;
     }
 
     /**
@@ -167,6 +230,22 @@ public class RequestDispatcher {
                             + "Reference " + requestId + ".");
         } finally {
             held.unlock();
+        }
+    }
+
+    /**
+     * Publishes the event for a successful state-changing command. Runs
+     * after the lock is released: publishing only queues the event.
+     *
+     * @param request  the request
+     * @param response the response
+     * @param user     the signed-in user, or null
+     */
+    private void publish(Request request, Response response, User user) {
+        ServerEvent event = ChangeEvents.describe(request, response, user,
+                LocalDateTime.now(this.clock));
+        if (event != null) {
+            this.events.publish(event);
         }
     }
 

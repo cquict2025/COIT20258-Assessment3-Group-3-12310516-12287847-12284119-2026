@@ -1,5 +1,7 @@
 package au.edu.cqu.drs.server;
 
+import au.edu.cqu.drs.server.event.EventBus;
+
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
@@ -26,6 +28,7 @@ public class ServerBootstrap implements AutoCloseable {
     private final SessionManager sessions;
     private final ModuleRegistry modules;
     private final AuthorisationPolicy policy;
+    private final EventBus events;
     private final RequestDispatcher dispatcher;
     private final DrsServer server;
     private final ScheduledExecutorService housekeeping;
@@ -50,9 +53,11 @@ public class ServerBootstrap implements AutoCloseable {
         }
         this.policy = AuthorisationPolicy.createDefault();
         log.info("Authorisation: " + this.policy);
+        this.events = new EventBus();
         this.dispatcher = new RequestDispatcher(
                 new CoreCommands(this.context, this.sessions).handlers(),
-                this.modules, this.sessions, this.policy, log);
+                this.modules, this.sessions, this.policy, log, this.events,
+                clock);
         int timeoutMillis = (int) Duration
                 .ofMinutes(config.getClientTimeoutMinutes()).toMillis();
         this.server = new DrsServer(this.dispatcher, log, config.getPort(),
@@ -130,6 +135,15 @@ public class ServerBootstrap implements AutoCloseable {
      */
     public RequestDispatcher getDispatcher() {
         return this.dispatcher;
+    }
+
+    /**
+     * Returns the bus that live events are published on.
+     *
+     * @return the event bus
+     */
+    public EventBus getEvents() {
+        return this.events;
     }
 
     /**
