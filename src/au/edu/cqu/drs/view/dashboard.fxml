@@ -3,10 +3,12 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox spacing="12" styleClass="content-area" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
@@ -14,11 +16,17 @@
     <Label styleClass="hint-label"
            text="Open incidents ordered by confirmed priority and then by age. Escalation shows how much of the target response time has been used." />
 
+    <Label fx:id="breachBanner" managed="false" maxWidth="Infinity"
+           styleClass="breach-banner" visible="false" wrapText="true" />
+
     <HBox alignment="CENTER_LEFT" spacing="10">
         <Label text="Filter by priority" />
         <ComboBox fx:id="priorityFilterCombo" />
         <Button fx:id="refreshButton" onAction="#handleRefresh" text="Refresh" />
         <Label fx:id="countLabel" styleClass="hint-label" />
+        <Region HBox.hgrow="ALWAYS" />
+        <Label fx:id="liveLabel" styleClass="live-label" />
+        <Label fx:id="connectedLabel" styleClass="hint-label" />
     </HBox>
 
     <TableView fx:id="incidentTable" prefHeight="260">
@@ -47,6 +55,14 @@
                     <TableColumn fx:id="alertPercentColumn" prefWidth="120" text="Target used" />
                 </columns>
             </TableView>
+        </VBox>
+    </TitledPane>
+
+    <TitledPane expanded="true" text="Live activity (Feature 2)">
+        <VBox spacing="8">
+            <Label styleClass="hint-label"
+                   text="Changes made by any user appear here as they happen, newest first, and the tables above refresh by themselves." />
+            <ListView fx:id="activityList" prefHeight="130" />
         </VBox>
     </TitledPane>
 

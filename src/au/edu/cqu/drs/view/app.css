@@ -85,3 +85,17 @@
     -fx-border-width: 2;
     -fx-border-radius: 3;
 }
+
+/* Feature 2: live operating picture. The banner says BREACHED in words. */
+.breach-banner {
+    -fx-background-color: #a4161a;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-padding: 8 12 8 12;
+    -fx-background-radius: 3;
+}
+
+.live-label {
+    -fx-text-fill: #1b5e20;
+    -fx-font-weight: bold;
+}

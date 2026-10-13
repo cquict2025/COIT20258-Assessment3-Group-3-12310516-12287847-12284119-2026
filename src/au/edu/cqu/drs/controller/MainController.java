@@ -4,9 +4,11 @@ import au.edu.cqu.drs.client.BackgroundCall;
 import au.edu.cqu.drs.client.ClientSession;
 import au.edu.cqu.drs.client.ModuleViewLoader;
 import au.edu.cqu.drs.client.RemoteServices;
+import au.edu.cqu.drs.client.event.EventListener;
 import au.edu.cqu.drs.model.User;
 import au.edu.cqu.drs.service.ServiceResult;
 import au.edu.cqu.drs.util.ViewLoader;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -30,7 +32,9 @@ public class MainController {
             "Warnings module not installed";
 
     private final RemoteServices services;
+    private final EventListener events;
     private final Parent view;
+    private DashboardController dashboard;
 
     @FXML
     private Label currentUserLabel;
@@ -44,6 +48,11 @@ public class MainController {
      */
     public MainController(RemoteServices services) {
         this.services = services;
+        ClientSession session = services.getSession();
+        this.events = new EventListener(session.getConnection().getHost(),
+                session.getConnection().getPort(),
+                session.getSessionToken(), Platform::runLater);
+        this.events.start();
         this.view = ViewLoader.load("main.fxml", this);
         User user = services.getSession().getCurrentUser();
         this.currentUserLabel.setText(user.getFullName() + " - "
@@ -55,9 +64,16 @@ public class MainController {
         return this.view;
     }
 
+    /**
+     * Shows the dashboard, which follows the live events while it is on
+     * screen.
+     */
     @FXML
     private void showDashboard() {
-        display(new DashboardController(this.services).getView());
+        DashboardController opened =
+                new DashboardController(this.services, this.events);
+        display(opened.getView());
+        this.dashboard = opened;
     }
 
     @FXML
@@ -96,6 +112,7 @@ public class MainController {
     @FXML
     private void handleSignOut() {
         ClientSession session = this.services.getSession();
+        this.events.stop();
         BackgroundCall.run(this.view, () -> {
             session.logout();
             return ServiceResult.success(Boolean.TRUE);
@@ -117,7 +134,17 @@ public class MainController {
         stage.setScene(scene);
     }
 
+    /**
+     * Puts a screen in the content area. A dashboard being replaced stops
+     * following the live events.
+     *
+     * @param screen the screen
+     */
     private void display(Parent screen) {
+        if (this.dashboard != null) {
+            this.dashboard.detach();
+            this.dashboard = null;
+        }
         this.contentArea.getChildren().setAll(screen);
         VBox.setVgrow(screen, Priority.ALWAYS);
     }
