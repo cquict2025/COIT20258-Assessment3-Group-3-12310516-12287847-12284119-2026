@@ -73,7 +73,7 @@
                 </HBox>
             </GridPane>
             <HBox spacing="10">
-                <Button fx:id="issueButton" defaultButton="true"
+                <Button fx:id="issueButton"
                         onAction="#handleIssue" text="Issue new warning" />
                 <Button fx:id="updateButton" onAction="#handleUpdate"
                         text="Update selected" />

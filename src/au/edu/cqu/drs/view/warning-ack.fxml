@@ -28,7 +28,7 @@
            minHeight="40" text="Select a warning to read it in full." />
 
     <HBox spacing="10">
-        <Button fx:id="acknowledgeButton" defaultButton="true"
+        <Button fx:id="acknowledgeButton"
                 onAction="#handleAcknowledge" text="Acknowledge selected" />
         <Button onAction="#handleRefresh" text="Refresh" />
     </HBox>
