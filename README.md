@@ -50,8 +50,13 @@ in the folder the server is started from, or pass
 |---|---|---|
 | `port` | 5050 | TCP port clients connect to |
 | `threads` | 32 | worker threads, which is the most clients served at once |
-| `repository` | sqlite | storage: `sqlite` or `memory` (MySQL once its adapters are merged) |
-| `database.file` | drs.db | SQLite file, created on first start |
+| `repository` | mysql | storage: `mysql`, `sqlite` or `memory` |
+| `mysql.host`, `mysql.port` | localhost, 3306 | the MySQL server |
+| `mysql.database`, `mysql.user` | drs, drs | the database and account |
+| `mysql.password` | (empty) | better set with the `DRS_MYSQL_PASSWORD` environment variable |
+| `keystore.file` | drs-keystore.p12 | key that encrypts reporters' names and contacts, created on first start |
+| `keystore.password` | (empty) | better set with `DRS_KEYSTORE_PASSWORD`; without one, personal details are stored unencrypted and imports are refused |
+| `database.file` | drs.db | SQLite file, created on first start (`repository=sqlite`) |
 | `client.timeout.minutes` | 30 | a silent connection is closed after this |
 | `session.idle.minutes` | 30 | an idle session must sign in again after this |
 
@@ -61,8 +66,15 @@ in the folder the server is started from, or pass
 |---|---|
 | **Test Project (Alt+F6)** | `ant test` |
 
-The suite has 159 JUnit 5 tests. They need no database or window: the
-servers they start use in-memory storage and a free port.
+The suite needs no window. The servers it starts use in-memory storage and a
+free port. The MySQL tests use a `drs_test` database and are skipped, not
+failed, when MySQL is not available. To run them, create the account once:
+
+    CREATE USER 'drs_test'@'localhost' IDENTIFIED BY 'drs_test';
+    GRANT ALL ON drs_test.* TO 'drs_test'@'localhost';
+
+`DRS_TEST_MYSQL_HOST`, `DRS_TEST_MYSQL_PORT`, `DRS_TEST_MYSQL_USER` and
+`DRS_TEST_MYSQL_PASSWORD` point them at another server.
 
 ## JavaFX and platforms
 
@@ -93,6 +105,28 @@ A member of the public can submit a report without signing in, using
 **Report a disaster without signing in** on the sign-in screen.
 
 ## Database
+
+The server runs on MySQL by default. Once, as the MySQL root user, create
+the account and, optionally, the demonstration data:
+
+    CREATE USER 'drs'@'localhost' IDENTIFIED BY 'choose-a-password';
+    GRANT ALL ON drs.* TO 'drs'@'localhost';
+
+    mysql -u root -p < sql/schema.sql
+    mysql -u root -p drs < sql/seed.sql
+
+Then start the server with the passwords in the environment, so they are
+never written to a file:
+
+    export DRS_MYSQL_PASSWORD='choose-a-password'
+    export DRS_KEYSTORE_PASSWORD='another-password'
+    ant run-server
+
+If the schema scripts were not run, the server creates the database tables
+and the demonstration accounts itself on first start. It also creates
+`drs-keystore.p12`; keep that file and its password, because without them
+the encrypted names and contacts cannot be read. Never commit or submit the
+keystore.
 
 With `repository=sqlite`, the server creates `drs.db` in the folder it is
 started from and builds the schema automatically. Stop the server and delete
