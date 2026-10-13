@@ -1,6 +1,7 @@
 package au.edu.cqu.drs.server;
 
 import au.edu.cqu.drs.server.event.EventBus;
+import au.edu.cqu.drs.server.event.EventChannel;
 
 import java.io.IOException;
 import java.time.Clock;
@@ -30,6 +31,7 @@ public class ServerBootstrap implements AutoCloseable {
     private final AuthorisationPolicy policy;
     private final EventBus events;
     private final RequestDispatcher dispatcher;
+    private final EventChannel channel;
     private final DrsServer server;
     private final ScheduledExecutorService housekeeping;
 
@@ -62,6 +64,9 @@ public class ServerBootstrap implements AutoCloseable {
                 .ofMinutes(config.getClientTimeoutMinutes()).toMillis();
         this.server = new DrsServer(this.dispatcher, log, config.getPort(),
                 config.getThreads(), timeoutMillis);
+        this.channel = new EventChannel(this.events, this.sessions, log,
+                clock);
+        this.server.setEventChannel(this.channel);
         this.housekeeping = Executors.newSingleThreadScheduledExecutor(
                 task -> {
                     Thread thread = new Thread(task, "drs-housekeeping");
@@ -88,6 +93,7 @@ public class ServerBootstrap implements AutoCloseable {
     @Override
     public void close() {
         this.housekeeping.shutdownNow();
+        this.channel.close();
         this.server.stop();
         this.context.close();
     }
@@ -144,6 +150,15 @@ public class ServerBootstrap implements AutoCloseable {
      */
     public EventBus getEvents() {
         return this.events;
+    }
+
+    /**
+     * Returns the channel that pushes live events to clients.
+     *
+     * @return the event channel
+     */
+    public EventChannel getEventChannel() {
+        return this.channel;
     }
 
     /**
