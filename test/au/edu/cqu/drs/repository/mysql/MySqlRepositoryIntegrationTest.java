@@ -30,15 +30,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -84,8 +80,7 @@ class MySqlRepositoryIntegrationTest {
     @BeforeAll
     static void connect() {
         try {
-            dropTestTables();
-            database = new MySqlDatabase(testSettings());
+            database = MySqlTestDatabase.openFresh();
         } catch (IllegalStateException e) {
             skipReason = "MySQL integration tests skipped: "
                     + e.getMessage();
@@ -488,6 +483,99 @@ class MySqlRepositoryIntegrationTest {
     }
 
     @Test
+    @DisplayName("TC-MY-32 A2 records keep their codes, and a second import "
+            + "adds nothing")
+    void importIsIdempotent() {
+        MySqlImportStore store = new MySqlImportStore(database,
+                new FieldCipher(FieldCipher.generateKey()));
+        DisasterReport report = newReport();
+        report.setReportId("RPT-0007");
+        Incident incident = newIncident();
+        incident.setIncidentId("INC-0003");
+        incident.addSourceReportId("RPT-0007");
+        Assessment assessment = new Assessment("INC-0003", 5, 4, 4, 4);
+        assessment.setAssessmentId("ASM-0002");
+        assessment.setVersion(1);
+        DepartmentAssignment assignment = new DepartmentAssignment("ASG-0004",
+                "INC-0003", Department.FIRE_AND_EMERGENCY, "Suppress fire",
+                "Immediate");
+        assignment.setStatus(AssignmentStatus.ACCEPTED);
+        LocalDateTime from = LocalDateTime.of(2026, 9, 18, 9, 0);
+        assignment.addAllocation(new ResourceAllocation("ALC-0009",
+                "ASG-0004", "Pumper 12", Department.FIRE_AND_EMERGENCY, 1,
+                from, from.plusHours(4)));
+        FieldUpdate update = update(incident, "Crews on scene",
+                LocalDateTime.of(2026, 9, 18, 11, 0));
+        update.setUpdateId("UPD-0005");
+
+        for (int run = 1; run <= 2; run++) {
+            boolean first = run == 1;
+            assertEquals(first, store.importReport(report), "report " + run);
+            assertEquals(first, store.importIncident(incident));
+            assertEquals(first, store.importAssessment(assessment));
+            assertEquals(first, store.importAssignment(assignment));
+            assertEquals(first, store.importFieldUpdate(update));
+        }
+
+        assertEquals(1, reports.findAll().size());
+        assertEquals(List.of("RPT-0007"), incidents.findById("INC-0003")
+                .orElseThrow().getSourceReportIds());
+        assertEquals(1, assignments.findById("ASG-0004").orElseThrow()
+                .getAllocations().size());
+        assertEquals(1, fieldUpdates.findByIncidentId("INC-0003").size());
+    }
+
+    @Test
+    @DisplayName("TC-MY-33 an existing user name is not imported again")
+    void importedUsersMatchByUsername() {
+        MySqlImportStore store = new MySqlImportStore(database,
+                new FieldCipher(FieldCipher.generateKey()));
+        User live = new User(null, "coordinator", "Alex", UserRole.COORDINATOR);
+        live.setPasswordSalt("salt");
+        live.setPasswordHash("hash");
+        users.save(live);
+        User a2Coordinator = new User("USR-001", "coordinator", "Old",
+                UserRole.COORDINATOR);
+        a2Coordinator.setPasswordSalt("old");
+        a2Coordinator.setPasswordHash("old");
+        User a2Liaison = new User("USR-001", "liaison2", "Kim",
+                UserRole.LIAISON);
+        a2Liaison.setPasswordSalt("s");
+        a2Liaison.setPasswordHash("h");
+
+        assertFalse(store.importUser(a2Coordinator));
+        assertTrue(store.importUser(a2Liaison));
+
+        assertEquals("Alex",
+                users.findByUsername("coordinator").orElseThrow()
+                        .getFullName());
+        assertEquals("USR-002",
+                users.findByUsername("liaison2").orElseThrow().getUserId());
+    }
+
+    @Test
+    @DisplayName("TC-MY-34 imported audit events join the chain, keep their "
+            + "A2 code and never name a reporter")
+    void importedAuditEvents() throws Exception {
+        MySqlImportStore store = new MySqlImportStore(database,
+                new FieldCipher(FieldCipher.generateKey()));
+        AuditEvent submitted = new AuditEvent("Priya Shah", "SUBMIT_REPORT",
+                "DisasterReport", "RPT-0001", "Fire at Laverton",
+                LocalDateTime.of(2026, 9, 18, 9, 14));
+        submitted.setEventId("AUD-00012");
+
+        assertTrue(store.importAuditEvent(submitted));
+        assertFalse(store.importAuditEvent(submitted));
+
+        List<AuditEvent> stored = audit.findAll();
+        assertEquals(1, stored.size());
+        assertEquals("public", stored.get(0).getActor());
+        assertEquals("[A2 AUD-00012] Fire at Laverton",
+                stored.get(0).getDetail());
+        assertTrue(audit.verifyChain().isIntact());
+    }
+
+    @Test
     @DisplayName("TC-MY-20 ten clients saving at once all get different "
             + "codes")
     void concurrentSavesGetUniqueCodes() throws Exception {
@@ -513,7 +601,7 @@ class MySqlRepositoryIntegrationTest {
     void dataSurvivesReopening() {
         reports.save(newReport());
 
-        try (MySqlDatabase reopened = new MySqlDatabase(testSettings())) {
+        try (MySqlDatabase reopened = new MySqlDatabase(MySqlTestDatabase.settings())) {
             MySqlReportRepository afterRestart =
                     new MySqlReportRepository(reopened);
             assertFalse(afterRestart.findAll().isEmpty(),
@@ -542,25 +630,6 @@ class MySqlRepositoryIntegrationTest {
         assertNotNull(database.toString());
     }
 
-    /**
-     * Drops the tables left in drs_test by an earlier run, so the tests
-     * always run on the schema in the code. Only drs_test is touched.
-     */
-    private static void dropTestTables() {
-        MySqlSettings settings = testSettings();
-        try (Connection connection = DriverManager.getConnection(
-                settings.databaseUrl(), settings.getUser(),
-                settings.getPassword());
-             Statement statement = connection.createStatement()) {
-            statement.execute("SET FOREIGN_KEY_CHECKS = 0");
-            for (String table : MySqlSchema.TABLES) {
-                statement.execute("DROP TABLE IF EXISTS " + table);
-            }
-        } catch (SQLException e) {
-            // No drs_test yet, or no MySQL: MySqlDatabase reports which.
-        }
-    }
-
     private Warning newWarning(Incident incident) {
         Warning warning = new Warning(incident.getIncidentId(),
                 WarningLevel.WATCH_AND_ACT, "Laverton, Altona North",
@@ -587,27 +656,6 @@ class MySqlRepositoryIntegrationTest {
                 return statement.executeUpdate(sql);
             }
         });
-    }
-
-    private static MySqlSettings testSettings() {
-        Properties properties = new Properties();
-        properties.setProperty("mysql.host",
-                env("DRS_TEST_MYSQL_HOST", "localhost"));
-        properties.setProperty("mysql.port",
-                env("DRS_TEST_MYSQL_PORT", "3306"));
-        properties.setProperty("mysql.database", "drs_test");
-        properties.setProperty("mysql.user",
-                env("DRS_TEST_MYSQL_USER", "drs_test"));
-        properties.setProperty("mysql.password",
-                env("DRS_TEST_MYSQL_PASSWORD", "drs_test"));
-        properties.setProperty("mysql.pool.size", "4");
-        properties.setProperty("mysql.allow.public.key.retrieval", "true");
-        return MySqlSettings.fromProperties(properties);
-    }
-
-    private static String env(String name, String fallback) {
-        String value = System.getenv(name);
-        return value == null || value.isBlank() ? fallback : value;
     }
 
     private DisasterReport newReport() {

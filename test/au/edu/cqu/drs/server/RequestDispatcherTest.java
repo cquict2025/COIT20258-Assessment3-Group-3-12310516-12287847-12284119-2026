@@ -189,12 +189,17 @@ class RequestDispatcherTest {
     @DisplayName("TC-RD-08 a command with no installed module is reported "
             + "as unavailable")
     void uninstalledModuleCommand() {
-        // The warning module is installed now; the import module (W7) is
-        // not yet, so its commands stand in for an uninstalled module.
-        String token = ServerTestSupport.login(this.dispatcher, "admin");
+        // Every module is installed now, so this dispatcher is built with
+        // the core commands only, as a server would be before any module.
+        RequestDispatcher coreOnly = new RequestDispatcher(
+                new CoreCommands(this.bootstrap.getContext(),
+                        this.bootstrap.getSessions()).handlers(),
+                new ModuleRegistry(), this.bootstrap.getSessions(),
+                new RoleBasedPolicy(), new ServerLog());
+        String token = ServerTestSupport.login(coreOnly, "coordinator");
 
-        Response response = this.dispatcher.dispatch(
-                new Request(Command.IMPORT_AUDIT, token));
+        Response response = coreOnly.dispatch(
+                new Request(Command.ISSUE_WARNING, token));
 
         assertEquals(ErrorCode.ADAPTER_UNAVAILABLE, response.getErrorCode());
         assertTrue(response.getMessage().contains("not installed"));
