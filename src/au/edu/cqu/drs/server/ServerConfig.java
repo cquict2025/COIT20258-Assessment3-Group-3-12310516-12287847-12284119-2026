@@ -1,5 +1,7 @@
 package au.edu.cqu.drs.server;
 
+import au.edu.cqu.drs.repository.mysql.MySqlSettings;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -7,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -15,6 +18,12 @@ import java.util.Properties;
  * <p>The defaults ship inside the server package. A file of the same name in
  * the working folder, or one named on the command line, overrides any of
  * them.</p>
+ *
+ * <p>Passwords should not be kept in a file that is shared or submitted.
+ * The environment variables {@value #MYSQL_PASSWORD_VARIABLE} and
+ * {@value #KEYSTORE_PASSWORD_VARIABLE}, when set, override the
+ * {@code mysql.password} and {@code keystore.password} settings, and
+ * {@link #toString()} never shows either password.</p>
  */
 public class ServerConfig {
 
@@ -25,20 +34,43 @@ public class ServerConfig {
     /** File name looked for in the working folder. */
     public static final String LOCAL_FILE = "drs-server.properties";
 
+    /** Environment variable holding the MySQL password. */
+    public static final String MYSQL_PASSWORD_VARIABLE = "DRS_MYSQL_PASSWORD";
+
+    /** Environment variable holding the keystore password. */
+    public static final String KEYSTORE_PASSWORD_VARIABLE =
+            "DRS_KEYSTORE_PASSWORD";
+
     private final int port;
     private final int threads;
     private final Backend backend;
     private final String databaseFile;
     private final int clientTimeoutMinutes;
     private final int sessionIdleMinutes;
+    private final Properties mysqlProperties;
+    private final String keystoreFile;
+    private final String keystorePassword;
 
     /**
-     * Creates settings from properties already loaded.
+     * Creates settings from properties already loaded, taking passwords
+     * from the environment where they are set.
      *
      * @param properties the merged settings
      * @throws IllegalArgumentException if a value is missing or invalid
      */
     public ServerConfig(Properties properties) {
+        this(properties, System.getenv());
+    }
+
+    /**
+     * Creates settings from properties and a given environment.
+     *
+     * @param properties  the merged settings
+     * @param environment the environment variables to read passwords from
+     * @throws IllegalArgumentException if a value is missing or invalid
+     */
+    public ServerConfig(Properties properties,
+                        Map<String, String> environment) {
         this.port = number(properties, "port", 0, 65535);
         this.threads = number(properties, "threads", 1, 1000);
         this.backend = Backend.parse(properties.getProperty("repository"));
@@ -47,6 +79,28 @@ public class ServerConfig {
                 number(properties, "client.timeout.minutes", 1, 1440);
         this.sessionIdleMinutes =
                 number(properties, "session.idle.minutes", 1, 1440);
+        this.mysqlProperties = new Properties();
+        for (String key : properties.stringPropertyNames()) {
+            if (key.startsWith("mysql.")) {
+                this.mysqlProperties.setProperty(key,
+                        properties.getProperty(key));
+            }
+        }
+        String mysqlPassword = environment.get(MYSQL_PASSWORD_VARIABLE);
+        if (mysqlPassword != null && !mysqlPassword.isEmpty()) {
+            this.mysqlProperties.setProperty("mysql.password",
+                    mysqlPassword);
+        }
+        this.keystoreFile = properties.getProperty("keystore.file",
+                "drs-keystore.p12").trim();
+        String keystore = environment.get(KEYSTORE_PASSWORD_VARIABLE);
+        if (keystore == null || keystore.isEmpty()) {
+            keystore = properties.getProperty("keystore.password", "");
+        }
+        this.keystorePassword = keystore;
+        if (this.backend == Backend.MYSQL) {
+            getMySqlSettings();
+        }
     }
 
     /**
@@ -171,6 +225,44 @@ public class ServerConfig {
      * @param max        the largest value accepted
      * @return the value
      */
+    /**
+     * Returns the MySQL connection settings.
+     *
+     * @return the settings from the {@code mysql.*} keys
+     * @throws IllegalArgumentException if a MySQL setting is invalid
+     */
+    public MySqlSettings getMySqlSettings() {
+        return MySqlSettings.fromProperties(this.mysqlProperties);
+    }
+
+    /**
+     * Returns the keystore that holds the field encryption key.
+     *
+     * @return the keystore file, created on first start
+     */
+    public Path getKeystoreFile() {
+        return Path.of(this.keystoreFile);
+    }
+
+    /**
+     * Tells whether a keystore password is set, so personal details can
+     * be encrypted.
+     *
+     * @return {@code true} if there is a password
+     */
+    public boolean hasKeystorePassword() {
+        return !this.keystorePassword.isEmpty();
+    }
+
+    /**
+     * Returns the keystore password.
+     *
+     * @return a new copy of the password, empty if none is set
+     */
+    public char[] getKeystorePassword() {
+        return this.keystorePassword.toCharArray();
+    }
+
     private static int number(Properties properties, String key, int min,
                               int max) {
         String value = text(properties, key);
@@ -202,15 +294,19 @@ public class ServerConfig {
     }
 
     /**
-     * Describes the settings.
+     * Describes the settings, without any password.
      *
      * @return every setting
      */
     @Override
     public String toString() {
+        String storage = this.databaseFile;
+        if (this.backend == Backend.MYSQL) {
+            storage = getMySqlSettings().toString();
+        }
         return String.format("ServerConfig: port %d, %d threads, %s storage"
                 + " (%s), connection timeout %d min, session idle %d min",
-                this.port, this.threads, this.backend, this.databaseFile,
+                this.port, this.threads, this.backend, storage,
                 this.clientTimeoutMinutes, this.sessionIdleMinutes);
     }
 
