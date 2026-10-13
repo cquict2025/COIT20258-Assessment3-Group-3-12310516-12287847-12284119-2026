@@ -30,15 +30,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -84,8 +80,7 @@ class MySqlRepositoryIntegrationTest {
     @BeforeAll
     static void connect() {
         try {
-            dropTestTables();
-            database = new MySqlDatabase(testSettings());
+            database = MySqlTestDatabase.openFresh();
         } catch (IllegalStateException e) {
             skipReason = "MySQL integration tests skipped: "
                     + e.getMessage();
@@ -606,7 +601,7 @@ class MySqlRepositoryIntegrationTest {
     void dataSurvivesReopening() {
         reports.save(newReport());
 
-        try (MySqlDatabase reopened = new MySqlDatabase(testSettings())) {
+        try (MySqlDatabase reopened = new MySqlDatabase(MySqlTestDatabase.settings())) {
             MySqlReportRepository afterRestart =
                     new MySqlReportRepository(reopened);
             assertFalse(afterRestart.findAll().isEmpty(),
@@ -635,25 +630,6 @@ class MySqlRepositoryIntegrationTest {
         assertNotNull(database.toString());
     }
 
-    /**
-     * Drops the tables left in drs_test by an earlier run, so the tests
-     * always run on the schema in the code. Only drs_test is touched.
-     */
-    private static void dropTestTables() {
-        MySqlSettings settings = testSettings();
-        try (Connection connection = DriverManager.getConnection(
-                settings.databaseUrl(), settings.getUser(),
-                settings.getPassword());
-             Statement statement = connection.createStatement()) {
-            statement.execute("SET FOREIGN_KEY_CHECKS = 0");
-            for (String table : MySqlSchema.TABLES) {
-                statement.execute("DROP TABLE IF EXISTS " + table);
-            }
-        } catch (SQLException e) {
-            // No drs_test yet, or no MySQL: MySqlDatabase reports which.
-        }
-    }
-
     private Warning newWarning(Incident incident) {
         Warning warning = new Warning(incident.getIncidentId(),
                 WarningLevel.WATCH_AND_ACT, "Laverton, Altona North",
@@ -680,27 +656,6 @@ class MySqlRepositoryIntegrationTest {
                 return statement.executeUpdate(sql);
             }
         });
-    }
-
-    private static MySqlSettings testSettings() {
-        Properties properties = new Properties();
-        properties.setProperty("mysql.host",
-                env("DRS_TEST_MYSQL_HOST", "localhost"));
-        properties.setProperty("mysql.port",
-                env("DRS_TEST_MYSQL_PORT", "3306"));
-        properties.setProperty("mysql.database", "drs_test");
-        properties.setProperty("mysql.user",
-                env("DRS_TEST_MYSQL_USER", "drs_test"));
-        properties.setProperty("mysql.password",
-                env("DRS_TEST_MYSQL_PASSWORD", "drs_test"));
-        properties.setProperty("mysql.pool.size", "4");
-        properties.setProperty("mysql.allow.public.key.retrieval", "true");
-        return MySqlSettings.fromProperties(properties);
-    }
-
-    private static String env(String name, String fallback) {
-        String value = System.getenv(name);
-        return value == null || value.isBlank() ? fallback : value;
     }
 
     private DisasterReport newReport() {
