@@ -1,6 +1,7 @@
 package au.edu.cqu.drs.server;
 
 import au.edu.cqu.drs.server.event.EventBus;
+import au.edu.cqu.drs.server.event.EscalationMonitor;
 import au.edu.cqu.drs.server.event.EventChannel;
 
 import java.io.IOException;
@@ -32,6 +33,7 @@ public class ServerBootstrap implements AutoCloseable {
     private final EventBus events;
     private final RequestDispatcher dispatcher;
     private final EventChannel channel;
+    private final EscalationMonitor monitor;
     private final DrsServer server;
     private final ScheduledExecutorService housekeeping;
 
@@ -67,6 +69,9 @@ public class ServerBootstrap implements AutoCloseable {
         this.channel = new EventChannel(this.events, this.sessions, log,
                 clock);
         this.server.setEventChannel(this.channel);
+        this.monitor = new EscalationMonitor(
+                this.context.getEscalationService(), this.events, clock, log,
+                this.dispatcher);
         this.housekeeping = Executors.newSingleThreadScheduledExecutor(
                 task -> {
                     Thread thread = new Thread(task, "drs-housekeeping");
@@ -83,6 +88,7 @@ public class ServerBootstrap implements AutoCloseable {
     public void start() throws IOException {
         this.log.info("Storage: " + this.context);
         this.server.start();
+        this.monitor.start();
         this.housekeeping.scheduleAtFixedRate(this::purgeSessions,
                 PURGE_MINUTES, PURGE_MINUTES, TimeUnit.MINUTES);
     }
@@ -93,6 +99,7 @@ public class ServerBootstrap implements AutoCloseable {
     @Override
     public void close() {
         this.housekeeping.shutdownNow();
+        this.monitor.close();
         this.channel.close();
         this.server.stop();
         this.context.close();
@@ -159,6 +166,15 @@ public class ServerBootstrap implements AutoCloseable {
      */
     public EventChannel getEventChannel() {
         return this.channel;
+    }
+
+    /**
+     * Returns the monitor that announces changes of escalation state.
+     *
+     * @return the escalation monitor
+     */
+    public EscalationMonitor getMonitor() {
+        return this.monitor;
     }
 
     /**
