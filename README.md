@@ -178,8 +178,3 @@ the file to reset the data. With `repository=memory`, nothing is saved.
 
 ## Coding standards
 
-The source follows the unit's *Java Coding Standards*: four-space indentation
-and no tabs, no line longer than 80 characters, one declaration and one
-statement per line, the member order required by Rule 2, the naming rules for
-classes, methods, variables and constants, instance variables qualified with
-`this`, and Javadoc on every package, class and method.
