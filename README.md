@@ -178,3 +178,4 @@ the file to reset the data. With `repository=memory`, nothing is saved.
 
 
 ## coding guidelines
+    The source complies with the unit's *Java Coding Standards*,
