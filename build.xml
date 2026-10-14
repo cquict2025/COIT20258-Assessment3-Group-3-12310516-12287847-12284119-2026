@@ -2,7 +2,7 @@
 <!-- You may freely edit this file. See commented blocks below for -->
 <!-- some examples of how to customize the build. -->
 <!--It will be recreated if you delete it and reopen the project. -->
-<!-- By default, only the Clean and Build commands use this build script. -->
+
 <!-- Commands such as Run, Debug, and Test only use this build script if -->
 <!-- the Compile on Save feature is turned off for the project. -->
 <!-- You can turn off the Compile on Save (or Deploy on Save) setting -->
@@ -22,13 +22,13 @@
       -post-compile:             called after javac compilation
       -pre-compile-single:       called before javac compilation of single file
       -post-compile-single:      called after javac compilation of single file
-      -pre-compile-test:         called before javac compilation of JUnit tests
+      
       -post-compile-test:        called after javac compilation of JUnit tests
       -pre-compile-test-single:  called before javac compilation of single JUnit test
       -post-compile-test-single: called after javac compilation of single JUunit test
       -pre-jar:                  called before JAR building
       -post-jar:                 called after JAR building
-      -post-clean:               called after cleaning build products
+     
 
     (Targets beginning with '-' are not intended to be called on their own.)
 
@@ -44,8 +44,7 @@
     nbproject/build-impl.xml file. 
 
 
-    Another way to customize the build is by overriding existing main targets.
-    The targets of interest are: 
+   
 
       -init-macrodef-javac:     defines macro for javac compilation
       -init-macrodef-junit:     defines macro for junit execution
@@ -65,9 +64,9 @@
         </target>
 
     Notice that the overridden target depends on the jar target and not only on 
-    the compile target as the regular run target does. Again, for a list of available 
-    properties which you can use, check the target you are overriding in the
-    nbproject/build-impl.xml file. 
+    
+   
+     
 
     -->
 
@@ -98,8 +97,8 @@
                   value="lib/javafx/${javafx.platform}"/>
         <property name="javafx.modules"
                   value="javafx.base,javafx.controls,javafx.fxml,javafx.graphics"/>
-        <echo message="Building for JavaFX platform: ${javafx.platform}"/>
-    </target>
+        
+    
 
     <!--
         Run the JUnit 5 suite with the console launcher that ships in lib/.
@@ -120,9 +119,9 @@
             <jvmarg value="--module-path"/>
             <jvmarg path="${javafx.module.path}"/>
             <jvmarg value="--add-modules"/>
-            <jvmarg value="${javafx.modules}"/>
-        </java>
-    </target>
+            
+        
+    
 
     <!--
         Start the DRS server, then one or more clients. "ant run" also starts
@@ -145,14 +144,14 @@
         </java>
     </target>
 
-    <target name="run-client" depends="jar"
+    
             description="Start a DRS client; start the server first.">
         <property name="client.args" value=""/>
         <java classname="au.edu.cqu.drs.client.ClientLauncher" fork="true"
               failonerror="true">
             <classpath path="${run.classpath}"/>
             <jvmarg value="--module-path"/>
-            <jvmarg path="${javafx.module.path}"/>
+           
             <jvmarg value="--add-modules"/>
             <jvmarg value="${javafx.modules}"/>
             <arg line="${client.args}"/>
