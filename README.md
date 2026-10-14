@@ -176,5 +176,5 @@ the file to reset the data. With `repository=memory`, nothing is saved.
     test/                     JUnit 5 test suite
     docs/                     diagrams, design notes and screen captures
 
-## Coding standards
+
 
