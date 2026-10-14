@@ -44,7 +44,7 @@
     nbproject/build-impl.xml file. 
 
 
-   
+   Another way to customize the build is by overriding existing main targets.
 
       -init-macrodef-javac:     defines macro for javac compilation
       -init-macrodef-junit:     defines macro for junit execution
