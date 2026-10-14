@@ -97,7 +97,9 @@
                   value="lib/javafx/${javafx.platform}"/>
         <property name="javafx.modules"
                   value="javafx.base,javafx.controls,javafx.fxml,javafx.graphics"/>
-        
+        <echo message="Building for JavaFX platform: ${javafx.platform}"/>
+    </target>
+
     
 
     <!--
