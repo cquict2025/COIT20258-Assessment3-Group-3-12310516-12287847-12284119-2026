@@ -8,7 +8,7 @@ Extended from the DRS-Initial prototype of Venkatesh Kumar Manjunath
 |---|---|
 | Venkatesh Kumar Manjunath (team leader) | 12310516 |
 | Milan | 12287847 |
-| Fathia | 12284119 |
+| Fatiha | 12284119 |
 
 This is a NetBeans (Ant) Java project. Nothing needs to be installed except a
 JDK 17 or later: the JavaFX, SQLite and JUnit libraries are all included in
