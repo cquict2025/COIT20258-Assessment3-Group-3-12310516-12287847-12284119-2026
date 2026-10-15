@@ -1,0 +1,52 @@
+@startuml
+!include seq-common.iuml
+title Sequence 2 - A member of the public submits a disaster report
+
+actor "Member of the public" as U
+box "Client" #f5f6f8
+participant ReportFormController as RF
+participant RemoteServices as RS
+participant ClientSession as CS
+end box
+box "Server" #eef2f7
+participant ClientHandler as CH
+participant RequestDispatcher as RD
+participant CoreCommands as CC
+participant ReportService as SV
+participant "ReportRepository\n(MySqlReportRepository)" as RR
+participant FieldCipher as FC
+participant AuditService as AU
+participant EventBus as EB
+end box
+database MySQL as DB
+
+U -> RF : fill in the form, click Submit
+RF -> RS : submitReport(report)\n[via BackgroundCall]
+RS -> CS : send(Request SUBMIT_REPORT, no token)
+CS -> CH : Request
+CH -> RD : dispatch(request)
+RD -> RD : SUBMIT_REPORT is public;\ntake the write lock
+RD -> CC : handle(request, null)
+CC -> SV : submitReport(report)
+alt invalid (type, suburb, coordinates, times)
+  SV --> CC : failure VALIDATION_ERROR + field
+else valid
+  SV -> RR : save(report with status SUBMITTED)
+  RR -> FC : encrypt(reporterName),\nencrypt(reporterContact)
+  FC --> RR : enc:v1:...
+  RR -> DB : INSERT reports (in a transaction)
+  DB --> RR : row id -> RPT-nnnn
+  RR --> SV : report
+  SV -> AU : record(SUBMIT_REPORT)
+  SV --> CC : success(report)
+end
+CC --> RD : Response
+RD -> RD : release the lock
+RD -> EB : publish(ServerEvent CHANGE\n"Report RPT-nnnn submitted")\nonly on success
+note right of EB : see Sequence 3
+RD --> CH : Response
+CH --> CS : Response
+CS --> RS : Response
+RS --> RF : ServiceResult<DisasterReport>
+RF -> U : show the reference RPT-nnnn,\nor the error next to the field
+@enduml

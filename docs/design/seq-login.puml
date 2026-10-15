@@ -1,0 +1,54 @@
+@startuml
+!include seq-common.iuml
+title Sequence 1 - Staff sign-in
+
+actor "Coordinator" as U
+box "Client" #f5f6f8
+participant LoginController as LC
+participant BackgroundCall as BC
+participant ClientSession as CS
+participant ServerConnection as SC
+end box
+box "Server" #eef2f7
+participant ClientHandler as CH
+participant RequestDispatcher as RD
+participant CoreCommands as CC
+participant AuthenticationService as AS
+participant "UserRepository\n(MySqlUserRepository)" as UR
+participant SessionManager as SM
+participant AuditService as AU
+end box
+
+U -> LC : enter username, password\nclick Sign in
+LC -> BC : run(view, login, signedIn)
+BC -> CS : login(username, password)\n[worker thread]
+CS -> SC : send(Request LOGIN)
+SC -> CH : Request (object stream)
+CH -> RD : dispatch(request)
+RD -> RD : LOGIN needs no token;\nAccessMatrix allows everyone
+RD -> CC : handle(request, null)
+CC -> AS : login(username, password)
+AS -> UR : findByUsername(username)
+UR --> AS : User
+alt unknown user or wrong password
+  AS -> AU : record(LOGIN_FAILED)
+  AS --> CC : failure PERMISSION_DENIED
+  CC --> RD : Response failure
+else password matches (PBKDF2)
+  AS --> CC : success(User)
+  CC -> SM : create(user)
+  SM --> CC : token (32 random bytes)
+  CC --> RD : Response success\nLoginResult(token, user without hash)
+end
+RD --> CH : Response
+CH --> SC : Response (object stream)
+SC --> CS : Response
+CS -> CS : keep token and current user
+CS --> BC : ServiceResult<User>
+BC -> LC : signedIn(result)\n[JavaFX thread]
+alt success
+  LC -> LC : open MainController\n(starts EventListener, shows dashboard)
+else failure
+  LC -> U : show message, focus the field
+end
+@enduml

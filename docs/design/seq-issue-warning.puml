@@ -1,0 +1,56 @@
+@startuml
+!include seq-common.iuml
+title Sequence 4 - A coordinator issues a public warning (Feature 1, drawn from the merged code)
+
+actor Coordinator as U
+box "Client" #f5f6f8
+participant WarningMainController as WC
+participant WarningCalls as CALLS
+participant ClientSession as CS
+end box
+box "Server" #eef2f7
+participant ClientHandler as CH
+participant RequestDispatcher as RD
+participant AccessMatrixPolicy as AM
+participant WarningModule as WM
+participant WarningService as WS
+participant "WarningRepository\n(MySqlWarningRepository)" as WR
+participant AuditService as AU
+participant EventBus as EB
+end box
+
+U -> WC : fill in level, area, message,\nexpiry; click Issue
+WC -> CALLS : send(ISSUE_WARNING, warning)\n[BackgroundCall]
+CALLS -> CS : send(Request ISSUE_WARNING + token)
+CS -> CH : Request
+CH -> RD : dispatch(request)
+RD -> RD : token -> User (SessionManager)
+RD -> AM : isAllowed(user, ISSUE_WARNING)
+AM -> AM : AccessMatrix: coordinator only
+alt not allowed (e.g. a responder)
+  AM --> RD : false
+  RD --> CH : failure PERMISSION_DENIED
+else allowed
+  AM --> RD : true
+  RD -> WM : handle(request, user)\n(module found through ModuleRegistry)
+  WM -> WS : issue(user, warning)
+  WS -> WS : validate: incident exists and is open;\nlevel (Emergency Warning needs P1/P2);\narea, message, expiry in the future,\nevacuation centre
+  alt invalid
+    WS --> WM : failure VALIDATION_ERROR
+  else valid
+    WS -> WS : copy, version 1, status ACTIVE,\nissuedBy, issuedAt
+    WS -> WR : saveVersion(warning)
+    WR --> WS : WRN-nnnn
+    WS -> AU : record(ISSUE_WARNING)
+    WS --> WM : success(warning)
+  end
+  WM --> RD : Response
+  RD -> EB : publish(CHANGE "Warning WRN-nnnn issued")\nonly on success
+  RD --> CH : Response
+end
+CH --> CS : Response
+CS --> CALLS : Response
+CALLS --> WC : ServiceResult<Warning>
+WC -> U : "Issued", list refreshed
+note over EB : every dashboard shows the new warning\nin Live activity (Sequence 3); the public board\nreads it with LIST_PUBLIC_WARNINGS
+@enduml
