@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ServerConfigTest {
 
     @Test
-    @DisplayName("TC-SC-01 the MySQL settings come from the mysql.* keys")
+    @DisplayName("TC-CF-01 the MySQL settings come from the mysql.* keys")
     void readsMySqlSettings() throws Exception {
         Properties properties = ServerConfig.defaults();
         properties.setProperty("mysql.host", "db.example");
@@ -40,7 +40,7 @@ class ServerConfigTest {
     }
 
     @Test
-    @DisplayName("TC-SC-02 passwords in the environment override the file "
+    @DisplayName("TC-CF-02 passwords in the environment override the file "
             + "and never appear in the description")
     void environmentPasswordsWinAndStayHidden() throws Exception {
         Properties properties = ServerConfig.defaults();
@@ -69,7 +69,7 @@ class ServerConfigTest {
     }
 
     @Test
-    @DisplayName("TC-SC-03 an invalid MySQL setting is refused only when "
+    @DisplayName("TC-CF-03 an invalid MySQL setting is refused only when "
             + "MySQL is the storage")
     void invalidMySqlSettingNeedsMySql() throws Exception {
         Properties mysql = ServerConfig.defaults();
