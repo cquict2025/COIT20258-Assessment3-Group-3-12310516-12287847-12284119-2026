@@ -1,0 +1,9 @@
+skinparam shadowing false
+skinparam sequenceMessageAlign left
+skinparam responseMessageBelowArrow true
+skinparam sequence {
+  ParticipantBackgroundColor White
+  ParticipantBorderColor #1f2933
+  LifeLineBorderColor #52606d
+  GroupBackgroundColor #f5f6f8
+}

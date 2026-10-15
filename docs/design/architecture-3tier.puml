@@ -1,0 +1,62 @@
+@startuml
+title DRS-Enhanced - Three-tier architecture
+
+skinparam shadowing false
+skinparam defaultTextAlignment center
+skinparam node {
+  BackgroundColor #f5f6f8
+  BorderColor #1f2933
+}
+skinparam component {
+  BackgroundColor White
+  BorderColor #1f2933
+}
+
+node "Client computer (one or more)\nJavaFX 21, ClientLauncher" as client {
+  component "View\nFXML screens + app.css" as view
+  component "Controller\nLogin, Main, Dashboard, Report form,\nAssessment, Coordination, Field update,\nWarnings (Feature 1)" as ctrl
+  component "Client model\nRemoteServices (proxy), ClientSession,\nServerConnection, BackgroundCall" as cmodel
+  component "EventListener\n(Feature 2, background thread)" as listener
+  view -down-> ctrl : user events
+  ctrl -down-> cmodel : calls off the\nJavaFX thread
+  listener -up-> ctrl : Platform.runLater
+}
+
+node "Server computer\nServerLauncher (status window or --headless)" as server {
+  component "DrsServer\nServerSocket :5050 +\nfixed pool of 32 worker threads" as sock
+  component "ClientHandler (one per connection)\nfiltered object streams" as handler
+  component "RequestDispatcher\nsession check, AccessMatrix,\nEnumMap of command handlers" as disp
+  component "Core commands + modules\n(WarningModule, ImportModule)" as cmds
+  component "Application services\nall business rules" as services
+  component "Live picture (Feature 2)\nEventBus, EventChannel,\nEscalationMonitor" as live
+  component "Repositories\nMySql* (default) / Sqlite* / InMemory*" as repos
+  sock -down-> handler
+  handler -down-> disp
+  disp -down-> cmds
+  cmds -down-> services
+  services -down-> repos
+  disp -right-> live : publish after\na successful change
+}
+
+node "Database server" as dbnode {
+  database "MySQL 8/9\ndatabase drs\n(reporter details AES-GCM encrypted,\naudit log hash-chained)" as mysql
+}
+
+file "drs-keystore.p12\nfield encryption key" as keystore
+
+cmodel -right-> sock : TCP 5050: Request / Response\n(serialised objects, allow-list filter)
+listener -right-> live : TCP 5050, second socket:\nSUBSCRIBE_EVENTS, then pushed ServerEvents
+repos -down-> mysql : JDBC, pool of 8 connections
+repos .right.> keystore
+
+note bottom of client
+  Tier 1 - presentation: MVC. Controllers never
+  contain business rules or SQL.
+end note
+
+note bottom of dbnode
+  Tier 3 - data. Only the server
+  connects to the database.
+end note
+
+@enduml

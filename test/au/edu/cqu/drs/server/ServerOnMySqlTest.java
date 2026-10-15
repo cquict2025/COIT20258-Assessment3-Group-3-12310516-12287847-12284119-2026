@@ -83,7 +83,7 @@ class ServerOnMySqlTest {
     }
 
     @Test
-    @DisplayName("TC-SC-04 on MySQL the server signs in a seeded account, "
+    @DisplayName("TC-CF-04 on MySQL the server signs in a seeded account, "
             + "encrypts the reporter's name and keeps data after a "
             + "restart")
     void runsOnMySql() throws Exception {
@@ -118,7 +118,7 @@ class ServerOnMySqlTest {
     }
 
     @Test
-    @DisplayName("TC-SC-05 on MySQL the warning module stores warnings in "
+    @DisplayName("TC-CF-05 on MySQL the warning module stores warnings in "
             + "the database, the import module is active and permissions "
             + "come from the access matrix")
     void modulesUseMySql() throws Exception {

@@ -1,0 +1,54 @@
+@startuml
+!include seq-common.iuml
+title Sequence 3 - Live push of a change to every client (Feature 2)
+
+box "Client B (already signed in)" #f5f6f8
+participant EventListener as EL
+participant DashboardController as DC
+participant RemoteServices as RS
+end box
+box "Server" #eef2f7
+participant ClientHandler as CH
+participant EventChannel as EC
+participant QueuedSubscriber as QS
+participant EventBus as EB
+participant RequestDispatcher as RD
+participant EscalationMonitor as EM
+end box
+
+== Subscribing, once after sign-in ==
+EL -> CH : second socket: Request SUBSCRIBE_EVENTS + token
+CH -> EC : open(request, socket, in, out)
+EC -> EC : session token valid?
+EC --> EL : Response success
+EC -> QS : new (queue of 500, writer thread)
+EC -> EB : subscribe(QS)
+EB -> EB : publish(CLIENTS n) to everyone
+note over CH : the worker thread is free again;\nthe socket now belongs to QS
+
+== Any client changes data (e.g. Sequence 2) ==
+RD -> EB : publish(ServerEvent CHANGE)
+EB -> QS : onEvent(event)
+QS -> QS : offer to queue\n(full: drop the oldest, log it)
+note right of EB : publish only queues, so it never\nwaits for a slow client
+QS -> EL : write ServerEvent [writer thread]
+EL -> EL : remember in recent events
+EL -> DC : Platform.runLater(onEvent)
+DC -> DC : add line to Live activity
+DC -> RS : reload incidents, escalation,\nalerts [BackgroundCall]
+RS --> DC : results
+DC -> DC : refresh tables;\nshow red BREACHED banner if any
+
+== Every 60 seconds ==
+EM -> EM : evaluate every open incident\n(under the dispatcher's read lock)
+alt escalation state changed\n(e.g. P1 At risk -> Breached)
+  EM -> EB : publish(ServerEvent ESCALATION)
+  EB -> QS : onEvent(event)
+else unchanged
+  EM -> EM : publish nothing
+end
+
+== Quiet channel ==
+QS -> EL : HEARTBEAT after 20 s of silence
+note over EL : no data for 60 s, or the socket closes:\nshow "reconnecting", retry every 5 s
+@enduml
