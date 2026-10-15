@@ -1,5 +1,5 @@
 @startuml
-title DRS-Initial - Domain Model Class Diagram (COIT20258 Assessment 2)
+title DRS-Enhanced - Domain Model Class Diagram (COIT20258 Assessment 3)
 
 skinparam classAttributeIconSize 0
 skinparam shadowing false
@@ -248,6 +248,52 @@ enum UserRole {
   ADMINISTRATOR
 }
 
+' ----- Feature 1 (Milan): public warnings, package model.warning -----
+package "model.warning" {
+  class Warning {
+    - warningId : String
+    - version : int
+    - incidentId : String
+    - level : WarningLevel
+    - affectedArea : String
+    - message : String
+    - recommendedAction : String
+    - evacuationCentre : EvacuationCentre
+    - status : WarningStatus
+    - issuedBy : String
+    - issuedAt : LocalDateTime
+    - expiresAt : LocalDateTime
+    --
+    + copy() : Warning
+    + toString() : String
+  }
+
+  class WarningAcknowledgement {
+    - warningId : String
+    - department : Department
+    - acknowledgedBy : String
+    - acknowledgedAt : LocalDateTime
+  }
+
+  class EvacuationCentre {
+    - name : String
+    - capacity : int
+  }
+
+  enum WarningLevel {
+    ADVICE
+    WATCH_AND_ACT
+    EMERGENCY_WARNING
+  }
+
+  enum WarningStatus {
+    ACTIVE
+    CANCELLED
+  }
+}
+
+note "Every model class implements java.io.Serializable\n(serialVersionUID = 1L) so it can travel between\nclient and server inside Request and Response." as SerialNote
+
 ' ----- Associations with multiplicities -----
 Incident "1" o-- "1..*" DisasterReport : is evidenced by >
 Incident "1" *-- "0..*" Assessment : is scored by >
@@ -272,5 +318,11 @@ ResourceAllocation --> Department
 User --> UserRole
 User --> Department
 EscalationAlert --> EscalationState
+Incident "1" -- "0..*" Warning : is announced by >
+Warning "1" *-- "0..*" WarningAcknowledgement : is acknowledged by >
+Warning "1" *-- "0..1" EvacuationCentre : directs people to >
+Warning --> WarningLevel
+Warning --> WarningStatus
+WarningAcknowledgement --> Department
 
 @enduml

@@ -1,10 +1,10 @@
 @startuml
-title DRS-Initial - MVC and Three-Tier Structure (COIT20258 Assessment 2)
+title DRS-Enhanced - MVC on the client, business logic on the server (COIT20258 Assessment 3)
 
 skinparam shadowing false
 skinparam classAttributeIconSize 0
-skinparam nodesep 12
-skinparam ranksep 30
+skinparam nodesep 14
+skinparam ranksep 34
 skinparam package {
   BackgroundColor #f5f6f8
   BorderColor #52606d
@@ -14,137 +14,151 @@ skinparam class {
   BorderColor #1f2933
 }
 
-package "View - FXML built in Scene Builder" as V {
-  class "login.fxml" as v1
-  class "main.fxml" as v2
-  class "dashboard.fxml" as v3
-  class "report-form.fxml" as v4
-  class "assessment.fxml" as v5
-  class "coordination.fxml" as v6
-  class "field-update.fxml" as v7
-  v1 -[hidden]right- v2
-  v2 -[hidden]right- v3
-  v3 -[hidden]right- v4
-  v4 -[hidden]right- v5
-  v5 -[hidden]right- v6
-  v6 -[hidden]right- v7
+package "CLIENT TIER - JavaFX (au.edu.cqu.drs.client, controller, view)" as CT {
+
+  package "View - FXML" as V {
+    class "login.fxml\nmain.fxml\ndashboard.fxml\nreport-form.fxml" as v1
+    class "assessment.fxml\ncoordination.fxml\nfield-update.fxml" as v2
+    class "warning-main.fxml\nwarning-board.fxml\nwarning-ack.fxml\n(Feature 1, Milan)" as v3
+    v1 -[hidden]right- v2
+    v2 -[hidden]right- v3
+  }
+
+  package "Controller - event handling only" as C {
+    class LoginController
+    class MainController
+    class DashboardController <<Feature 2>>
+    class "Report / Assessment /\nCoordination / FieldUpdate\nControllers" as others
+    class "controller.warning.*\n(Feature 1)" as wc
+    LoginController -[hidden]right- MainController
+    MainController -[hidden]right- DashboardController
+    DashboardController -[hidden]right- others
+    others -[hidden]right- wc
+  }
+
+  package "Client model - proxy for the server" as CM {
+    class RemoteServices <<Proxy>> {
+      + submitReport(report) : ServiceResult<DisasterReport>
+      + findOpenIncidents() : ServiceResult<List<Incident>>
+      + findAlerts() : ServiceResult<List<EscalationAlert>>
+    }
+    class ClientSession {
+      - sessionToken : String
+      - currentUser : User
+      + login(username, password) : ServiceResult<User>
+      + send(request) : Response
+    }
+    class ServerConnection {
+      + send(request) : Response
+    }
+    class BackgroundCall {
+      + run(screen, call, onDone) : void
+    }
+    class "event.EventListener" as EL <<Feature 2>> {
+      + addListener(listener) : void
+      + getRecentEvents() : List<ServerEvent>
+    }
+  }
 }
 
-package "Controller - JavaFX event handling" as C {
-  class LoginController
-  class MainController
-  class DashboardController
-  class ReportFormController
-  class AssessmentController
-  class CoordinationController
-  class FieldUpdateController
-  LoginController -[hidden]right- MainController
-  MainController -[hidden]right- DashboardController
-  DashboardController -[hidden]right- ReportFormController
-  ReportFormController -[hidden]right- AssessmentController
-  AssessmentController -[hidden]right- CoordinationController
-  CoordinationController -[hidden]right- FieldUpdateController
+package "PROTOCOL (au.edu.cqu.drs.protocol) - shared by both tiers" as P {
+  class Request <<Command>> {
+    - requestId : String
+    - command : Command
+    - sessionToken : String
+    - payload : Map<String, Serializable>
+  }
+  class Response {
+    - success : boolean
+    - value : Serializable
+    - errorCode : ErrorCode
+    + fromServiceResult(id, result) : Response
+  }
+  class ProtocolFilter <<ObjectInputFilter>>
+  class MessageStreams
 }
 
-package "Model - application services (all business rules)" as S {
-  class AuthenticationService {
-    + login(username, password) : ServiceResult<User>
-    + isAuthorised(user, roles...) : boolean
+package "SERVER TIER - multi-threaded (au.edu.cqu.drs.server)" as ST {
+  class DrsServer {
+    - workers : ExecutorService
+    + start() : void
   }
-  class ReportService {
-    + submitReport(report) : ServiceResult<DisasterReport>
-    + decideReport(...) : ServiceResult<DisasterReport>
+  class ClientHandler <<Runnable>>
+  class RequestDispatcher {
+    - handlers : EnumMap<Command, CommandHandler>
+    - lock : ReadWriteLock
+    + dispatch(request) : Response
   }
-  class AssessmentService {
-    + calculateScore(threat, scale, infra) : int
-    + recommendPriority(score) : Priority
-    + confirmPriority(...) : ServiceResult<Assessment>
+  class SessionManager {
+    - sessions : ConcurrentHashMap
   }
-  class IncidentService {
-    + createFromReport(...) : ServiceResult<Incident>
-    + closeIncident(...) : ServiceResult<Incident>
-    + findOpenIncidentsByPriority() : List<Incident>
+  class AccessMatrixPolicy <<AuthorisationPolicy>>
+  class CoreCommands
+  class ModuleRegistry {
+    + load(resource, context) : ModuleRegistry
   }
-  class CoordinationService {
-    + createAssignment(...) : ServiceResult<DepartmentAssignment>
-    + allocateResource(...) : ServiceResult<ResourceAllocation>
-  }
-  class EscalationService <<creative feature 1>> {
-    + evaluate(incident, now) : EscalationAlert
-    + findAlerts(now) : List<EscalationAlert>
-  }
-  class DuplicateDetectionService <<creative feature 2>> {
-    + similarity(first, second) : double
-    + findCandidates(report) : List<DuplicateCandidate>
-  }
-  class AuditService {
-    + record(actor, action, entity, id, detail) : AuditEvent
-  }
-  AuthenticationService -[hidden]right- ReportService
-  ReportService -[hidden]right- AssessmentService
-  AssessmentService -[hidden]right- IncidentService
-  CoordinationService -[hidden]right- EscalationService
-  EscalationService -[hidden]right- DuplicateDetectionService
-  DuplicateDetectionService -[hidden]right- AuditService
+  class "WarningModule / ImportModule\n(CommandModule, Milan)" as mods
+  class "event.EventBus\nevent.EventChannel\nevent.EscalationMonitor" as ev <<Feature 2>>
+  class ServerContext
 }
 
-package "Model - domain objects" as D {
-  class Incident
-  class DisasterReport
-  class Assessment
-  class DepartmentAssignment
-  class ResourceAllocation
-  class FieldUpdate
-  class User
-  class AuditEvent
-  Incident -[hidden]right- DisasterReport
-  DisasterReport -[hidden]right- Assessment
-  Assessment -[hidden]right- DepartmentAssignment
-  ResourceAllocation -[hidden]right- FieldUpdate
-  FieldUpdate -[hidden]right- User
-  User -[hidden]right- AuditEvent
+package "Business logic - application services (all business rules)" as S {
+  class "AuthenticationService\nReportService\nIncidentService\nAssessmentService" as s1
+  class "CoordinationService\nEscalationService\nDuplicateDetectionService\nAuditService" as s2
+  class "WarningService\n(Feature 1, Milan)" as s3
+  s1 -[hidden]right- s2
+  s2 -[hidden]right- s3
 }
 
-package "Data access - interfaces only" as R {
-  interface UserRepository
-  interface ReportRepository
-  interface IncidentRepository
-  interface AssessmentRepository
-  interface AssignmentRepository
-  interface FieldUpdateRepository
-  interface AuditRepository
-  interface PartnerGateway
-  UserRepository -[hidden]right- ReportRepository
-  ReportRepository -[hidden]right- IncidentRepository
-  IncidentRepository -[hidden]right- AssessmentRepository
-  AssignmentRepository -[hidden]right- FieldUpdateRepository
-  FieldUpdateRepository -[hidden]right- AuditRepository
-  AuditRepository -[hidden]right- PartnerGateway
+package "DATA TIER - repository interfaces and adapters (Strategy)" as R {
+  interface "UserRepository, ReportRepository,\nIncidentRepository, ... WarningRepository" as repos
+  class "MySql*Repository\n(default, Milan)" as mysql
+  class "Sqlite*Repository" as sqlite
+  class "InMemory*Repository" as memory
+  class "MySQL database drs" as db <<database>>
+  repos <|.. mysql
+  repos <|.. sqlite
+  repos <|.. memory
+  mysql --> db
 }
 
-package "Adapters" as A {
-  class "Sqlite*Repository" as sq
-  class "InMemory*Repository - JUnit test doubles" as mem
-  class "SimulatedPartnerGateway" as gw
-  class "SQLite file drs.db" as db
-  sq -[hidden]right- mem
-  mem -[hidden]right- gw
-  gw -[hidden]right- db
-}
+v1 ..> LoginController : user events
+v1 ..> DashboardController
+LoginController --> ClientSession
+DashboardController --> RemoteServices
+DashboardController --> EL : live events
+others --> RemoteServices
+RemoteServices --> ClientSession
+ClientSession --> ServerConnection
+ServerConnection ..> Request : sends
+ServerConnection ..> Response : receives
+EL ..> MessageStreams : second socket
 
-v4 ..> ReportFormController : user events
-ReportFormController --> ReportService : command, typed ServiceResult
-ReportService --> DisasterReport : reads and changes
-ReportService --> ReportRepository : persists through
-ReportRepository <|.. sq
-ReportRepository <|.. mem
-PartnerGateway <|.. gw
-sq --> db
+DrsServer --> ClientHandler : one per client,\non a worker thread
+ClientHandler --> RequestDispatcher
+ClientHandler ..> ProtocolFilter
+RequestDispatcher --> SessionManager : token -> user
+RequestDispatcher --> AccessMatrixPolicy : role allowed?
+RequestDispatcher --> CoreCommands
+RequestDispatcher --> ModuleRegistry
+ModuleRegistry --> mods
+RequestDispatcher --> ev : publish change
+CoreCommands --> ServerContext
+ServerContext --> s1
+ServerContext --> s2
+mods --> s3
+s1 --> repos
+s2 --> repos
+s3 --> repos
 
-note bottom of A
-  Controllers hold no validation, no scoring and no SQL.
-  Because every service depends on a repository interface,
-  all 94 JUnit tests run without JavaFX and without a database file.
+note bottom of CT
+  Controllers hold no business rules and no SQL. Every server call runs
+  through BackgroundCall on a worker thread, so the JavaFX thread never blocks.
+end note
+
+note bottom of R
+  The services depend only on repository interfaces, so the same rules run
+  on MySQL, SQLite or in memory, chosen by repository= in drs-server.properties.
 end note
 
 @enduml
