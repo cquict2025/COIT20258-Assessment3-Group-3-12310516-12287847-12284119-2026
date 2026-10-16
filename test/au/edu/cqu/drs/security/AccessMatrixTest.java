@@ -25,6 +25,9 @@ class AccessMatrixTest {
     private static final Set<Command> TIGHTENED =
             EnumSet.of(Command.ACK_WARNING);
 
+    /**
+     * Checks that every command has a row in the access matrix.
+     */
     @Test
     @DisplayName("TC-SEC-10 every command has a row in the matrix")
     void everyCommandHasARule() {
@@ -34,6 +37,10 @@ class AccessMatrixTest {
         }
     }
 
+    /**
+     * Checks that only a coordinator can issue or cancel a warning and only a
+     * liaison can acknowledge one.
+     */
     @Test
     @DisplayName("TC-SEC-11 only a coordinator issues or cancels a warning")
     void onlyCoordinatorControlsWarnings() {
@@ -48,6 +55,11 @@ class AccessMatrixTest {
                 AccessMatrix.rolesFor(Command.ACK_WARNING));
     }
 
+    /**
+     * Checks that a responder cannot decide reports, create accounts or read
+     * the audit log but can add field updates, and that a missing role or
+     * command is refused.
+     */
     @Test
     @DisplayName("TC-SEC-12 a responder cannot decide reports, create "
             + "accounts or read the audit log")
@@ -64,6 +76,10 @@ class AccessMatrixTest {
         assertFalse(AccessMatrix.isAllowed(UserRole.COORDINATOR, null));
     }
 
+    /**
+     * Checks that the matrix gives the same roles as the server's role-based
+     * default policy, apart from the commands tightened on purpose.
+     */
     @Test
     @DisplayName("TC-SEC-13 the matrix keeps every rule of the server's "
             + "default policy, apart from the ones tightened on purpose")
@@ -78,6 +94,10 @@ class AccessMatrixTest {
         }
     }
 
+    /**
+     * Checks that the server's default authorisation policy uses the access
+     * matrix.
+     */
     @Test
     @DisplayName("TC-SEC-14 the server uses this matrix for authorisation")
     void serverPicksUpTheMatrix() {
@@ -90,5 +110,16 @@ class AccessMatrixTest {
         assertFalse(policy.isAllowed(responder, Command.ACK_WARNING));
         assertTrue(policy.isAllowed(null, Command.LIST_PUBLIC_WARNINGS));
         assertNotNull(AccessMatrix.toMarkdown());
+    }
+
+    /**
+     * Describes this test class and the fixture it uses.
+     *
+     * @return the class name and the commands it expects to be tightened
+     */
+    @Override
+    public String toString() {
+        return "AccessMatrixTest[checks the role rules in AccessMatrix, "
+                + "tightened=" + TIGHTENED + "]";
     }
 }

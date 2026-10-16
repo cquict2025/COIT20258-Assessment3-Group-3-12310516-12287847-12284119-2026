@@ -183,18 +183,12 @@ public class MySqlWarningRepository implements WarningRepository {
     }
 
     /**
-     * Describes the repository.
-     *
-     * @return the tables it uses
-     */
-    @Override
-    public String toString() {
-        return "MySqlWarningRepository: warnings, warning_acknowledgements";
-    }
-
-    /**
      * Finds the next code, locking the rows read until the transaction
      * ends.
+     *
+     * @param connection the connection whose transaction holds the lock
+     * @return the next code, for example WRN-0003
+     * @throws SQLException if the query fails
      */
     private String nextCode(Connection connection) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
@@ -206,6 +200,15 @@ public class MySqlWarningRepository implements WarningRepository {
         }
     }
 
+    /**
+     * Runs a warning query and maps every row it returns to a warning
+     * version.
+     *
+     * @param sql       the SELECT statement, with at most one parameter
+     * @param parameter the value for the parameter, or null when the query
+     *                  has none
+     * @return the warning versions found, in the order the query gives
+     */
     private List<Warning> query(String sql, String parameter) {
         try {
             return this.database.withConnection(connection -> {
@@ -228,6 +231,15 @@ public class MySqlWarningRepository implements WarningRepository {
         }
     }
 
+    /**
+     * Reads the acknowledgements of a warning on a connection the caller
+     * already holds.
+     *
+     * @param connection the connection to use
+     * @param warningId  the warning's code
+     * @return the acknowledgements, earliest first
+     * @throws SQLException if the query fails
+     */
     private List<WarningAcknowledgement> acknowledgements(
             Connection connection, String warningId) throws SQLException {
         List<WarningAcknowledgement> found = new ArrayList<>();
@@ -250,6 +262,15 @@ public class MySqlWarningRepository implements WarningRepository {
         return found;
     }
 
+    /**
+     * Sets every parameter of the INSERT statement for one warning
+     * version. A missing evacuation centre is stored as SQL NULL.
+     *
+     * @param statement the INSERT statement to fill
+     * @param code      the warning's code
+     * @param warning   the version whose values are bound
+     * @throws SQLException if a parameter cannot be set
+     */
     private void bind(PreparedStatement statement, String code,
             Warning warning) throws SQLException {
         EvacuationCentre centre = warning.getEvacuationCentre();
@@ -273,6 +294,13 @@ public class MySqlWarningRepository implements WarningRepository {
         MySqlSupport.setDateTime(statement, 13, warning.getExpiresAt());
     }
 
+    /**
+     * Builds a warning version from the current row of a result set.
+     *
+     * @param rs the result set, positioned on a row
+     * @return the warning version read from the row
+     * @throws SQLException if a column cannot be read
+     */
     private Warning map(ResultSet rs) throws SQLException {
         Warning warning = new Warning();
         warning.setWarningId(rs.getString("warning_id"));
@@ -294,5 +322,15 @@ public class MySqlWarningRepository implements WarningRepository {
         warning.setIssuedAt(MySqlSupport.getDateTime(rs, "issued_at"));
         warning.setExpiresAt(MySqlSupport.getDateTime(rs, "expires_at"));
         return warning;
+    }
+
+    /**
+     * Describes the repository.
+     *
+     * @return the tables it uses
+     */
+    @Override
+    public String toString() {
+        return "MySqlWarningRepository: warnings, warning_acknowledgements";
     }
 }

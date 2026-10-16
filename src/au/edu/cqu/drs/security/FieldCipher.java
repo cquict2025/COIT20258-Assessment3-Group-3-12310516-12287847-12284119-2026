@@ -194,15 +194,12 @@ public final class FieldCipher {
     }
 
     /**
-     * Describes the cipher without revealing the key.
+     * Restricts a key file so only its owner can read and write it. On a file
+     * system without POSIX permissions, such as Windows, it leaves the file as
+     * it is.
      *
-     * @return the algorithm
+     * @param file the key file
      */
-    @Override
-    public String toString() {
-        return "FieldCipher: AES-256-GCM";
-    }
-
     private static void ownerOnly(Path file) {
         try {
             Files.setPosixFilePermissions(file,
@@ -211,5 +208,15 @@ public final class FieldCipher {
             // Windows has no POSIX permissions; the file inherits the
             // folder's access list instead.
         }
+    }
+
+    /**
+     * Describes the cipher without revealing the key.
+     *
+     * @return the algorithm
+     */
+    @Override
+    public String toString() {
+        return "FieldCipher: AES-256-GCM";
     }
 }

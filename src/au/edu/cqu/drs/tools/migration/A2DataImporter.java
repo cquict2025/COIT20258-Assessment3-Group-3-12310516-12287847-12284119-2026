@@ -158,15 +158,14 @@ public class A2DataImporter {
     }
 
     /**
-     * Describes the importer.
+     * Sends each record of one table to the server as an import command and
+     * counts it as added, already there or refused.
      *
-     * @return the server it sends to
+     * @param summary the summary to count into
+     * @param table   the table name shown in the summary
+     * @param command the import command for this kind of record
+     * @param records the records to send
      */
-    @Override
-    public String toString() {
-        return "A2DataImporter: sending to " + this.connection;
-    }
-
     private void sendAll(ImportSummary summary, String table,
             Command command, List<? extends Serializable> records) {
         for (Serializable record : records) {
@@ -183,6 +182,15 @@ public class A2DataImporter {
         }
     }
 
+    /**
+     * Asks for the administrator's password on the console, or reads it from
+     * the DRS_IMPORT_PASSWORD environment variable when there is no console.
+     *
+     * @param username the administrator's user name, shown in the prompt
+     * @return the password
+     * @throws IllegalStateException if there is no console and the variable
+     *                               is not set
+     */
     private static char[] password(String username) {
         Console console = System.console();
         if (console != null) {
@@ -194,5 +202,15 @@ public class A2DataImporter {
                     + "in; set DRS_IMPORT_PASSWORD.");
         }
         return fromEnvironment.toCharArray();
+    }
+
+    /**
+     * Describes the importer.
+     *
+     * @return the server it sends to
+     */
+    @Override
+    public String toString() {
+        return "A2DataImporter: sending to " + this.connection;
     }
 }

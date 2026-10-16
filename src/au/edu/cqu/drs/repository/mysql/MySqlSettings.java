@@ -162,22 +162,27 @@ public final class MySqlSettings {
     }
 
     /**
-     * Describes the settings without the password.
+     * Returns the query string of JDBC options shared by both URLs: TLS
+     * when the server offers it, UTF-8, and whether the server's public key
+     * may be fetched.
      *
-     * @return a description safe to log
+     * @return the options, starting with a question mark
      */
-    @Override
-    public String toString() {
-        return "MySqlSettings: " + this.user + "@" + this.host + ":"
-                + this.port + "/" + this.database + ", pool of "
-                + this.poolSize;
-    }
-
     private String options() {
         return "?sslMode=PREFERRED&characterEncoding=UTF-8"
                 + "&allowPublicKeyRetrieval=" + this.allowPublicKeyRetrieval;
     }
 
+    /**
+     * Reads a whole-number setting, falling back to a default when the key
+     * is missing or blank.
+     *
+     * @param properties the server settings
+     * @param key        the key to read
+     * @param fallback   the value used when the key is missing or blank
+     * @return the number
+     * @throws IllegalArgumentException if the value is not a whole number
+     */
     private static int number(Properties properties, String key,
             int fallback) {
         String value = properties.getProperty(key);
@@ -190,5 +195,17 @@ public final class MySqlSettings {
             throw new IllegalArgumentException(key + " must be a whole "
                     + "number, not '" + value + "'.");
         }
+    }
+
+    /**
+     * Describes the settings without the password.
+     *
+     * @return a description safe to log
+     */
+    @Override
+    public String toString() {
+        return "MySqlSettings: " + this.user + "@" + this.host + ":"
+                + this.port + "/" + this.database + ", pool of "
+                + this.poolSize;
     }
 }

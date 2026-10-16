@@ -11,6 +11,14 @@ public final class ChainVerification {
     private final String firstBrokenEventId;
     private final String reason;
 
+    /**
+     * Creates a chain verification.
+     *
+     * @param checked            the checked
+     * @param unchained          the unchained
+     * @param firstBrokenEventId the first broken event id
+     * @param reason             the reason
+     */
     private ChainVerification(int checked, int unchained,
             String firstBrokenEventId, String reason) {
         this.checked = checked;

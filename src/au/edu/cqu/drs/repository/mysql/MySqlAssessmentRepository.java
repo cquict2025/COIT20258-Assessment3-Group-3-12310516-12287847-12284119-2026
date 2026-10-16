@@ -83,15 +83,13 @@ public class MySqlAssessmentRepository implements AssessmentRepository {
     }
 
     /**
-     * Describes the repository.
+     * Runs a query that takes an incident code and maps every row it
+     * returns to an assessment.
      *
-     * @return the table it uses
+     * @param sql        the SELECT statement, with one parameter
+     * @param incidentId the incident code to bind to the parameter
+     * @return the assessments found, in the order the query gives
      */
-    @Override
-    public String toString() {
-        return "MySqlAssessmentRepository: assessments";
-    }
-
     private List<Assessment> query(String sql, String incidentId) {
         try {
             return this.database.withConnection(connection -> {
@@ -113,6 +111,15 @@ public class MySqlAssessmentRepository implements AssessmentRepository {
         }
     }
 
+    /**
+     * Sets the assessment's column values on a statement, in the order of
+     * {@code COLUMNS}.
+     *
+     * @param statement  the INSERT or UPDATE statement to fill
+     * @param first      the position of the first column's parameter
+     * @param assessment the assessment whose values are bound
+     * @throws SQLException if a parameter cannot be set
+     */
     private void bind(PreparedStatement statement, int first,
             Assessment assessment) throws SQLException {
         int i = first;
@@ -132,6 +139,13 @@ public class MySqlAssessmentRepository implements AssessmentRepository {
         statement.setInt(i, assessment.getVersion());
     }
 
+    /**
+     * Builds an assessment from the current row of a result set.
+     *
+     * @param rs the result set, positioned on a row
+     * @return the assessment read from the row
+     * @throws SQLException if a column cannot be read
+     */
     private Assessment map(ResultSet rs) throws SQLException {
         Assessment assessment = new Assessment();
         assessment.setAssessmentId(rs.getString("assessment_id"));
@@ -151,5 +165,15 @@ public class MySqlAssessmentRepository implements AssessmentRepository {
         assessment.setAssessedAt(MySqlSupport.getDateTime(rs, "assessed_at"));
         assessment.setVersion(rs.getInt("version"));
         return assessment;
+    }
+
+    /**
+     * Describes the repository.
+     *
+     * @return the table it uses
+     */
+    @Override
+    public String toString() {
+        return "MySqlAssessmentRepository: assessments";
     }
 }

@@ -138,15 +138,11 @@ public class WarningAckController {
     }
 
     /**
-     * Describes the controller.
+     * Shows the warnings that are in force now, or the error if the list could
+     * not be loaded.
      *
-     * @return the screen it drives
+     * @param result the server's answer to the list request
      */
-    @Override
-    public String toString() {
-        return "WarningAckController: warning-ack.fxml";
-    }
-
     private void show(ServiceResult<List<Warning>> result) {
         if (result.isFailure()) {
             showError(result.getMessage());
@@ -162,6 +158,12 @@ public class WarningAckController {
         this.warningTable.getItems().setAll(inForce);
     }
 
+    /**
+     * Reports a successful acknowledgement and reloads the list, or shows the
+     * error if the server refused it.
+     *
+     * @param result the server's answer to the acknowledgement
+     */
     private void acknowledged(ServiceResult<WarningAcknowledgement> result) {
         if (result.isFailure()) {
             showError(result.getMessage());
@@ -174,6 +176,12 @@ public class WarningAckController {
         handleRefresh();
     }
 
+    /**
+     * Shows the full message of the selected warning, with its recommended
+     * action and evacuation centre when it has them.
+     *
+     * @param warning the selected warning, or null when nothing is selected
+     */
     private void describe(Warning warning) {
         if (warning == null) {
             this.detailLabel.setText("Select a warning to read it in full.");
@@ -187,6 +195,14 @@ public class WarningAckController {
         this.detailLabel.setText(warning.getMessage() + action + centre);
     }
 
+    /**
+     * Finds the acknowledgement the liaison's department has given for a
+     * warning.
+     *
+     * @param warning the warning to look in
+     * @return the department's acknowledgement, or empty if it has not
+     *         acknowledged the warning yet
+     */
     private Optional<WarningAcknowledgement> ourAcknowledgement(
             Warning warning) {
         Department department = department();
@@ -195,13 +211,34 @@ public class WarningAckController {
                 .findFirst();
     }
 
+    /**
+     * Gives the department of the signed-in liaison.
+     *
+     * @return the department, or null if no one is signed in or the account
+     *         has no department
+     */
     private Department department() {
         User user = this.context.getCurrentUser();
         return user == null ? null : user.getDepartment();
     }
 
+    /**
+     * Shows an error message under the table.
+     *
+     * @param message the message to show
+     */
     private void showError(String message) {
         this.messageLabel.getStyleClass().setAll("error-label");
         this.messageLabel.setText(message);
+    }
+
+    /**
+     * Describes the controller.
+     *
+     * @return the screen it drives
+     */
+    @Override
+    public String toString() {
+        return "WarningAckController: warning-ack.fxml";
     }
 }

@@ -15,7 +15,21 @@ public final class WarningKeys {
     /** Why a warning is being cancelled. */
     public static final String REASON = "reason";
 
+    /**
+     * Prevents instances; every member is static.
+     */
     private WarningKeys() {
         // Holds constants only.
+    }
+
+    /**
+     * Describes the argument names this class holds.
+     *
+     * @return the three warning argument names
+     */
+    @Override
+    public String toString() {
+        return "WarningKeys[" + WARNING + ", " + WARNING_ID + ", " + REASON
+                + "]";
     }
 }

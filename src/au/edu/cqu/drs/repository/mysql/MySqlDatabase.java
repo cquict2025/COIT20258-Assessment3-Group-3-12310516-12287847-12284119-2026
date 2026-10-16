@@ -137,16 +137,12 @@ public class MySqlDatabase implements AutoCloseable {
     }
 
     /**
-     * Describes the database.
+     * Connects to the MySQL server without choosing a database and creates
+     * the configured database if it does not exist yet.
      *
-     * @return the settings and how many connections are free
+     * @throws SQLException if the server cannot be reached or the database
+     *                      cannot be created
      */
-    @Override
-    public String toString() {
-        return "MySqlDatabase: " + this.settings + ", " + this.pool.size()
-                + " free";
-    }
-
     private void createDatabase() throws SQLException {
         try (Connection connection = DriverManager.getConnection(
                 this.settings.serverUrl(), this.settings.getUser(),
@@ -159,6 +155,12 @@ public class MySqlDatabase implements AutoCloseable {
         }
     }
 
+    /**
+     * Runs every schema statement from {@link MySqlSchema} on a pooled
+     * connection, creating any table that is missing.
+     *
+     * @throws SQLException if a statement fails
+     */
     private void createTables() throws SQLException {
         withConnection(connection -> {
             try (Statement statement = connection.createStatement()) {
@@ -170,11 +172,27 @@ public class MySqlDatabase implements AutoCloseable {
         });
     }
 
+    /**
+     * Opens a new connection to the configured database.
+     *
+     * @return the new connection
+     * @throws SQLException if the connection cannot be opened
+     */
     private Connection open() throws SQLException {
         return DriverManager.getConnection(this.settings.databaseUrl(),
                 this.settings.getUser(), this.settings.getPassword());
     }
 
+    /**
+     * Takes a free connection from the pool, waiting up to
+     * {@link #BORROW_TIMEOUT_SECONDS} seconds, and replaces it first if it
+     * is no longer valid.
+     *
+     * @return a working connection
+     * @throws SQLException if the pool is closed, the wait is interrupted,
+     *                      no connection becomes free in time, or a broken
+     *                      connection cannot be replaced
+     */
     private Connection borrow() throws SQLException {
         if (this.closed) {
             throw new SQLException("The MySQL connection pool is closed.");
@@ -198,6 +216,15 @@ public class MySqlDatabase implements AutoCloseable {
         return connection;
     }
 
+    /**
+     * Closes a broken connection and opens a new one in its place. If the
+     * new one cannot be opened, the broken one is put back in the pool so
+     * the pool keeps its size and a later request can try again.
+     *
+     * @param broken the connection that failed validation
+     * @return the new connection
+     * @throws SQLException if a new connection cannot be opened
+     */
     private Connection replace(Connection broken) throws SQLException {
         try {
             broken.close();
@@ -219,6 +246,11 @@ public class MySqlDatabase implements AutoCloseable {
         return fresh;
     }
 
+    /**
+     * Returns a connection to the pool, unless the pool has been closed.
+     *
+     * @param connection the connection to return
+     */
     private void giveBack(Connection connection) {
         if (this.closed) {
             return;
@@ -242,5 +274,16 @@ public class MySqlDatabase implements AutoCloseable {
          * @throws SQLException if a statement fails
          */
         T run(Connection connection) throws SQLException;
+    }
+
+    /**
+     * Describes the database.
+     *
+     * @return the settings and how many connections are free
+     */
+    @Override
+    public String toString() {
+        return "MySqlDatabase: " + this.settings + ", " + this.pool.size()
+                + " free";
     }
 }

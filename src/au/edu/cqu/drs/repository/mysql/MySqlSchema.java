@@ -271,6 +271,9 @@ public final class MySqlSchema {
                     REFERENCES users (user_id)
             )""" + TABLE_OPTIONS);
 
+    /**
+     * Prevents instances; every member is static.
+     */
     private MySqlSchema() {
         // Holds constants only.
     }
@@ -315,5 +318,15 @@ public final class MySqlSchema {
         String name = args.length > 0
                 ? args[0] : MySqlSettings.DEFAULT_DATABASE;
         System.out.print(script(name));
+    }
+
+    /**
+     * Describes this constants class and the tables it defines.
+     *
+     * @return the class name and the number of tables
+     */
+    @Override
+    public String toString() {
+        return "MySqlSchema[" + TABLES.size() + " tables]";
     }
 }

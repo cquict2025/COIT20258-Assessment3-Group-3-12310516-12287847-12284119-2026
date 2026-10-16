@@ -20,6 +20,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class WarningScreenSafetyTest {
 
+    /**
+     * Checks that none of the warning screens has a default button, so
+     * pressing Enter cannot issue or acknowledge a warning.
+     *
+     * @throws IOException if a view file cannot be read
+     */
     @Test
     @DisplayName("TC-WU-01 no warning screen has a default button, so Enter "
             + "cannot issue or acknowledge a warning")
@@ -31,6 +37,10 @@ class WarningScreenSafetyTest {
         }
     }
 
+    /**
+     * Checks that the cancel confirmation question names the
+     * warning's code, its level and its affected area.
+     */
     @Test
     @DisplayName("TC-WU-02 the cancel question names the warning, its level "
             + "and its area")
@@ -47,11 +57,29 @@ class WarningScreenSafetyTest {
         assertTrue(question.contains("Laverton, Altona North"));
     }
 
+    /**
+     * Reads an FXML view from the classpath as text.
+     *
+     * @param view the file name of the view
+     * @return the contents of the view file
+     * @throws IOException if the view file cannot be read
+     */
     private static String read(String view) throws IOException {
         try (InputStream in = WarningScreenSafetyTest.class
                 .getResourceAsStream("/au/edu/cqu/drs/view/" + view)) {
             assertNotNull(in, view + " is missing");
             return new String(in.readAllBytes(), StandardCharsets.UTF_8);
         }
+    }
+
+    /**
+     * Describes this test class and the fixture it uses.
+     *
+     * @return the class name and what it checks
+     */
+    @Override
+    public String toString() {
+        return "WarningScreenSafetyTest[checks the warning screens for "
+                + "default buttons and the cancel question]";
     }
 }

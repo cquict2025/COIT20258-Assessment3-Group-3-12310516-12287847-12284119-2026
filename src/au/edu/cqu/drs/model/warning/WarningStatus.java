@@ -13,6 +13,11 @@ public enum WarningStatus {
 
     private final String displayName;
 
+    /**
+     * Creates a status with the name shown on screen.
+     *
+     * @param displayName the display name
+     */
     WarningStatus(String displayName) {
         this.displayName = displayName;
     }

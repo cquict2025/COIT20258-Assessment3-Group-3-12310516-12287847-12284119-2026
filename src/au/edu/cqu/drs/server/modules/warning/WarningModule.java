@@ -92,17 +92,11 @@ public class WarningModule implements CommandModule {
     }
 
     /**
-     * Describes the module.
-     *
-     * @return the service and its storage
-     */
-    @Override
-    public String toString() {
-        return "WarningModule: " + this.service;
-    }
-
-    /**
      * Lists every warning, or the versions of one when a code is given.
+     *
+     * @param request the request, which may carry a warning code
+     * @param user    the signed-in staff member
+     * @return the warnings, or the versions of the one warning
      */
     private Response listForStaff(Request request, User user) {
         String warningId = request.get(WarningKeys.WARNING_ID, String.class);
@@ -113,11 +107,25 @@ public class WarningModule implements CommandModule {
         return result(request, this.service.history(warningId));
     }
 
+    /**
+     * Turns a service result into the response for a request.
+     *
+     * @param request the request being answered
+     * @param result  the service's result
+     * @return the response
+     */
     private static Response result(Request request,
             ServiceResult<?> result) {
         return Response.fromServiceResult(request.getRequestId(), result);
     }
 
+    /**
+     * Reads the warning from a request, refusing the request as bad if it has
+     * none.
+     *
+     * @param request the request
+     * @return the warning
+     */
     private static Warning warning(Request request) {
         Warning warning = request.get(WarningKeys.WARNING, Warning.class);
         if (warning == null) {
@@ -127,6 +135,13 @@ public class WarningModule implements CommandModule {
         return warning;
     }
 
+    /**
+     * Reads the warning code from a request, refusing the request as bad if it
+     * is missing or blank.
+     *
+     * @param request the request
+     * @return the warning code
+     */
     private static String warningId(Request request) {
         String warningId = request.get(WarningKeys.WARNING_ID, String.class);
         if (warningId == null || warningId.isBlank()) {
@@ -140,6 +155,10 @@ public class WarningModule implements CommandModule {
      * Uses MySQL when the context offers its database, otherwise memory.
      * The getter is looked up by name so this module compiles before the
      * MySQL wiring in ServerContext is merged.
+     *
+     * @param context the server context
+     * @return the MySQL repository when the server runs on MySQL, otherwise
+     *         an in-memory one
      */
     private static WarningRepository chooseRepository(ServerContext context) {
         try {
@@ -154,5 +173,15 @@ public class WarningModule implements CommandModule {
         LOGGER.info("Warnings are kept in memory: the server is not running "
                 + "on MySQL.");
         return new InMemoryWarningRepository();
+    }
+
+    /**
+     * Describes the module.
+     *
+     * @return the service and its storage
+     */
+    @Override
+    public String toString() {
+        return "WarningModule: " + this.service;
     }
 }

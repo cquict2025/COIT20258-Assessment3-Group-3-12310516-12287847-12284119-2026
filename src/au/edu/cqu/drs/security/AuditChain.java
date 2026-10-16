@@ -31,6 +31,9 @@ public final class AuditChain {
     /** The previous hash of the first record in the chain. */
     public static final String GENESIS = "0".repeat(64);
 
+    /**
+     * Prevents instances; every member is static.
+     */
     private AuditChain() {
         // Utility class - not instantiated.
     }
@@ -74,6 +77,9 @@ public final class AuditChain {
 
     /**
      * Adds one field: -1 for null, otherwise its byte length then its bytes.
+     *
+     * @param digest the digest being built
+     * @param value  the field's text, or null
      */
     private static void add(MessageDigest digest, String value) {
         if (value == null) {
@@ -85,5 +91,16 @@ public final class AuditChain {
         digest.update(new byte[] {(byte) (length >>> 24),
             (byte) (length >>> 16), (byte) (length >>> 8), (byte) length});
         digest.update(bytes);
+    }
+
+    /**
+     * Describes the chain's hashing.
+     *
+     * @return the hash algorithm and the link the first record starts from
+     */
+    @Override
+    public String toString() {
+        return "AuditChain[SHA-256, genesis=" + GENESIS.substring(0, 8)
+                + "...]";
     }
 }

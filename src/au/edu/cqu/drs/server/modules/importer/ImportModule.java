@@ -97,16 +97,12 @@ public class ImportModule implements CommandModule {
     }
 
     /**
-     * Describes the module.
+     * Imports a staff account, refusing one that has no password salt or
+     * hash.
      *
-     * @return whether it can import
+     * @param user the account to import
+     * @return true if it was added, false if its user name was already there
      */
-    @Override
-    public String toString() {
-        return "ImportModule: " + (this.store == null ? "not available"
-                : this.store.toString());
-    }
-
     private boolean importUser(User user) {
         if (user.getPasswordHash() == null || user.getPasswordSalt() == null) {
             throw new BadRequestException(RECORD, "An imported account needs "
@@ -117,6 +113,13 @@ public class ImportModule implements CommandModule {
 
     /**
      * Builds a handler that reads one record of a type and imports it.
+     *
+     * @param type     the class of the record the request carries
+     * @param importer what imports the record, answering whether it was
+     *                 added
+     * @param <T>      the record type
+     * @return the handler, which refuses the request when MySQL is not in
+     *         use
      */
     private <T> CommandHandler handler(Class<T> type,
             Function<T, Boolean> importer) {
@@ -130,6 +133,15 @@ public class ImportModule implements CommandModule {
         };
     }
 
+    /**
+     * Reads the record to import from a request, refusing the request as
+     * bad if it has none.
+     *
+     * @param request the request
+     * @param type    the class of the record
+     * @param <T>     the record type
+     * @return the record
+     */
     private static <T> T record(Request request, Class<T> type) {
         T record = request.get(RECORD, type);
         if (record == null) {
@@ -143,6 +155,10 @@ public class ImportModule implements CommandModule {
      * Finds the MySQL database and field cipher through getters on the
      * server context. They are looked up by name so this module compiles
      * before the MySQL wiring in ServerContext is merged.
+     *
+     * @param context the server context
+     * @return the import store, or null when the server is not running on
+     *         MySQL with a keystore
      */
     private static MySqlImportStore findStore(ServerContext context) {
         try {
@@ -161,5 +177,16 @@ public class ImportModule implements CommandModule {
         LOGGER.info("Import commands are refused: the server is not "
                 + "running on MySQL with a keystore.");
         return null;
+    }
+
+    /**
+     * Describes the module.
+     *
+     * @return whether it can import
+     */
+    @Override
+    public String toString() {
+        return "ImportModule: " + (this.store == null ? "not available"
+                : this.store.toString());
     }
 }

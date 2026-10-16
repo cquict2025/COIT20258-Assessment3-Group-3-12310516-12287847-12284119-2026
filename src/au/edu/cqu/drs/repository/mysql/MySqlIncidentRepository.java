@@ -110,15 +110,14 @@ public class MySqlIncidentRepository implements IncidentRepository {
     }
 
     /**
-     * Describes the repository.
+     * Links an incident to its source reports in one batch. A link that is
+     * already stored is left as it is.
      *
-     * @return the tables it uses
+     * @param connection a connection inside the save transaction
+     * @param incidentId the incident's code
+     * @param reportIds  the codes of the reports to link
+     * @throws SQLException if the batch fails
      */
-    @Override
-    public String toString() {
-        return "MySqlIncidentRepository: incidents, incident_reports";
-    }
-
     private void linkReports(Connection connection, String incidentId,
             List<String> reportIds) throws SQLException {
         if (reportIds.isEmpty()) {
@@ -135,6 +134,15 @@ public class MySqlIncidentRepository implements IncidentRepository {
         }
     }
 
+    /**
+     * Runs an incident query and loads each incident's source reports and
+     * assignment statuses on the same connection.
+     *
+     * @param sql       the SELECT statement, with at most one parameter
+     * @param parameter the value for the parameter, or null when the query
+     *                  has none
+     * @return the incidents found, in the order the query gives
+     */
     private List<Incident> query(String sql, String parameter) {
         try {
             return this.database.withConnection(connection -> {
@@ -161,6 +169,15 @@ public class MySqlIncidentRepository implements IncidentRepository {
         }
     }
 
+    /**
+     * Sets the incident's column values on a statement, in the order of
+     * {@code COLUMNS}. A missing location is stored as an empty one.
+     *
+     * @param statement the INSERT or UPDATE statement to fill
+     * @param first     the position of the first column's parameter
+     * @param incident  the incident whose values are bound
+     * @throws SQLException if a parameter cannot be set
+     */
     private void bind(PreparedStatement statement, int first,
             Incident incident) throws SQLException {
         Location location = incident.getLocation() == null ? new Location()
@@ -185,6 +202,14 @@ public class MySqlIncidentRepository implements IncidentRepository {
         statement.setInt(i, incident.getVersion());
     }
 
+    /**
+     * Builds an incident, without its links, from the current row of a
+     * result set.
+     *
+     * @param rs the result set, positioned on a row
+     * @return the incident read from the row
+     * @throws SQLException if a column cannot be read
+     */
     private Incident map(ResultSet rs) throws SQLException {
         Incident incident = new Incident();
         incident.setIncidentId(rs.getString("incident_id"));
@@ -208,6 +233,14 @@ public class MySqlIncidentRepository implements IncidentRepository {
         return incident;
     }
 
+    /**
+     * Adds the codes of an incident's linked reports to the incident, in
+     * the order they were linked.
+     *
+     * @param connection the connection the caller already holds
+     * @param incident   the incident to fill
+     * @throws SQLException if the query fails
+     */
     private void loadSourceReports(Connection connection, Incident incident)
             throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
@@ -225,6 +258,10 @@ public class MySqlIncidentRepository implements IncidentRepository {
     /**
      * Loads assignment status only, which is all the incident needs to
      * answer {@code hasUnresolvedAssignments()} before closure (UC-13).
+     *
+     * @param connection the connection to use
+     * @param incident   the incident to add the assignments to
+     * @throws SQLException if the query fails
      */
     private void loadAssignments(Connection connection, Incident incident)
             throws SQLException {
@@ -250,5 +287,15 @@ public class MySqlIncidentRepository implements IncidentRepository {
                 }
             }
         }
+    }
+
+    /**
+     * Describes the repository.
+     *
+     * @return the tables it uses
+     */
+    @Override
+    public String toString() {
+        return "MySqlIncidentRepository: incidents, incident_reports";
     }
 }

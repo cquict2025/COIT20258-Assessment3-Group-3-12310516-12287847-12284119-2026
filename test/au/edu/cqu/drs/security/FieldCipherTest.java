@@ -24,6 +24,10 @@ class FieldCipherTest {
     private final FieldCipher cipher =
             new FieldCipher(FieldCipher.generateKey());
 
+    /**
+     * Checks that an encrypted value hides the plain text and decrypts back to
+     * it.
+     */
     @Test
     @DisplayName("TC-SEC-20 the ciphertext hides the plaintext and decrypts "
             + "back to it")
@@ -36,6 +40,9 @@ class FieldCipherTest {
                 this.cipher.decrypt(stored, "reporter_name"));
     }
 
+    /**
+     * Checks that encrypting the same value twice gives two different results.
+     */
     @Test
     @DisplayName("TC-SEC-21 the same value encrypts differently each time")
     void freshIvEveryTime() {
@@ -43,6 +50,10 @@ class FieldCipherTest {
                 this.cipher.encrypt("0400 111 222", "contact"));
     }
 
+    /**
+     * Checks that a changed ciphertext is rejected instead of being decrypted
+     * to the wrong text.
+     */
     @Test
     @DisplayName("TC-SEC-22 a changed ciphertext is rejected, not decrypted "
             + "to wrong text")
@@ -58,6 +69,10 @@ class FieldCipherTest {
                 () -> this.cipher.decrypt(tampered, "reporter_name"));
     }
 
+    /**
+     * Checks that a value is rejected when it is decrypted for a different
+     * column or with a different key.
+     */
     @Test
     @DisplayName("TC-SEC-23 a value copied into another column, or read "
             + "with another key, is rejected")
@@ -71,6 +86,10 @@ class FieldCipherTest {
                 () -> other.decrypt(stored, "reporter_name"));
     }
 
+    /**
+     * Checks that null and values stored before encryption pass through
+     * unchanged, and the cipher's description does not show its key.
+     */
     @Test
     @DisplayName("TC-SEC-24 null and values stored before encryption pass "
             + "through unchanged")
@@ -82,6 +101,10 @@ class FieldCipherTest {
         assertFalse(this.cipher.toString().contains("key="));
     }
 
+    /**
+     * Checks that the keystore is created once and gives the same key when
+     * reopened, and that a wrong keystore password is refused.
+     */
     @Test
     @DisplayName("TC-SEC-25 the keystore is created once and gives the same "
             + "key afterwards")
@@ -100,6 +123,9 @@ class FieldCipherTest {
                         "wrong-password".toCharArray()));
     }
 
+    /**
+     * Checks that a missing key or a key shorter than 256 bits is refused.
+     */
     @Test
     @DisplayName("TC-SEC-26 only a 256-bit AES key is accepted")
     void weakKeyIsRefused() {
@@ -108,5 +134,16 @@ class FieldCipherTest {
         assertThrows(IllegalArgumentException.class,
                 () -> new FieldCipher(new javax.crypto.spec.SecretKeySpec(
                         new byte[16], "AES")));
+    }
+
+    /**
+     * Describes this test class and the fixture it uses.
+     *
+     * @return the class name and the fixture state
+     */
+    @Override
+    public String toString() {
+        return "FieldCipherTest[cipher=" + this.cipher
+                + ", folder=" + this.folder + "]";
     }
 }

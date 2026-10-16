@@ -163,15 +163,14 @@ public class MySqlAuditRepository implements AuditRepository {
     }
 
     /**
-     * Describes the repository.
+     * Runs an audit query and maps every row it returns to an event.
      *
-     * @return the table it uses
+     * @param sql        the SELECT statement, with two parameters or none
+     * @param entityType the entity type for the first parameter, or null
+     *                   when the query has no parameters
+     * @param entityId   the entity code for the second parameter
+     * @return the events found, in the order the query gives
      */
-    @Override
-    public String toString() {
-        return "MySqlAuditRepository: audit_events, hash-chained";
-    }
-
     private List<AuditEvent> query(String sql, String entityType,
             String entityId) {
         try {
@@ -200,6 +199,10 @@ public class MySqlAuditRepository implements AuditRepository {
     /**
      * Returns the hash of the newest row, locking it until the transaction
      * ends, or the genesis value if no row has a hash yet.
+     *
+     * @param connection the connection whose transaction holds the lock
+     * @return the newest row's hash, or {@code AuditChain.GENESIS}
+     * @throws SQLException if the query fails
      */
     private String lastHash(Connection connection) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
@@ -211,6 +214,16 @@ public class MySqlAuditRepository implements AuditRepository {
         }
     }
 
+    /**
+     * Sets the event's column values and the previous row's hash on a
+     * statement, in the order of {@code COLUMNS}.
+     *
+     * @param statement    the INSERT statement to fill
+     * @param first        the position of the first column's parameter
+     * @param event        the event whose values are bound
+     * @param previousHash the hash of the row before this one in the chain
+     * @throws SQLException if a parameter cannot be set
+     */
     private void bind(PreparedStatement statement, int first,
             AuditEvent event, String previousHash) throws SQLException {
         int i = first;
@@ -223,6 +236,13 @@ public class MySqlAuditRepository implements AuditRepository {
         statement.setString(i, previousHash);
     }
 
+    /**
+     * Builds an audit event from the current row of a result set.
+     *
+     * @param rs the result set, positioned on a row
+     * @return the event read from the row
+     * @throws SQLException if a column cannot be read
+     */
     private AuditEvent map(ResultSet rs) throws SQLException {
         AuditEvent event = new AuditEvent();
         event.setEventId(rs.getString("event_id"));
@@ -233,5 +253,15 @@ public class MySqlAuditRepository implements AuditRepository {
         event.setDetail(rs.getString("detail"));
         event.setOccurredAt(MySqlSupport.getDateTime(rs, "occurred_at"));
         return event;
+    }
+
+    /**
+     * Describes the repository.
+     *
+     * @return the table it uses
+     */
+    @Override
+    public String toString() {
+        return "MySqlAuditRepository: audit_events, hash-chained";
     }
 }

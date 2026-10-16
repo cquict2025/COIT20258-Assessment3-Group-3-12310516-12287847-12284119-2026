@@ -30,6 +30,9 @@ public final class AccessMatrix {
 
     private static final Map<Command, Set<UserRole>> RULES = buildRules();
 
+    /**
+     * Prevents instances; every member is static.
+     */
     private AccessMatrix() {
         // Holds the matrix only.
     }
@@ -109,6 +112,13 @@ public final class AccessMatrix {
         System.out.print(toMarkdown());
     }
 
+    /**
+     * Builds the matrix: which roles may send each command, grouped as public,
+     * any staff member, coordinator, liaison, field work, oversight and
+     * administrator.
+     *
+     * @return an unmodifiable map from each command to the roles allowed it
+     */
     private static Map<Command, Set<UserRole>> buildRules() {
         Map<Command, Set<UserRole>> rules = new EnumMap<>(Command.class);
         Set<UserRole> coordinator = EnumSet.of(UserRole.COORDINATOR);
@@ -169,6 +179,15 @@ public final class AccessMatrix {
         return Collections.unmodifiableMap(rules);
     }
 
+    /**
+     * Gives a set of roles permission to send each of the given commands.
+     *
+     * @param rules    the matrix being built
+     * @param roles    the roles allowed
+     * @param commands the commands they may send
+     * @throws IllegalStateException if a command already has a row, so no
+     *                               command can be given two rules by mistake
+     */
     private static void allow(Map<Command, Set<UserRole>> rules,
             Set<UserRole> roles, Command... commands) {
         for (Command command : commands) {
@@ -179,5 +198,15 @@ public final class AccessMatrix {
             rules.put(command,
                     Collections.unmodifiableSet(EnumSet.copyOf(roles)));
         }
+    }
+
+    /**
+     * Describes the matrix.
+     *
+     * @return how many commands have a rule
+     */
+    @Override
+    public String toString() {
+        return "AccessMatrix[" + RULES.size() + " commands]";
     }
 }
