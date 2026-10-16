@@ -26,10 +26,24 @@ public class ResourceAllocation implements Serializable {
     private LocalDateTime availableTo;
     private String stagingPoint;
 
+    /**
+     * Creates an empty resource allocation.
+     */
     public ResourceAllocation() {
         this.quantity = 1;
     }
 
+    /**
+     * Creates a resource allocation.
+     *
+     * @param allocationId  the allocation id
+     * @param assignmentId  the assignment id
+     * @param resourceName  the resource name
+     * @param department    the department
+     * @param quantity      the quantity
+     * @param availableFrom the available from
+     * @param availableTo   the available to
+     */
     public ResourceAllocation(String allocationId, String assignmentId,
                               String resourceName, 
                               Department department, int quantity,
@@ -44,66 +58,146 @@ public class ResourceAllocation implements Serializable {
         this.availableTo = availableTo;
     }
 
+    /**
+     * Returns the allocation id.
+     *
+     * @return the allocation id
+     */
     public String getAllocationId() {
         return this.allocationId;
     }
 
+    /**
+     * Sets the allocation id.
+     *
+     * @param allocationId the allocation id
+     */
     public void setAllocationId(String allocationId) {
         this.allocationId = allocationId;
     }
 
+    /**
+     * Returns the assignment id.
+     *
+     * @return the assignment id
+     */
     public String getAssignmentId() {
         return this.assignmentId;
     }
 
+    /**
+     * Sets the assignment id.
+     *
+     * @param assignmentId the assignment id
+     */
     public void setAssignmentId(String assignmentId) {
         this.assignmentId = assignmentId;
     }
 
+    /**
+     * Returns the resource name.
+     *
+     * @return the resource name
+     */
     public String getResourceName() {
         return this.resourceName;
     }
 
+    /**
+     * Sets the resource name.
+     *
+     * @param resourceName the resource name
+     */
     public void setResourceName(String resourceName) {
         this.resourceName = resourceName;
     }
 
+    /**
+     * Returns the department.
+     *
+     * @return the department
+     */
     public Department getDepartment() {
         return this.department;
     }
 
+    /**
+     * Sets the department.
+     *
+     * @param department the department
+     */
     public void setDepartment(Department department) {
         this.department = department;
     }
 
+    /**
+     * Returns the quantity.
+     *
+     * @return the quantity
+     */
     public int getQuantity() {
         return this.quantity;
     }
 
+    /**
+     * Sets the quantity.
+     *
+     * @param quantity the quantity
+     */
     public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
 
+    /**
+     * Returns the available from.
+     *
+     * @return the available from
+     */
     public LocalDateTime getAvailableFrom() {
         return this.availableFrom;
     }
 
+    /**
+     * Sets the available from.
+     *
+     * @param availableFrom the available from
+     */
     public void setAvailableFrom(LocalDateTime availableFrom) {
         this.availableFrom = availableFrom;
     }
 
+    /**
+     * Returns the available to.
+     *
+     * @return the available to
+     */
     public LocalDateTime getAvailableTo() {
         return this.availableTo;
     }
 
+    /**
+     * Sets the available to.
+     *
+     * @param availableTo the available to
+     */
     public void setAvailableTo(LocalDateTime availableTo) {
         this.availableTo = availableTo;
     }
 
+    /**
+     * Returns the staging point.
+     *
+     * @return the staging point
+     */
     public String getStagingPoint() {
         return this.stagingPoint;
     }
 
+    /**
+     * Sets the staging point.
+     *
+     * @param stagingPoint the staging point
+     */
     public void setStagingPoint(String stagingPoint) {
         this.stagingPoint = stagingPoint;
     }
@@ -126,6 +220,12 @@ public class ResourceAllocation implements Serializable {
                 && other.availableFrom.isBefore(this.availableTo);
     }
 
+    /**
+     * Describes the allocation: the resource, quantity, department,
+     * availability window and staging point.
+     *
+     * @return a one-line summary of this allocation
+     */
     @Override
     public String toString() {
         return String.format("Allocation %s | assignment %s | %s x%d (%s) | %s "

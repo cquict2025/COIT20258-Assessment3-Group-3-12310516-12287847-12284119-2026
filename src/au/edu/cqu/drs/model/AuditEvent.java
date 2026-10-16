@@ -25,9 +25,22 @@ public class AuditEvent implements Serializable {
     private String detail;
     private LocalDateTime occurredAt;
 
+    /**
+     * Creates an empty audit event.
+     */
     public AuditEvent() {
     }
 
+    /**
+     * Creates an audit event.
+     *
+     * @param actor      the actor
+     * @param action     the action
+     * @param entityType the entity type
+     * @param entityId   the entity id
+     * @param detail     the detail
+     * @param occurredAt the occurred at
+     */
     public AuditEvent(String actor, String action, String entityType,
                       String entityId, 
                       String detail, LocalDateTime occurredAt) {
@@ -39,62 +52,138 @@ public class AuditEvent implements Serializable {
         this.occurredAt = occurredAt;
     }
 
+    /**
+     * Returns the event id.
+     *
+     * @return the event id
+     */
     public String getEventId() {
         return this.eventId;
     }
 
+    /**
+     * Sets the event id.
+     *
+     * @param eventId the event id
+     */
     public void setEventId(String eventId) {
         this.eventId = eventId;
     }
 
+    /**
+     * Returns the actor.
+     *
+     * @return the actor
+     */
     public String getActor() {
         return this.actor;
     }
 
+    /**
+     * Sets the actor.
+     *
+     * @param actor the actor
+     */
     public void setActor(String actor) {
         this.actor = actor;
     }
 
+    /**
+     * Returns the action.
+     *
+     * @return the action
+     */
     public String getAction() {
         return this.action;
     }
 
+    /**
+     * Sets the action.
+     *
+     * @param action the action
+     */
     public void setAction(String action) {
         this.action = action;
     }
 
+    /**
+     * Returns the entity type.
+     *
+     * @return the entity type
+     */
     public String getEntityType() {
         return this.entityType;
     }
 
+    /**
+     * Sets the entity type.
+     *
+     * @param entityType the entity type
+     */
     public void setEntityType(String entityType) {
         this.entityType = entityType;
     }
 
+    /**
+     * Returns the entity id.
+     *
+     * @return the entity id
+     */
     public String getEntityId() {
         return this.entityId;
     }
 
+    /**
+     * Sets the entity id.
+     *
+     * @param entityId the entity id
+     */
     public void setEntityId(String entityId) {
         this.entityId = entityId;
     }
 
+    /**
+     * Returns the detail.
+     *
+     * @return the detail
+     */
     public String getDetail() {
         return this.detail;
     }
 
+    /**
+     * Sets the detail.
+     *
+     * @param detail the detail
+     */
     public void setDetail(String detail) {
         this.detail = detail;
     }
 
+    /**
+     * Returns the occurred at.
+     *
+     * @return the occurred at
+     */
     public LocalDateTime getOccurredAt() {
         return this.occurredAt;
     }
 
+    /**
+     * Sets the occurred at.
+     *
+     * @param occurredAt the occurred at
+     */
     public void setOccurredAt(LocalDateTime occurredAt) {
         this.occurredAt = occurredAt;
     }
 
+    /**
+     * Describes the event as a log line: when it happened, who acted,
+     * what was done and to which entity.
+     *
+     * @return a one-line summary of this audit event
+     */
     @Override
     public String toString() {
         return String.format("[%s] %s performed %s on %s %s | %s",
