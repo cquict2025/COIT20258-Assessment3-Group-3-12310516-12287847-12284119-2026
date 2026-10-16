@@ -54,6 +54,14 @@ public class AssessmentService {
     private final AuthenticationService authenticationService;
     private final AuditService auditService;
 
+    /**
+     * Creates an assessment service.
+     *
+     * @param assessmentRepository  the assessment repository
+     * @param incidentRepository    the incident repository
+     * @param authenticationService the authentication service
+     * @param auditService          the audit service
+     */
     public AssessmentService(AssessmentRepository assessmentRepository,
                              IncidentRepository incidentRepository,
                              AuthenticationService authenticationService,
@@ -214,10 +222,24 @@ public class AssessmentService {
         return ServiceResult.success(saved);
     }
 
+    /**
+     * Finds the most recent assessment version recorded for an incident.
+     *
+     * @param incidentId the incident
+     * @return the latest assessment, or empty when none exists
+     */
     public Optional<Assessment> findLatestForIncident(String incidentId) {
         return this.assessmentRepository.findLatestForIncident(incidentId);
     }
 
+    /**
+     * Checks that each of the four assessment factors is within the permitted
+     * range, stopping at the first one that is not.
+     *
+     * @param assessment the assessment to check
+     * @return the assessment, or a validation error naming the first factor
+     *         out of range
+     */
     private ServiceResult<Assessment> validateFactors(Assessment assessment) {
         if (isOutOfRange(assessment.getThreatToLife())) {
             return ServiceResult.failure(ErrorCode.VALIDATION_ERROR,
@@ -239,12 +261,34 @@ public class AssessmentService {
         return ServiceResult.success(assessment);
     }
 
+    /**
+     * Tells whether a factor value falls outside the permitted range.
+     *
+     * @param factor the factor value
+     * @return true when the value is below the minimum or above the maximum
+     */
     private boolean isOutOfRange(int factor) {
         return factor < Assessment.MIN_FACTOR || factor > Assessment.MAX_FACTOR;
     }
 
+    /**
+     * Builds the error message for a factor that is out of range.
+     *
+     * @param factorName the factor name shown to the user
+     * @return a message stating the permitted range
+     */
     private String factorMessage(String factorName) {
         return String.format("%s must be between %d and %d.",
                 factorName, Assessment.MIN_FACTOR, Assessment.MAX_FACTOR);
+    }
+
+    /**
+     * Describes what this service does.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "AssessmentService: scores incidents and records their priority";
     }
 }

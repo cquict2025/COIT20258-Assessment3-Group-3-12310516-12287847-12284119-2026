@@ -32,6 +32,13 @@ public class ReportService {
     private final AuthenticationService authenticationService;
     private final AuditService auditService;
 
+    /**
+     * Creates a report service.
+     *
+     * @param reportRepository      the report repository
+     * @param authenticationService the authentication service
+     * @param auditService          the audit service
+     */
     public ReportService(ReportRepository reportRepository,
                          AuthenticationService authenticationService,
                          AuditService auditService) {
@@ -115,6 +122,10 @@ public class ReportService {
     /**
      * Saves an incomplete report so that a stressed reporter does not lose
      * input (UC-02).
+     *
+     * @param report the report, which may be incomplete
+     * @return the saved draft with its reference, or the reason it was not
+     *         saved
      */
     public ServiceResult<DisasterReport> saveDraft(DisasterReport report) {
         if (report == null) {
@@ -178,15 +189,42 @@ public class ReportService {
         return ServiceResult.success(saved);
     }
 
+    /**
+     * Returns the reports that have the given status.
+     *
+     * @param status the status to match
+     * @return the matching reports
+     */
     public List<DisasterReport> findByStatus(ReportStatus status) {
         return this.reportRepository.findByStatus(status);
     }
 
+    /**
+     * Returns every disaster report.
+     *
+     * @return all reports
+     */
     public List<DisasterReport> findAll() {
         return this.reportRepository.findAll();
     }
 
+    /**
+     * Finds a report by its identifier.
+     *
+     * @param reportId the report
+     * @return the report, or empty when it does not exist
+     */
     public Optional<DisasterReport> findById(String reportId) {
         return this.reportRepository.findById(reportId);
+    }
+
+    /**
+     * Describes what this service does.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "ReportService: validates and stores disaster reports";
     }
 }

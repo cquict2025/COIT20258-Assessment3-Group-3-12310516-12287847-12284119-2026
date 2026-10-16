@@ -14,6 +14,11 @@ public class AuditService {
 
     private final AuditRepository auditRepository;
 
+    /**
+     * Creates an audit service.
+     *
+     * @param auditRepository the audit repository
+     */
     public AuditService(AuditRepository auditRepository) {
         this.auditRepository = auditRepository;
     }
@@ -35,11 +40,33 @@ public class AuditService {
         return this.auditRepository.save(event);
     }
 
+    /**
+     * Returns every recorded audit event.
+     *
+     * @return all audit events
+     */
     public List<AuditEvent> findAll() {
         return this.auditRepository.findAll();
     }
 
+    /**
+     * Returns the audit events recorded against one entity.
+     *
+     * @param entityType the kind of entity, for example Incident
+     * @param entityId   the identifier of the entity
+     * @return the audit events for that entity
+     */
     public List<AuditEvent> findForEntity(String entityType, String entityId) {
         return this.auditRepository.findByEntity(entityType, entityId);
+    }
+
+    /**
+     * Describes what this service does.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "AuditService: records and reads the audit log";
     }
 }

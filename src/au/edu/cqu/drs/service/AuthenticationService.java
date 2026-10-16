@@ -18,6 +18,12 @@ public class AuthenticationService {
     private final UserRepository userRepository;
     private final AuditService auditService;
 
+    /**
+     * Creates an authentication service.
+     *
+     * @param userRepository the user repository
+     * @param auditService   the audit service
+     */
     public AuthenticationService(UserRepository userRepository,
                                  AuditService auditService) {
         this.userRepository = userRepository;
@@ -136,5 +142,15 @@ public class AuthenticationService {
                 saved.getUserId(),
                 "Role " + role.name());
         return ServiceResult.success(saved);
+    }
+
+    /**
+     * Describes what this service does.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "AuthenticationService: signs staff in and checks their roles";
     }
 }
