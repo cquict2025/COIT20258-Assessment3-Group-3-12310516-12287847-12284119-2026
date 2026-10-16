@@ -111,6 +111,11 @@ public class CoordinationController {
         handleRefresh();
     }
 
+    /**
+     * Returns the coordination screen.
+     *
+     * @return the view
+     */
     public Parent getView() {
         return this.view;
     }
@@ -372,6 +377,9 @@ public class CoordinationController {
                         .toLowerCase() + ": " + recommended);
     }
 
+    /**
+     * Tells each assignment column which value to show.
+     */
     private void configureColumns() {
         this.assignmentIdColumn.setCellValueFactory(cell ->
                 new SimpleStringProperty(cell.getValue().getAssignmentId()));
@@ -394,6 +402,11 @@ public class CoordinationController {
                         .valueOf(cell.getValue().getDeliveryAttempts())));
     }
 
+    /**
+     * Returns the open incident chosen in the list.
+     *
+     * @return the incident, or null if none is chosen
+     */
     private Incident selectedIncident() {
         int index = this.incidentCombo.getSelectionModel().getSelectedIndex();
         return index < 0 || index >= this.openIncidents.size() ? null :
@@ -401,22 +414,52 @@ public class CoordinationController {
                 .get(index);
     }
 
+    /**
+     * Returns the assignment selected in the table.
+     *
+     * @return the assignment, or null if none is selected
+     */
     private DepartmentAssignment selectedAssignment() {
         return this.assignmentTable.getSelectionModel().getSelectedItem();
     }
 
+    /**
+     * Shows a message styled as an error.
+     *
+     * @param message the message
+     */
     private void showError(String message) {
         this.messageLabel.getStyleClass().setAll("error-label");
         this.messageLabel.setText(message);
     }
 
+    /**
+     * Shows a message styled as a success.
+     *
+     * @param message the message
+     */
     private void showSuccess(String message) {
         this.messageLabel.getStyleClass().setAll("success-label");
         this.messageLabel.setText(message);
     }
 
+    /**
+     * Shows a message styled as a hint.
+     *
+     * @param message the message
+     */
     private void showHint(String message) {
         this.messageLabel.getStyleClass().setAll("hint-label");
         this.messageLabel.setText(message);
+    }
+
+    /**
+     * Describes the controller.
+     *
+     * @return what the controller shows
+     */
+    @Override
+    public String toString() {
+        return "CoordinationController: department coordination screen";
     }
 }

@@ -263,6 +263,17 @@ public class ServerConfig {
         return this.keystorePassword.toCharArray();
     }
 
+    /**
+     * Reads a whole-number setting and checks its range.
+     *
+     * @param properties the settings
+     * @param key        the key
+     * @param min        the lowest allowed value
+     * @param max        the highest allowed value
+     * @return the value
+     * @throws IllegalArgumentException if it is missing, not a number or out
+     *         of range
+     */
     private static int number(Properties properties, String key, int min,
                               int max) {
         String value = text(properties, key);

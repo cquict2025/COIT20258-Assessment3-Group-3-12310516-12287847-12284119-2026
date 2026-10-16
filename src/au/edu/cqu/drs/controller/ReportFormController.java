@@ -84,10 +84,19 @@ public class ReportFormController {
         this.observedDatePicker.setValue(LocalDate.now());
     }
 
+    /**
+     * Returns the report form.
+     *
+     * @return the view
+     */
     public Parent getView() {
         return this.view;
     }
 
+    /**
+     * Checks the time and coordinates, then submits the report to the
+     * server and shows its reference or the reason it was refused.
+     */
     @FXML
     private void handleSubmit() {
         this.messageLabel.getStyleClass().setAll("error-label");
@@ -143,6 +152,9 @@ public class ReportFormController {
                 this::showDuplicates);
     }
 
+    /**
+     * Saves the form as a draft, even if it is incomplete.
+     */
     @FXML
     private void handleSaveDraft() {
         this.messageLabel.getStyleClass().setAll("hint-label");
@@ -161,6 +173,9 @@ public class ReportFormController {
                         : result.getMessage()));
     }
 
+    /**
+     * Clears the form.
+     */
     @FXML
     private void handleClear() {
         clearForm();
@@ -169,6 +184,14 @@ public class ReportFormController {
         hideDuplicates();
     }
 
+    /**
+     * Builds a report from the form.
+     *
+     * @param observedAt when the disaster was observed, or null
+     * @param latitude   the latitude
+     * @param longitude  the longitude
+     * @return the report
+     */
     private DisasterReport buildReport(LocalDateTime observedAt,
                                        double latitude, double longitude) {
         DisasterReport report = new DisasterReport();
@@ -210,11 +233,20 @@ public class ReportFormController {
         this.duplicatePane.setExpanded(true);
     }
 
+    /**
+     * Hides the list of possible duplicates.
+     */
     private void hideDuplicates() {
         this.duplicatePane.setVisible(false);
         this.duplicatePane.setManaged(false);
     }
 
+    /**
+     * Reads a coordinate typed in the form.
+     *
+     * @param text the text, may be blank
+     * @return the value, 0 for blank, or null if it is not a number
+     */
     private Double parseCoordinate(String text) {
         if (text == null || text.isBlank()) {
             return 0.0;
@@ -226,6 +258,11 @@ public class ReportFormController {
         }
     }
 
+    /**
+     * Moves the focus to the field the server named in its answer.
+     *
+     * @param affectedField the field name, or null
+     */
     private void focusField(String affectedField) {
         if (affectedField == null) {
             return;
@@ -242,6 +279,10 @@ public class ReportFormController {
         }
     }
 
+    /**
+     * Empties every field, sets the date to today and the type back to
+     * Fire.
+     */
     private void clearForm() {
         this.otherTypeField.clear();
         this.addressField.clear();
@@ -255,5 +296,15 @@ public class ReportFormController {
         this.risksArea.clear();
         this.observedDatePicker.setValue(LocalDate.now());
         this.typeCombo.getSelectionModel().select(DisasterType.FIRE);
+    }
+
+    /**
+     * Describes the controller.
+     *
+     * @return what the controller shows
+     */
+    @Override
+    public String toString() {
+        return "ReportFormController: disaster report form";
     }
 }

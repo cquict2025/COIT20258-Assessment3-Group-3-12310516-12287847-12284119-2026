@@ -168,11 +168,26 @@ public class LoginController {
         return true;
     }
 
+    /**
+     * Moves the focus to the field the server named in its answer.
+     *
+     * @param affectedField the field name, or null
+     */
     private void focusAffectedField(String affectedField) {
         if ("username".equals(affectedField)) {
             this.usernameField.requestFocus();
         } else if ("password".equals(affectedField)) {
             this.passwordField.requestFocus();
         }
+    }
+
+    /**
+     * Describes the controller.
+     *
+     * @return what the controller shows
+     */
+    @Override
+    public String toString() {
+        return "LoginController: sign-in screen";
     }
 }

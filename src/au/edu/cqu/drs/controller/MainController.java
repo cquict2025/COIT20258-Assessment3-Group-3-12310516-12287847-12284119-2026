@@ -60,6 +60,11 @@ public class MainController {
         showDashboard();
     }
 
+    /**
+     * Returns the main screen.
+     *
+     * @return the view
+     */
     public Parent getView() {
         return this.view;
     }
@@ -76,21 +81,33 @@ public class MainController {
         this.dashboard = opened;
     }
 
+    /**
+     * Shows the report form.
+     */
     @FXML
     private void showReportForm() {
         display(new ReportFormController(this.services).getView());
     }
 
+    /**
+     * Shows the triage and prioritisation screen.
+     */
     @FXML
     private void showAssessment() {
         display(new AssessmentController(this.services).getView());
     }
 
+    /**
+     * Shows the department coordination screen.
+     */
     @FXML
     private void showCoordination() {
         display(new CoordinationController(this.services).getView());
     }
 
+    /**
+     * Shows the field update screen.
+     */
     @FXML
     private void showFieldUpdate() {
         display(new FieldUpdateController(this.services).getView());
@@ -147,5 +164,15 @@ public class MainController {
         }
         this.contentArea.getChildren().setAll(screen);
         VBox.setVgrow(screen, Priority.ALWAYS);
+    }
+
+    /**
+     * Describes the controller.
+     *
+     * @return what the controller shows
+     */
+    @Override
+    public String toString() {
+        return "MainController: main screen, " + this.events.getStatus();
     }
 }

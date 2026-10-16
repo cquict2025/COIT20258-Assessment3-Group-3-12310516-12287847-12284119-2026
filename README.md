@@ -10,9 +10,11 @@ Extended from the DRS-Initial prototype of Venkatesh Kumar Manjunath
 | Milan | 12287847 |
 | Fatiha | 12284119 |
 
-This is a NetBeans (Ant) Java project. Nothing needs to be installed except a
-JDK 17 or later: the JavaFX, SQLite and JUnit libraries are all included in
-`lib/`.
+This is a NetBeans (Ant) Java project. It needs a JDK 17 or later and, for
+the server's default storage, a MySQL 8 or later server (see *Database*
+below). The JavaFX, MySQL Connector/J, SQLite and JUnit libraries are all
+included in `lib/`. Without MySQL, set `repository=sqlite` (see *Server
+settings*) and nothing else needs installing.
 
 ## Running DRS-Enhanced
 
@@ -168,13 +170,25 @@ the file to reset the data. With `repository=memory`, nothing is saved.
         client/event/         EventListener for the live dashboard
         model/                domain classes (Serializable)
         service/              application services (all business rules)
-        repository/           data-access interfaces, SQLite and in-memory
+        repository/           data-access interfaces with MySQL (mysql/),
+                              SQLite (sqlite/) and in-memory (memory/)
                               adapters
+        security/             AccessMatrix, FieldCipher (AES-GCM),
+                              AuditChain
+        model/warning/,
+        service/WarningService.java,
+        controller/warning/   Feature 1: public warnings
         controller/           JavaFX controllers
-        util/                 ViewLoader, TimeParser, PasswordHasher
-        view/                 FXML views and app.css
+        tools/migration/      A2DataImporter for the Assessment 2 data
+        util/                 ViewLoader, TimeParser, PasswordHasher (PBKDF2)
+        view/                 FXML views, app.css and warning.css
+    sql/                      schema.sql and seed.sql for MySQL
+    tools/migration/          sample Assessment 2 database and import guide
     test/                     JUnit 5 test suite
-    docs/                     diagrams, design notes and screen captures
+    docs/                     diagrams, design notes (docs/design/), ERD
+                              (docs/erd/), security design
+                              (docs/security/) and screen captures
+    report/                   screenshots for the report
 
 ## Coding standards
 
