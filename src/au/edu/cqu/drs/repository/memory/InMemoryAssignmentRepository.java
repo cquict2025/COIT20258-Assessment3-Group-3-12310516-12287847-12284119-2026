@@ -19,6 +19,13 @@ public class InMemoryAssignmentRepository implements AssignmentRepository {
     private int assignmentSequence = 0;
     private int allocationSequence = 0;
 
+    /**
+     * Stores an assignment, replacing any stored one with the same
+     * identifier. A new assignment is given the next ASG- identifier.
+     *
+     * @param assignment the assignment to store
+     * @return the same assignment, with its identifier set
+     */
     @Override
     public DepartmentAssignment save(DepartmentAssignment assignment) {
         if (assignment.getAssignmentId() == null) {
@@ -30,11 +37,23 @@ public class InMemoryAssignmentRepository implements AssignmentRepository {
         return assignment;
     }
 
+    /**
+     * Finds an assignment by its identifier.
+     *
+     * @param assignmentId the assignment identifier
+     * @return the assignment, or empty if there is none
+     */
     @Override
     public Optional<DepartmentAssignment> findById(String assignmentId) {
         return Optional.ofNullable(this.assignmentsById.get(assignmentId));
     }
 
+    /**
+     * Finds the assignments made for an incident.
+     *
+     * @param incidentId the incident identifier
+     * @return the assignments for the incident, in the order stored
+     */
     @Override
     public List<DepartmentAssignment> findByIncidentId(String incidentId) {
         return this.assignmentsById.values().stream()
@@ -42,11 +61,23 @@ public class InMemoryAssignmentRepository implements AssignmentRepository {
                 .toList();
     }
 
+    /**
+     * Lists every stored assignment.
+     *
+     * @return a new list of all assignments, in the order stored
+     */
     @Override
     public List<DepartmentAssignment> findAll() {
         return new ArrayList<>(this.assignmentsById.values());
     }
 
+    /**
+     * Stores a resource allocation, replacing any stored one with the same
+     * identifier. A new allocation is given the next ALC- identifier.
+     *
+     * @param allocation the allocation to store
+     * @return the same allocation, with its identifier set
+     */
     @Override
     public ResourceAllocation saveAllocation(ResourceAllocation allocation) {
         if (allocation.getAllocationId() == null) {
@@ -60,6 +91,12 @@ public class InMemoryAssignmentRepository implements AssignmentRepository {
         return allocation;
     }
 
+    /**
+     * Finds the allocations of a named resource, ignoring case.
+     *
+     * @param resourceName the resource name
+     * @return the allocations of that resource
+     */
     @Override
     public List<ResourceAllocation> findAllocationsByResourceName(String
             resourceName) {
@@ -68,11 +105,29 @@ public class InMemoryAssignmentRepository implements AssignmentRepository {
                 .toList();
     }
 
+    /**
+     * Finds the resource allocations made under an assignment.
+     *
+     * @param assignmentId the assignment identifier
+     * @return the allocations for the assignment
+     */
     @Override
     public List<ResourceAllocation> findAllocationsByAssignmentId(String
             assignmentId) {
         return this.allocations.stream()
                 .filter(a -> assignmentId.equals(a.getAssignmentId()))
                 .toList();
+    }
+
+    /**
+     * Describes the repository.
+     *
+     * @return how many assignments and allocations it holds
+     */
+    @Override
+    public String toString() {
+        return "InMemoryAssignmentRepository: "
+                + this.assignmentsById.size() + " assignment(s), "
+                + this.allocations.size() + " allocation(s)";
     }
 }

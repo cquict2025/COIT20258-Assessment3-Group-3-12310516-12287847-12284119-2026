@@ -19,10 +19,23 @@ public class SqliteAssignmentRepository implements AssignmentRepository {
 
     private final Database database;
 
+    /**
+     * Creates a SQLite assignment repository.
+     *
+     * @param database the database
+     */
     public SqliteAssignmentRepository(Database database) {
         this.database = database;
     }
 
+    /**
+     * Inserts an assignment, or updates the stored row with the same
+     * identifier. A new assignment is given the next ASG- identifier.
+     *
+     * @param assignment the assignment to save
+     * @return the same assignment, with its identifier set
+     * @throws IllegalStateException if the row cannot be written
+     */
     @Override
     public DepartmentAssignment save(DepartmentAssignment assignment) {
         Connection connection = this.database.getConnection();
@@ -81,6 +94,14 @@ public class SqliteAssignmentRepository implements AssignmentRepository {
         }
     }
 
+    /**
+     * Finds an assignment by its identifier, with its resource
+     * allocations.
+     *
+     * @param assignmentId the assignment identifier
+     * @return the assignment, or empty if there is none
+     * @throws IllegalStateException if the row cannot be read
+     */
     @Override
     public Optional<DepartmentAssignment> findById(String assignmentId) {
         try (PreparedStatement statement = this.database.getConnection()
@@ -96,6 +117,12 @@ public class SqliteAssignmentRepository implements AssignmentRepository {
         }
     }
 
+    /**
+     * Finds the assignments made for an incident, ordered by identifier.
+     *
+     * @param incidentId the incident identifier
+     * @return the assignments for the incident
+     */
     @Override
     public List<DepartmentAssignment> findByIncidentId(String incidentId) {
         return queryAssignments(
@@ -103,6 +130,11 @@ public class SqliteAssignmentRepository implements AssignmentRepository {
                         + "assignment_id", incidentId);
     }
 
+    /**
+     * Lists every assignment, ordered by identifier.
+     *
+     * @return all assignments
+     */
     @Override
     public List<DepartmentAssignment> findAll() {
         return queryAssignments("SELECT * FROM assignments ORDER BY "
@@ -113,6 +145,14 @@ public class SqliteAssignmentRepository implements AssignmentRepository {
                                 null);
     }
 
+    /**
+     * Inserts a resource allocation, or updates the stored row with the
+     * same identifier. A new allocation is given the next ALC- identifier.
+     *
+     * @param allocation the allocation to save
+     * @return the same allocation, with its identifier set
+     * @throws IllegalStateException if the row cannot be written
+     */
     @Override
     public ResourceAllocation saveAllocation(ResourceAllocation allocation) {
         Connection connection = this.database.getConnection();
@@ -159,6 +199,12 @@ public class SqliteAssignmentRepository implements AssignmentRepository {
         }
     }
 
+    /**
+     * Finds the allocations of a named resource, ignoring case.
+     *
+     * @param resourceName the resource name
+     * @return the allocations of that resource
+     */
     @Override
     public List<ResourceAllocation> findAllocationsByResourceName(String
             resourceName) {
@@ -167,6 +213,12 @@ public class SqliteAssignmentRepository implements AssignmentRepository {
                         + "LOWER(?)", resourceName);
     }
 
+    /**
+     * Finds the resource allocations made under an assignment.
+     *
+     * @param assignmentId the assignment identifier
+     * @return the allocations for the assignment
+     */
     @Override
     public List<ResourceAllocation> findAllocationsByAssignmentId(String
             assignmentId) {
@@ -178,6 +230,14 @@ public class SqliteAssignmentRepository implements AssignmentRepository {
                                 assignmentId);
     }
 
+    /**
+     * Runs a query against the assignments table and maps every row.
+     *
+     * @param sql the query to run
+     * @param parameter the single query parameter, or null if there is none
+     * @return the assignments found
+     * @throws IllegalStateException if the rows cannot be read
+     */
     private List<DepartmentAssignment> queryAssignments(String sql,
             String parameter) {
         List<DepartmentAssignment> assignments = new ArrayList<>();
@@ -197,6 +257,15 @@ public class SqliteAssignmentRepository implements AssignmentRepository {
         }
     }
 
+    /**
+     * Runs a one-parameter query against the allocations table and maps
+     * every row.
+     *
+     * @param sql the query to run
+     * @param parameter the query parameter
+     * @return the allocations found
+     * @throws IllegalStateException if the rows cannot be read
+     */
     private List<ResourceAllocation> queryAllocations(String sql,
             String parameter) {
         List<ResourceAllocation> allocations = new ArrayList<>();
@@ -219,6 +288,14 @@ public class SqliteAssignmentRepository implements AssignmentRepository {
         }
     }
 
+    /**
+     * Builds an assignment from the current row of a result set and loads
+     * its resource allocations.
+     *
+     * @param rs the result set, positioned on the row to read
+     * @return the assignment read from the row
+     * @throws SQLException if a column cannot be read
+     */
     private DepartmentAssignment map(ResultSet rs) throws SQLException {
         DepartmentAssignment assignment = new DepartmentAssignment();
         assignment.setAssignmentId(rs.getString("assignment_id"));
@@ -246,6 +323,13 @@ public class SqliteAssignmentRepository implements AssignmentRepository {
         return assignment;
     }
 
+    /**
+     * Builds a resource allocation from the current row of a result set.
+     *
+     * @param rs the result set, positioned on the row to read
+     * @return the allocation read from the row
+     * @throws SQLException if a column cannot be read
+     */
     private ResourceAllocation mapAllocation(ResultSet rs) throws SQLException {
         ResourceAllocation allocation = new ResourceAllocation();
         allocation.setAllocationId(rs.getString("allocation_id"));
@@ -260,5 +344,15 @@ public class SqliteAssignmentRepository implements AssignmentRepository {
                 .toDateTime(rs.getString("available_to")));
         allocation.setStagingPoint(rs.getString("staging_point"));
         return allocation;
+    }
+
+    /**
+     * Describes the repository.
+     *
+     * @return the database it reads and writes
+     */
+    @Override
+    public String toString() {
+        return "SqliteAssignmentRepository: " + this.database;
     }
 }

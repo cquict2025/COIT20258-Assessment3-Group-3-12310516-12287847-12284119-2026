@@ -18,10 +18,23 @@ public class SqliteAuditRepository implements AuditRepository {
 
     private final Database database;
 
+    /**
+     * Creates a SQLite audit repository.
+     *
+     * @param database the database
+     */
     public SqliteAuditRepository(Database database) {
         this.database = database;
     }
 
+    /**
+     * Inserts a new audit event. A new event is given the next AUD-
+     * identifier.
+     *
+     * @param event the event to record
+     * @return the same event, with its identifier set
+     * @throws IllegalStateException if the row cannot be written
+     */
     @Override
     public AuditEvent save(AuditEvent event) {
         Connection connection = this.database.getConnection();
@@ -50,12 +63,24 @@ public class SqliteAuditRepository implements AuditRepository {
         }
     }
 
+    /**
+     * Lists every audit event, newest first.
+     *
+     * @return all audit events
+     */
     @Override
     public List<AuditEvent> findAll() {
         return query("SELECT * FROM audit_events ORDER BY occurred_at DESC",
                      null, null);
     }
 
+    /**
+     * Finds the audit events recorded against one entity, newest first.
+     *
+     * @param entityType the kind of entity, such as an incident
+     * @param entityId the entity identifier
+     * @return the events for that entity
+     */
     @Override
     public List<AuditEvent> findByEntity(String entityType, String entityId) {
         return query("SELECT * FROM audit_events WHERE entity_type = ? AND "
@@ -63,6 +88,15 @@ public class SqliteAuditRepository implements AuditRepository {
                 + "ORDER BY occurred_at DESC", entityType, entityId);
     }
 
+    /**
+     * Runs a query against the audit log and maps every row to an event.
+     *
+     * @param sql the query to run
+     * @param first the first parameter, or null if the query has none
+     * @param second the second parameter, used only when first is set
+     * @return the events found
+     * @throws IllegalStateException if the rows cannot be read
+     */
     private List<AuditEvent> query(String sql, String first, String second) {
         List<AuditEvent> events = new ArrayList<>();
         try (PreparedStatement statement = this.database.getConnection()
@@ -89,5 +123,15 @@ public class SqliteAuditRepository implements AuditRepository {
         } catch (SQLException e) {
             throw new IllegalStateException("Could not read the audit log.", e);
         }
+    }
+
+    /**
+     * Describes the repository.
+     *
+     * @return the database it reads and writes
+     */
+    @Override
+    public String toString() {
+        return "SqliteAuditRepository: " + this.database;
     }
 }

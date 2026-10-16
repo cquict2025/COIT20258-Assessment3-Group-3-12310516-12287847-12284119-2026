@@ -19,10 +19,23 @@ public class SqliteReportRepository implements ReportRepository {
 
     private final Database database;
 
+    /**
+     * Creates a SQLite report repository.
+     *
+     * @param database the database
+     */
     public SqliteReportRepository(Database database) {
         this.database = database;
     }
 
+    /**
+     * Inserts a report, or updates the stored row with the same
+     * identifier. A new report is given the next RPT- identifier.
+     *
+     * @param report the report to save
+     * @return the same report, with its identifier set
+     * @throws IllegalStateException if the row cannot be written
+     */
     @Override
     public DisasterReport save(DisasterReport report) {
         Connection connection = this.database.getConnection();
@@ -86,6 +99,13 @@ public class SqliteReportRepository implements ReportRepository {
         }
     }
 
+    /**
+     * Finds a report by its identifier.
+     *
+     * @param reportId the report identifier
+     * @return the report, or empty if there is none
+     * @throws IllegalStateException if the row cannot be read
+     */
     @Override
     public Optional<DisasterReport> findById(String reportId) {
         try (PreparedStatement statement = this.database.getConnection()
@@ -105,11 +125,22 @@ public class SqliteReportRepository implements ReportRepository {
         }
     }
 
+    /**
+     * Lists every report, ordered by identifier.
+     *
+     * @return all reports
+     */
     @Override
     public List<DisasterReport> findAll() {
         return query("SELECT * FROM reports ORDER BY report_id", null);
     }
 
+    /**
+     * Finds the reports that have a given status, ordered by identifier.
+     *
+     * @param status the status to match
+     * @return the reports with that status
+     */
     @Override
     public List<DisasterReport> findByStatus(ReportStatus status) {
         return
@@ -133,6 +164,14 @@ public class SqliteReportRepository implements ReportRepository {
                      status.name());
     }
 
+    /**
+     * Runs a query against the reports table and maps every row.
+     *
+     * @param sql the query to run
+     * @param parameter the single query parameter, or null if there is none
+     * @return the reports found
+     * @throws IllegalStateException if the rows cannot be read
+     */
     private List<DisasterReport> query(String sql, String parameter) {
         List<DisasterReport> reports = new ArrayList<>();
         try (PreparedStatement statement = this.database.getConnection()
@@ -152,6 +191,13 @@ public class SqliteReportRepository implements ReportRepository {
         }
     }
 
+    /**
+     * Builds a report from the current row of a result set.
+     *
+     * @param rs the result set, positioned on the row to read
+     * @return the report read from the row
+     * @throws SQLException if a column cannot be read
+     */
     private DisasterReport map(ResultSet rs) throws SQLException {
         DisasterReport report = new DisasterReport();
         report.setReportId(rs.getString("report_id"));
@@ -174,5 +220,15 @@ public class SqliteReportRepository implements ReportRepository {
         report.setDecisionReason(rs.getString("decision_reason"));
         report.setLinkedIncidentId(rs.getString("linked_incident_id"));
         return report;
+    }
+
+    /**
+     * Describes the repository.
+     *
+     * @return the database it reads and writes
+     */
+    @Override
+    public String toString() {
+        return "SqliteReportRepository: " + this.database;
     }
 }

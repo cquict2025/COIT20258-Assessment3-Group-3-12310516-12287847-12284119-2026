@@ -18,10 +18,23 @@ public class SqliteAssessmentRepository implements AssessmentRepository {
 
     private final Database database;
 
+    /**
+     * Creates a SQLite assessment repository.
+     *
+     * @param database the database
+     */
     public SqliteAssessmentRepository(Database database) {
         this.database = database;
     }
 
+    /**
+     * Inserts an assessment, or updates the stored row with the same
+     * identifier. A new assessment is given the next ASM- identifier.
+     *
+     * @param assessment the assessment to save
+     * @return the same assessment, with its identifier set
+     * @throws IllegalStateException if the row cannot be written
+     */
     @Override
     public Assessment save(Assessment assessment) {
         Connection connection = this.database.getConnection();
@@ -76,6 +89,13 @@ public class SqliteAssessmentRepository implements AssessmentRepository {
         }
     }
 
+    /**
+     * Finds the assessments recorded for an incident, lowest version first.
+     *
+     * @param incidentId the incident identifier
+     * @return the assessments for the incident
+     * @throws IllegalStateException if the rows cannot be read
+     */
     @Override
     public List<Assessment> findByIncidentId(String incidentId) {
         List<Assessment> assessments = new ArrayList<>();
@@ -95,12 +115,26 @@ public class SqliteAssessmentRepository implements AssessmentRepository {
         }
     }
 
+    /**
+     * Finds the assessment with the highest version number for an
+     * incident.
+     *
+     * @param incidentId the incident identifier
+     * @return the latest assessment, or empty if there is none
+     */
     @Override
     public Optional<Assessment> findLatestForIncident(String incidentId) {
         return findByIncidentId(incidentId).stream()
                 .max(Comparator.comparingInt(Assessment::getVersion));
     }
 
+    /**
+     * Builds an assessment from the current row of a result set.
+     *
+     * @param rs the result set, positioned on the row to read
+     * @return the assessment read from the row
+     * @throws SQLException if a column cannot be read
+     */
     private Assessment map(ResultSet rs) throws SQLException {
         Assessment assessment = new Assessment();
         assessment.setAssessmentId(rs.getString("assessment_id"));
@@ -122,5 +156,15 @@ public class SqliteAssessmentRepository implements AssessmentRepository {
                 .toDateTime(rs.getString("assessed_at")));
         assessment.setVersion(rs.getInt("version"));
         return assessment;
+    }
+
+    /**
+     * Describes the repository.
+     *
+     * @return the database it reads and writes
+     */
+    @Override
+    public String toString() {
+        return "SqliteAssessmentRepository: " + this.database;
     }
 }

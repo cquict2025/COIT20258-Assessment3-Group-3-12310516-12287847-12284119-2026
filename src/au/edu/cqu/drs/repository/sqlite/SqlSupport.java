@@ -13,24 +13,53 @@ import java.time.LocalDateTime;
  */
 final class SqlSupport {
 
+    /**
+     * Prevents instances; every member is static.
+     */
     private SqlSupport() {
         // Utility class - not instantiated.
     }
 
+    /**
+     * Converts a date-time to ISO-8601 text for storage.
+     *
+     * @param value the date-time, or null
+     * @return the text form, or null if the value is null
+     */
     static String toText(LocalDateTime value) {
         return value == null ? null : value.toString();
     }
 
+    /**
+     * Parses stored ISO-8601 text back into a date-time.
+     *
+     * @param value the stored text, or null
+     * @return the date-time, or null if the text is null or blank
+     */
     static LocalDateTime toDateTime(String value) {
         return value == null
                 || value.isBlank() ? null : LocalDateTime.parse(value);
     }
 
+    /**
+     * Converts a stored constant name back into an enum value.
+     *
+     * @param <E> the enum type
+     * @param type the enum class
+     * @param value the stored name, or null
+     * @return the enum value, or null if the name is null or blank
+     */
     static <E extends Enum<E>> E toEnum(Class<E> type, String value) {
         return value == null || value.isBlank() ? null : Enum.valueOf(type,
                 value);
     }
 
+    /**
+     * Converts an enum value to its constant name for storage.
+     *
+     * @param value the enum value, or null
+     * @return the constant name, or null if the value is null
+     */
     static String fromEnum(Enum<?> value) {
         return value == null ? null : value.name();
     }
@@ -60,5 +89,15 @@ final class SqlSupport {
                                             
                                             e);
         }
+    }
+
+    /**
+     * Describes this helper class.
+     *
+     * @return a short description of what it provides
+     */
+    @Override
+    public String toString() {
+        return "SqlSupport: SQLite date-time, enum and identifier helpers";
     }
 }

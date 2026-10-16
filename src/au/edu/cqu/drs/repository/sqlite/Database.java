@@ -16,6 +16,11 @@ public class Database {
     private final String jdbcUrl;
     private Connection connection;
 
+    /**
+     * Creates a database.
+     *
+     * @param databaseFile the database file
+     */
     public Database(String databaseFile) {
         this.jdbcUrl = "jdbc:sqlite:" + databaseFile;
     }
@@ -60,6 +65,12 @@ public class Database {
         }
     }
 
+    /**
+     * Creates every table the prototype uses, skipping any that already
+     * exist.
+     *
+     * @throws SQLException if a table cannot be created
+     */
     private void createSchema() throws SQLException {
         try (Statement statement = this.connection.createStatement()) {
             statement.executeUpdate("""
@@ -181,5 +192,17 @@ public class Database {
                         detail TEXT,
                         occurred_at TEXT)""");
         }
+    }
+
+    /**
+     * Describes the database.
+     *
+     * @return its JDBC URL and whether a connection has been opened
+     */
+    @Override
+    public String toString() {
+        return "Database: " + this.jdbcUrl
+                + (this.connection == null ? " (not connected)"
+                        : " (connection opened)");
     }
 }
