@@ -340,6 +340,9 @@ public class DashboardController {
         this.events.addStatusListener(this.statusHandler);
     }
 
+    /**
+     * Fills the priority filter and reloads when it changes.
+     */
     private void configureFilter() {
         this.priorityFilterCombo.setItems(FXCollections.observableArrayList(
                 ALL_PRIORITIES, Priority.P1.name(), Priority.P2.name(),
@@ -348,6 +351,9 @@ public class DashboardController {
         this.priorityFilterCombo.setOnAction(event -> handleRefresh());
     }
 
+    /**
+     * Tells each incident column which value to show.
+     */
     private void configureIncidentColumns() {
         this.idColumn.setCellValueFactory(cell ->
                 new SimpleStringProperty(cell.getValue().getIncidentId()));
@@ -377,6 +383,9 @@ public class DashboardController {
                 String.valueOf(cell.getValue().getAssignments().size())));
     }
 
+    /**
+     * Tells each escalation alert column which value to show.
+     */
     private void configureAlertColumns() {
         this.alertIncidentColumn.setCellValueFactory(cell ->
                 new SimpleStringProperty(cell.getValue().getIncident()
@@ -399,5 +408,16 @@ public class DashboardController {
         this.alertPercentColumn.setCellValueFactory(cell -> new
                 SimpleStringProperty(
                 cell.getValue().getPercentageOfTargetUsed() + "%"));
+    }
+
+    /**
+     * Describes the controller.
+     *
+     * @return what the controller shows
+     */
+    @Override
+    public String toString() {
+        return "DashboardController: operational dashboard, live updates "
+                + (this.events == null ? "off" : "on");
     }
 }

@@ -57,6 +57,11 @@ public class FieldUpdateController {
         handleRefresh();
     }
 
+    /**
+     * Returns the field update screen.
+     *
+     * @return the view
+     */
     public Parent getView() {
         return this.view;
     }
@@ -163,6 +168,11 @@ public class FieldUpdateController {
                 });
     }
 
+    /**
+     * Returns the open incident chosen in the list.
+     *
+     * @return the incident, or null if none is chosen
+     */
     private Incident selectedIncident() {
         int index = this.incidentCombo.getSelectionModel().getSelectedIndex();
         return index < 0 || index >= this.openIncidents.size() ? null :
@@ -170,13 +180,33 @@ public class FieldUpdateController {
                 .get(index);
     }
 
+    /**
+     * Shows a message styled as an error.
+     *
+     * @param message the message
+     */
     private void showError(String message) {
         this.messageLabel.getStyleClass().setAll("error-label");
         this.messageLabel.setText(message);
     }
 
+    /**
+     * Shows a message styled as a success.
+     *
+     * @param message the message
+     */
     private void showSuccess(String message) {
         this.messageLabel.getStyleClass().setAll("success-label");
         this.messageLabel.setText(message);
+    }
+
+    /**
+     * Describes the controller.
+     *
+     * @return what the controller shows
+     */
+    @Override
+    public String toString() {
+        return "FieldUpdateController: field update screen";
     }
 }

@@ -78,6 +78,11 @@ public class AssessmentController {
         handleRefresh();
     }
 
+    /**
+     * Returns the triage screen.
+     *
+     * @return the view
+     */
     public Parent getView() {
         return this.view;
     }
@@ -313,6 +318,9 @@ public class AssessmentController {
         handleRefresh();
     }
 
+    /**
+     * Sets each factor spinner to its range and starting value.
+     */
     private void configureSpinners() {
         this.threatSpinner.setValueFactory(factory(3));
         this.scaleSpinner.setValueFactory(factory(2));
@@ -320,17 +328,33 @@ public class AssessmentController {
         this.confidenceSpinner.setValueFactory(factory(4));
     }
 
+    /**
+     * Makes a spinner range from the lowest to the highest factor value.
+     *
+     * @param initial the starting value
+     * @return the value factory
+     */
     private SpinnerValueFactory<Integer> factory(int initial) {
         return new SpinnerValueFactory.IntegerSpinnerValueFactory(
                 Assessment.MIN_FACTOR, Assessment.MAX_FACTOR, initial);
     }
 
+    /**
+     * Returns the submitted report chosen in the list.
+     *
+     * @return the report, or null if none is chosen
+     */
     private DisasterReport selectedReport() {
         int index = this.reportList.getSelectionModel().getSelectedIndex();
         return index < 0 || index >= this.submittedReports
                 .size() ? null : this.submittedReports.get(index);
     }
 
+    /**
+     * Returns the open incident chosen in the list.
+     *
+     * @return the incident, or null if none is chosen
+     */
     private Incident selectedIncident() {
         int index = this.incidentCombo.getSelectionModel().getSelectedIndex();
         return index < 0 || index >= this.openIncidents.size() ? null :
@@ -338,13 +362,33 @@ public class AssessmentController {
                 .get(index);
     }
 
+    /**
+     * Shows a message styled as an error.
+     *
+     * @param message the message
+     */
     private void showError(String message) {
         this.messageLabel.getStyleClass().setAll("error-label");
         this.messageLabel.setText(message);
     }
 
+    /**
+     * Shows a message styled as a success.
+     *
+     * @param message the message
+     */
     private void showSuccess(String message) {
         this.messageLabel.getStyleClass().setAll("success-label");
         this.messageLabel.setText(message);
+    }
+
+    /**
+     * Describes the controller.
+     *
+     * @return what the controller shows
+     */
+    @Override
+    public String toString() {
+        return "AssessmentController: triage and prioritisation screen";
     }
 }
