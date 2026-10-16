@@ -116,18 +116,6 @@ public class SessionManager {
     }
 
     /**
-     * Describes the manager without revealing any token.
-     *
-     * @return the session count and idle limit
-     */
-    @Override
-    public String toString() {
-        return "SessionManager: " + this.sessions.size()
-                + " session(s), idle limit " + this.idleLimit.toMinutes()
-                + " min";
-    }
-
-    /**
      * One signed-in user and when the session was last used.
      */
     private static final class Session {
@@ -186,5 +174,17 @@ public class SessionManager {
             return "Session of " + this.user.getUsername() + ", last used "
                     + this.lastUsed;
         }
+    }
+
+    /**
+     * Describes the manager without revealing any token.
+     *
+     * @return the session count and idle limit
+     */
+    @Override
+    public String toString() {
+        return "SessionManager: " + this.sessions.size()
+                + " session(s), idle limit " + this.idleLimit.toMinutes()
+                + " min";
     }
 }

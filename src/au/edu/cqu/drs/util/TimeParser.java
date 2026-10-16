@@ -13,6 +13,9 @@ import java.util.Optional;
  */
 public final class TimeParser {
 
+    /**
+     * Prevents instances; every member is static.
+     */
     private TimeParser() {
         // Utility class - not instantiated.
     }
@@ -37,8 +40,23 @@ public final class TimeParser {
         }
     }
 
-    /** Parses a time of day onto today's date. */
+    /**
+     * Parses a time of day onto today's date.
+     *
+     * @param text the time, as HH:mm
+     * @return the date-time, or empty if the text is not a valid time
+     */
     public static Optional<LocalDateTime> parseToday(String text) {
         return parse(text, LocalDate.now());
+    }
+
+    /**
+     * Describes what this utility class does.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "TimeParser: turns 24-hour time text into a date-time";
     }
 }

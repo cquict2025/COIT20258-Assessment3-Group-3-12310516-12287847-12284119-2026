@@ -17,6 +17,9 @@ import java.io.IOException;
  */
 public final class ViewLoader {
 
+    /**
+     * Prevents instances; every member is static.
+     */
     private ViewLoader() {
         // Utility class - not instantiated.
     }
@@ -43,5 +46,15 @@ public final class ViewLoader {
                                             
                                             e);
         }
+    }
+
+    /**
+     * Describes what this utility class does.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "ViewLoader: loads FXML views with ready-made controllers";
     }
 }

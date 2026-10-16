@@ -305,23 +305,6 @@ public class ServerConfig {
     }
 
     /**
-     * Describes the settings, without any password.
-     *
-     * @return every setting
-     */
-    @Override
-    public String toString() {
-        String storage = this.databaseFile;
-        if (this.backend == Backend.MYSQL) {
-            storage = getMySqlSettings().toString();
-        }
-        return String.format("ServerConfig: port %d, %d threads, %s storage"
-                + " (%s), connection timeout %d min, session idle %d min",
-                this.port, this.threads, this.backend, storage,
-                this.clientTimeoutMinutes, this.sessionIdleMinutes);
-    }
-
-    /**
      * Where the server keeps its data.
      */
     public enum Backend {
@@ -361,5 +344,22 @@ public class ServerConfig {
         public String toString() {
             return name().toLowerCase(Locale.ROOT);
         }
+    }
+
+    /**
+     * Describes the settings, without any password.
+     *
+     * @return every setting
+     */
+    @Override
+    public String toString() {
+        String storage = this.databaseFile;
+        if (this.backend == Backend.MYSQL) {
+            storage = getMySqlSettings().toString();
+        }
+        return String.format("ServerConfig: port %d, %d threads, %s storage"
+                + " (%s), connection timeout %d min, session idle %d min",
+                this.port, this.threads, this.backend, storage,
+                this.clientTimeoutMinutes, this.sessionIdleMinutes);
     }
 }
