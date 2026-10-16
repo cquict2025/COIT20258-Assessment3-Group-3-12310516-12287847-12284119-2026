@@ -12,6 +12,13 @@ public class InMemoryAuditRepository implements AuditRepository {
     private final List<AuditEvent> events = new ArrayList<>();
     private int sequence = 0;
 
+    /**
+     * Appends an event to the log. A new event is given the next AUD-
+     * identifier.
+     *
+     * @param event the event to record
+     * @return the same event, with its identifier set
+     */
     @Override
     public AuditEvent save(AuditEvent event) {
         if (event.getEventId() == null) {
@@ -22,16 +29,39 @@ public class InMemoryAuditRepository implements AuditRepository {
         return event;
     }
 
+    /**
+     * Lists every recorded event.
+     *
+     * @return a new list of all events, oldest first
+     */
     @Override
     public List<AuditEvent> findAll() {
         return new ArrayList<>(this.events);
     }
 
+    /**
+     * Finds the events recorded against one entity.
+     *
+     * @param entityType the kind of entity, such as an incident
+     * @param entityId the entity identifier
+     * @return the events for that entity, oldest first
+     */
     @Override
     public List<AuditEvent> findByEntity(String entityType, String entityId) {
         return this.events.stream()
                 .filter(e -> entityType.equals(e.getEntityType())
                         && entityId.equals(e.getEntityId()))
                 .toList();
+    }
+
+    /**
+     * Describes the repository.
+     *
+     * @return how many audit events it holds
+     */
+    @Override
+    public String toString() {
+        return "InMemoryAuditRepository: " + this.events.size()
+                + " event(s)";
     }
 }

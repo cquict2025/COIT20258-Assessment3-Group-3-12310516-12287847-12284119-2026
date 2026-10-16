@@ -20,6 +20,9 @@ import java.util.Properties;
  */
 public final class MySqlTestDatabase {
 
+    /**
+     * Prevents instances; every member is static.
+     */
     private MySqlTestDatabase() {
         // Static helpers only.
     }
@@ -70,6 +73,19 @@ public final class MySqlTestDatabase {
     }
 
     /**
+     * Reads an environment variable, using the fallback when it is not set or
+     * is blank.
+     *
+     * @param name the environment variable's name
+     * @param fallback the value to use when it is not set
+     * @return the variable's value, or the fallback
+     */
+    private static String env(String name, String fallback) {
+        String value = System.getenv(name);
+        return value == null || value.isBlank() ? fallback : value;
+    }
+
+    /**
      * Describes the helper.
      *
      * @return the database it opens
@@ -77,10 +93,5 @@ public final class MySqlTestDatabase {
     @Override
     public String toString() {
         return "MySqlTestDatabase: drs_test";
-    }
-
-    private static String env(String name, String fallback) {
-        String value = System.getenv(name);
-        return value == null || value.isBlank() ? fallback : value;
     }
 }

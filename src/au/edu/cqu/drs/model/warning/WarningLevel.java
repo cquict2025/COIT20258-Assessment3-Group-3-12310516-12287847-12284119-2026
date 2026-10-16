@@ -16,6 +16,12 @@ public enum WarningLevel {
     private final String displayName;
     private final String callToAction;
 
+    /**
+     * Creates a level with its public name and call to action.
+     *
+     * @param displayName  the name used in the Australian Warning System
+     * @param callToAction the short instruction shown with the level
+     */
     WarningLevel(String displayName, String callToAction) {
         this.displayName = displayName;
         this.callToAction = callToAction;

@@ -42,6 +42,12 @@ class WarningModuleTest {
     private ServerConnection connection;
     private String incidentId;
 
+    /**
+     * Starts a server on a free port with in-memory storage, connects
+     * the client to it and opens an incident for the warnings.
+     *
+     * @throws Exception if the server cannot be started
+     */
     @BeforeEach
     void startServer() throws Exception {
         this.bootstrap = new ServerBootstrap(
@@ -53,12 +59,19 @@ class WarningModuleTest {
         this.incidentId = openIncident();
     }
 
+    /**
+     * Closes the client connection and shuts the server down.
+     */
     @AfterEach
     void stopServer() {
         this.connection.close();
         this.bootstrap.close();
     }
 
+    /**
+     * Checks that the server log does not report the warning module
+     * as missing, so the module was loaded.
+     */
     @Test
     @DisplayName("TC-WM-01 the server loads the warning module")
     void moduleIsLoaded() {
@@ -67,6 +80,10 @@ class WarningModuleTest {
                         + "installed")));
     }
 
+    /**
+     * Checks that a coordinator can issue a warning over the socket
+     * and that the public board then shows it without a sign-in.
+     */
     @Test
     @DisplayName("TC-WM-02 a coordinator issues a warning and the public "
             + "sees it without signing in")
@@ -87,6 +104,10 @@ class WarningModuleTest {
                 .getAffectedArea());
     }
 
+    /**
+     * Checks that the server refuses a responder who tries to issue a
+     * warning.
+     */
     @Test
     @DisplayName("TC-WM-03 the server refuses a responder who tries to "
             + "issue a warning")
@@ -97,6 +118,11 @@ class WarningModuleTest {
         assertEquals(ErrorCode.PERMISSION_DENIED, refused.getErrorCode());
     }
 
+    /**
+     * Checks that a liaison can acknowledge a warning over the socket
+     * and that the coordinator's warning list then shows the
+     * acknowledgement.
+     */
     @Test
     @DisplayName("TC-WM-04 a liaison acknowledges and the coordinator's "
             + "list shows it")
@@ -115,6 +141,10 @@ class WarningModuleTest {
         assertEquals(1, listed.getAcknowledgements().size());
     }
 
+    /**
+     * Checks that after an update and a cancel sent through the
+     * server, the warning's history holds three versions.
+     */
     @Test
     @DisplayName("TC-WM-05 an update and a cancel show up in the history")
     void historyThroughTheServer() {
@@ -137,6 +167,10 @@ class WarningModuleTest {
         assertEquals(3, ((List<?>) history.getValue()).size());
     }
 
+    /**
+     * Checks that an issue request without a warning is answered with
+     * a validation error naming the warning field.
+     */
     @Test
     @DisplayName("TC-WM-06 a request without a warning is answered with a "
             + "clear error")
@@ -148,6 +182,16 @@ class WarningModuleTest {
         assertEquals(WarningKeys.WARNING, response.getAffectedField());
     }
 
+    /**
+     * Sends a request with the given command and session token,
+     * adding the key and value only when a key is given.
+     *
+     * @param token the session token, or null when not signed in
+     * @param command the command to send
+     * @param key the name of the value to add, or null for none
+     * @param value the value to add under the key
+     * @return the server's response
+     */
     private Response send(String token, Command command, String key,
             java.io.Serializable value) {
         Request request = new Request(command, token);
@@ -157,6 +201,12 @@ class WarningModuleTest {
         return this.connection.send(request);
     }
 
+    /**
+     * Signs in as the given demo user and checks that it worked.
+     *
+     * @param username the username to sign in with
+     * @return the session token the server returned
+     */
     private String signIn(String username) {
         Response response = this.connection.send(
                 ServerTestSupport.loginRequest(username));
@@ -167,6 +217,8 @@ class WarningModuleTest {
     /**
      * Creates an open incident through the services, as a coordinator
      * would from a validated report.
+     *
+     * @return the new incident's code
      */
     private String openIncident() {
         ServerContext context = this.bootstrap.getContext();
@@ -183,9 +235,27 @@ class WarningModuleTest {
         return incident.getIncidentId();
     }
 
+    /**
+     * Builds a Watch and Act warning draft for the test incident that
+     * expires four hours from now.
+     *
+     * @return the draft warning, not yet saved
+     */
     private Warning draft() {
         return new Warning(this.incidentId, WarningLevel.WATCH_AND_ACT,
                 "Laverton", "Smoke from a warehouse fire.",
                 LocalDateTime.now().plusHours(4));
+    }
+
+    /**
+     * Describes this test class and the fixture it uses.
+     *
+     * @return the class name and the fixture state
+     */
+    @Override
+    public String toString() {
+        return "WarningModuleTest[bootstrap=" + this.bootstrap
+                + ", connection=" + this.connection
+                + ", incidentId=" + this.incidentId + "]";
     }
 }

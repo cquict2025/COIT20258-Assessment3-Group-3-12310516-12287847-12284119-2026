@@ -102,16 +102,6 @@ public final class ServerLauncher {
     }
 
     /**
-     * Describes the launcher.
-     *
-     * @return a short description
-     */
-    @Override
-    public String toString() {
-        return "ServerLauncher: starts the DRS server";
-    }
-
-    /**
      * The command-line options.
      */
     private static final class Options {
@@ -158,5 +148,15 @@ public final class ServerLauncher {
             return "Options: headless " + this.headless + ", config "
                     + this.configFile + ", port " + this.port;
         }
+    }
+
+    /**
+     * Describes the launcher.
+     *
+     * @return a short description
+     */
+    @Override
+    public String toString() {
+        return "ServerLauncher: starts the DRS server";
     }
 }

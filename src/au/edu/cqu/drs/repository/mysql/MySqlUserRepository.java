@@ -102,15 +102,13 @@ public class MySqlUserRepository implements UserRepository {
     }
 
     /**
-     * Describes the repository.
+     * Runs a query for a single account on a connection borrowed from the
+     * pool.
      *
-     * @return the table it uses
+     * @param sql       the SELECT statement, with one parameter
+     * @param parameter the value for the parameter
+     * @return the first account found, if there is one
      */
-    @Override
-    public String toString() {
-        return "MySqlUserRepository: users";
-    }
-
     private Optional<User> findOne(String sql, String parameter) {
         try {
             return this.database.withConnection(connection ->
@@ -121,6 +119,16 @@ public class MySqlUserRepository implements UserRepository {
         }
     }
 
+    /**
+     * Runs a query for a single account on a connection the caller already
+     * holds and maps its first row.
+     *
+     * @param connection the connection to use
+     * @param sql        the SELECT statement, with one parameter
+     * @param parameter  the value for the parameter
+     * @return the first account found, if there is one
+     * @throws SQLException if the query fails
+     */
     private Optional<User> queryOne(Connection connection, String sql,
             String parameter) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -131,6 +139,15 @@ public class MySqlUserRepository implements UserRepository {
         }
     }
 
+    /**
+     * Sets the account's column values on a statement, in the order of
+     * {@code COLUMNS}.
+     *
+     * @param statement the INSERT or UPDATE statement to fill
+     * @param first     the position of the first column's parameter
+     * @param user      the account whose values are bound
+     * @throws SQLException if a parameter cannot be set
+     */
     private void bind(PreparedStatement statement, int first, User user)
             throws SQLException {
         int i = first;
@@ -145,6 +162,13 @@ public class MySqlUserRepository implements UserRepository {
         MySqlSupport.setDateTime(statement, i, user.getLastLoginAt());
     }
 
+    /**
+     * Builds an account from the current row of a result set.
+     *
+     * @param rs the result set, positioned on a row
+     * @return the account read from the row
+     * @throws SQLException if a column cannot be read
+     */
     private User map(ResultSet rs) throws SQLException {
         User user = new User();
         user.setUserId(rs.getString("user_id"));
@@ -159,5 +183,15 @@ public class MySqlUserRepository implements UserRepository {
         user.setActive(rs.getBoolean("active"));
         user.setLastLoginAt(MySqlSupport.getDateTime(rs, "last_login_at"));
         return user;
+    }
+
+    /**
+     * Describes the repository.
+     *
+     * @return the table it uses
+     */
+    @Override
+    public String toString() {
+        return "MySqlUserRepository: users";
     }
 }

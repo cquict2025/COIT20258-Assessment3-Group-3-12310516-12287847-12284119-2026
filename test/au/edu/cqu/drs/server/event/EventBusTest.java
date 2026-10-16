@@ -26,6 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class EventBusTest {
 
+    /**
+     * Checks that an event reaches all three subscribers.
+     */
     @Test
     @DisplayName("TC-EV-01 an event reaches all three subscribers")
     void eventReachesEverySubscriber() {
@@ -47,6 +50,10 @@ class EventBusTest {
         }
     }
 
+    /**
+     * Checks that a subscriber that fails does not stop the others and can be
+     * removed.
+     */
     @Test
     @DisplayName("TC-EV-02 a subscriber that fails does not stop the others "
             + "and can be removed")
@@ -69,6 +76,10 @@ class EventBusTest {
         assertEquals(List.of(1), counts);
     }
 
+    /**
+     * Checks that a successful change becomes an event naming the entity and
+     * who acted; reads and failures publish nothing.
+     */
     @Test
     @DisplayName("TC-EV-03 a successful change becomes an event naming the "
             + "entity and who acted; reads and failures publish nothing")
@@ -103,5 +114,15 @@ class EventBusTest {
         assertNull(ChangeEvents.describe(imported, Response.success(
                 imported.getRequestId(), true), coordinator, now));
         assertTrue(ChangeEvents.isPublished(Command.ISSUE_WARNING));
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "EventBusTest: tests for EventBus";
     }
 }

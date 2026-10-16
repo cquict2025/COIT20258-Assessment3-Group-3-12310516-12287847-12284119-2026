@@ -38,6 +38,11 @@ public class EscalationService {
 
     private final IncidentService incidentService;
 
+    /**
+     * Creates an escalation service.
+     *
+     * @param incidentService the incident service
+     */
     public EscalationService(IncidentService incidentService) {
         this.incidentService = incidentService;
     }
@@ -116,5 +121,16 @@ public class EscalationService {
         return this.incidentService.findOpenIncidentsByPriority().stream()
                 .map(i -> evaluate(i, now))
                 .toList();
+    }
+
+    /**
+     * Describes what this service does.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "EscalationService: checks response times against priority "
+                + "targets";
     }
 }

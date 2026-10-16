@@ -87,16 +87,6 @@ public final class ServerTestSupport {
     }
 
     /**
-     * Describes this helper class.
-     *
-     * @return a short description
-     */
-    @Override
-    public String toString() {
-        return "ServerTestSupport";
-    }
-
-    /**
      * A clock that stands still until the test moves it forward.
      */
     public static class MutableClock extends Clock {
@@ -159,5 +149,15 @@ public final class ServerTestSupport {
         public String toString() {
             return "MutableClock at " + this.now;
         }
+    }
+
+    /**
+     * Describes this helper class.
+     *
+     * @return a short description
+     */
+    @Override
+    public String toString() {
+        return "ServerTestSupport";
     }
 }

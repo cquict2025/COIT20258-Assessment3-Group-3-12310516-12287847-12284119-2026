@@ -54,6 +54,11 @@ public final class SampleA2Data {
     private final CoordinationService coordination;
     private final SqliteUserRepository users;
 
+    /**
+     * Creates a sample a2 data.
+     *
+     * @param database the database
+     */
     private SampleA2Data(Database database) {
         this.users = new SqliteUserRepository(database);
         SqliteIncidentRepository incidentStore =
@@ -108,15 +113,11 @@ public final class SampleA2Data {
     }
 
     /**
-     * Describes the generator.
-     *
-     * @return what it writes
+     * Fills the database through the services: the demonstration accounts,
+     * four reports (one rejected as a duplicate), three incidents with
+     * assessments, a fire assignment with a resource, and three field
+     * updates.
      */
-    @Override
-    public String toString() {
-        return "SampleA2Data: DRS-Initial SQLite sample";
-    }
-
     private void fill() {
         new DemoDataSeeder(this.authentication, this.users).seedIfEmpty();
         User coordinator = user("coordinator");
@@ -176,10 +177,30 @@ public final class SampleA2Data {
                 "River Street closed between Hall and Pier.");
     }
 
+    /**
+     * Finds a demonstration account by user name.
+     *
+     * @param username the user name
+     * @return the account
+     */
     private User user(String username) {
         return this.users.findByUsername(username).orElseThrow();
     }
 
+    /**
+     * Submits a public report with the given details.
+     *
+     * @param type        the kind of disaster
+     * @param address     the street address
+     * @param suburb      the suburb
+     * @param latitude    the latitude
+     * @param longitude   the longitude
+     * @param observed    when the reporter saw it
+     * @param description what the reporter saw
+     * @param name        the reporter's name, or null
+     * @param contact     the reporter's contact details, or null
+     * @return the submitted report
+     */
     private DisasterReport submit(DisasterType type, String address,
             String suburb, double latitude, double longitude,
             LocalDateTime observed, String description, String name,
@@ -192,12 +213,32 @@ public final class SampleA2Data {
         return check(this.reports.submitReport(report));
     }
 
+    /**
+     * Creates an incident from a validated report.
+     *
+     * @param coordinator the coordinator creating it
+     * @param report      the validated report
+     * @return the new incident
+     */
     private Incident createIncident(User coordinator,
             DisasterReport report) {
         return check(this.incidents.createFromReport(coordinator,
                 this.reports.findById(report.getReportId()).orElseThrow()));
     }
 
+    /**
+     * Scores an incident and confirms its priority, recording a reason when
+     * the coordinator overrides the recommended priority.
+     *
+     * @param coordinator    the coordinator doing the assessment
+     * @param incident       the incident to assess
+     * @param life           the threat to life score
+     * @param scale          the scale score
+     * @param infrastructure the infrastructure impact score
+     * @param confidence     the source confidence score
+     * @param override       the priority to confirm instead of the
+     *                       recommended one, or null to accept it
+     */
     private void assess(User coordinator, Incident incident, int life,
             int scale, int infrastructure, int confidence,
             Priority override) {
@@ -211,6 +252,14 @@ public final class SampleA2Data {
                         ? null : "Coordinator judgement on site risk"));
     }
 
+    /**
+     * Adds a responder's field update to an incident.
+     *
+     * @param responder the responder sending it
+     * @param incident  the incident it is about
+     * @param at        when it was sent
+     * @param note      what the responder reported
+     */
     private void fieldUpdate(User responder, Incident incident,
             LocalDateTime at, String note) {
         FieldUpdate update = new FieldUpdate(null, incident.getIncidentId(),
@@ -218,11 +267,29 @@ public final class SampleA2Data {
         check(this.incidents.addFieldUpdate(responder, update));
     }
 
+    /**
+     * Unwraps a service result, stopping the generator if the step failed.
+     *
+     * @param result the service result
+     * @param <T>    the value type
+     * @return the value
+     * @throws IllegalStateException if the step failed
+     */
     private static <T> T check(ServiceResult<T> result) {
         if (result.isFailure()) {
             throw new IllegalStateException("Sample data step failed: "
                     + result.getMessage());
         }
         return result.getValue();
+    }
+
+    /**
+     * Describes the generator.
+     *
+     * @return what it writes
+     */
+    @Override
+    public String toString() {
+        return "SampleA2Data: DRS-Initial SQLite sample";
     }
 }

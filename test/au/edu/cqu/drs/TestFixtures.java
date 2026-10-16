@@ -86,7 +86,16 @@ public class TestFixtures {
                 .getValue();
     }
 
-    /** Creates a valid report that the report service will accept. */
+    /**
+     * Creates a valid report that the report service will accept.
+     *
+     * @param type       the disaster type
+     * @param suburb     the suburb it was observed in
+     * @param latitude   the latitude
+     * @param longitude  the longitude
+     * @param observedAt when it was observed
+     * @return the report, not yet saved
+     */
     public DisasterReport validReport(DisasterType type, String suburb,
                                       double latitude, double longitude,
                                       LocalDateTime observedAt) {
@@ -97,5 +106,16 @@ public class TestFixtures {
         report.setObservedAt(observedAt);
         report.setDescription("Smoke and flames visible from the street.");
         return report;
+    }
+
+    /**
+     * Describes this fixture.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "TestFixtures: services built on in-memory repositories for "
+                + "tests";
     }
 }

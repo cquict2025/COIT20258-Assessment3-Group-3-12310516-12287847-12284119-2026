@@ -27,6 +27,9 @@ class ProtocolFilterTest {
 
     private final ProtocolFilter filter = new ProtocolFilter();
 
+    /**
+     * Checks that a class outside the allow-list in a request is rejected.
+     */
     @Test
     @DisplayName("TC-PF-01 a class outside the allow-list in a request is "
             + "rejected")
@@ -38,6 +41,9 @@ class ProtocolFilterTest {
                 () -> ProtocolTest.roundTrip(request, Request.class));
     }
 
+    /**
+     * Checks that a foreign top-level object is rejected.
+     */
     @Test
     @DisplayName("TC-PF-02 a foreign top-level object is rejected")
     void foreignTopLevelObjectIsRejected() {
@@ -45,6 +51,10 @@ class ProtocolFilterTest {
                 () -> ProtocolTest.roundTrip(new File("x"), Object.class));
     }
 
+    /**
+     * Checks that the allow-list accepts the protocol's classes and refuses
+     * others.
+     */
     @Test
     @DisplayName("TC-PF-03 the allow-list accepts the protocol's classes and "
             + "refuses others")
@@ -68,6 +78,9 @@ class ProtocolFilterTest {
         assertFalse(this.filter.isAllowed(File[].class));
     }
 
+    /**
+     * Checks that nesting deeper than the limit is rejected.
+     */
     @Test
     @DisplayName("TC-PF-04 nesting deeper than the limit is rejected")
     void tooDeepIsRejected() {
@@ -84,6 +97,9 @@ class ProtocolFilterTest {
                 () -> ProtocolTest.roundTrip(response, Response.class));
     }
 
+    /**
+     * Checks that more objects than the limit are rejected.
+     */
     @Test
     @DisplayName("TC-PF-05 more objects than the limit are rejected")
     void tooManyReferencesIsRejected() {
@@ -97,6 +113,11 @@ class ProtocolFilterTest {
                 () -> ProtocolTest.roundTrip(response, Response.class));
     }
 
+    /**
+     * Checks that an array of 1 MB is accepted and one byte more is rejected.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-PF-06 an array of 1 MB is accepted and one byte more is "
             + "rejected")
@@ -112,5 +133,15 @@ class ProtocolFilterTest {
         assertEquals(limit, copy.getSignature().length);
         assertThrows(InvalidClassException.class,
                 () -> ProtocolTest.roundTrip(overLimit, Request.class));
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "ProtocolFilterTest: tests for ProtocolFilter";
     }
 }

@@ -18,10 +18,23 @@ public class SqliteUserRepository implements UserRepository {
 
     private final Database database;
 
+    /**
+     * Creates a SQLite user repository.
+     *
+     * @param database the database
+     */
     public SqliteUserRepository(Database database) {
         this.database = database;
     }
 
+    /**
+     * Inserts a user account, or updates the stored row with the same
+     * identifier. A new account is given the next USR- identifier.
+     *
+     * @param user the account to save
+     * @return the same account, with its identifier set
+     * @throws IllegalStateException if the row cannot be written
+     */
     @Override
     public User save(User user) {
         Connection connection = this.database.getConnection();
@@ -61,16 +74,34 @@ public class SqliteUserRepository implements UserRepository {
         }
     }
 
+    /**
+     * Finds a user account by its exact username.
+     *
+     * @param username the username to look up
+     * @return the account, or empty if there is none
+     */
     @Override
     public Optional<User> findByUsername(String username) {
         return findOne("SELECT * FROM users WHERE username = ?", username);
     }
 
+    /**
+     * Finds a user account by its identifier.
+     *
+     * @param userId the user identifier
+     * @return the account, or empty if there is none
+     */
     @Override
     public Optional<User> findById(String userId) {
         return findOne("SELECT * FROM users WHERE user_id = ?", userId);
     }
 
+    /**
+     * Lists every user account, ordered by identifier.
+     *
+     * @return all accounts
+     * @throws IllegalStateException if the rows cannot be read
+     */
     @Override
     public List<User> findAll() {
         List<User> users = new ArrayList<>();
@@ -87,6 +118,14 @@ public class SqliteUserRepository implements UserRepository {
         }
     }
 
+    /**
+     * Runs a one-parameter query and maps the first row to an account.
+     *
+     * @param sql the query to run
+     * @param parameter the query parameter
+     * @return the account, or empty if no row matched
+     * @throws IllegalStateException if the row cannot be read
+     */
     private Optional<User> findOne(String sql, String parameter) {
         try (PreparedStatement statement = this.database.getConnection()
                 .prepareStatement(sql)) {
@@ -100,6 +139,13 @@ public class SqliteUserRepository implements UserRepository {
         }
     }
 
+    /**
+     * Builds a user account from the current row of a result set.
+     *
+     * @param rs the result set, positioned on the row to read
+     * @return the account read from the row
+     * @throws SQLException if a column cannot be read
+     */
     private User map(ResultSet rs) throws SQLException {
         User user = new User();
         user.setUserId(rs.getString("user_id"));
@@ -114,5 +160,15 @@ public class SqliteUserRepository implements UserRepository {
         user.setLastLoginAt(SqlSupport
                 .toDateTime(rs.getString("last_login_at")));
         return user;
+    }
+
+    /**
+     * Describes the repository.
+     *
+     * @return the database it reads and writes
+     */
+    @Override
+    public String toString() {
+        return "SqliteUserRepository: " + this.database;
     }
 }

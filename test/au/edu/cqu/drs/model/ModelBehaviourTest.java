@@ -16,6 +16,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class ModelBehaviourTest {
 
+    /**
+     * Checks that the incident lifecycle permits and refuses the documented
+     * transitions.
+     */
     @Test
     @DisplayName("TC-MD-01 the incident lifecycle permits and refuses the "
             + "documented transitions")
@@ -32,6 +36,9 @@ class ModelBehaviourTest {
                 .canTransitionTo(IncidentStatus.REOPENED));
     }
 
+    /**
+     * Checks that the distance between two identical points is zero.
+     */
     @Test
     @DisplayName("TC-MD-02 the distance between two identical points is zero")
     void distanceToSamePointIsZero() {
@@ -41,6 +48,9 @@ class ModelBehaviourTest {
         assertEquals(0.0, location.distanceKmTo(location), 0.0001);
     }
 
+    /**
+     * Checks that one degree of latitude measures approximately 111 km.
+     */
     @Test
     @DisplayName("TC-MD-03 one degree of latitude measures approximately "
             + "111 km")
@@ -51,6 +61,9 @@ class ModelBehaviourTest {
         assertEquals(111.19, north.distanceKmTo(south), 0.5);
     }
 
+    /**
+     * Checks that a null comparison location returns the maximum distance.
+     */
     @Test
     @DisplayName("TC-MD-04 a null comparison location returns the maximum "
             + "distance")
@@ -60,6 +73,10 @@ class ModelBehaviourTest {
         assertEquals(Double.MAX_VALUE, location.distanceKmTo(null));
     }
 
+    /**
+     * Checks that overlapping and adjacent availability windows are
+     * distinguished.
+     */
     @Test
     @DisplayName("TC-MD-05 overlapping and adjacent availability windows are "
             + "distinguished")
@@ -82,6 +99,9 @@ class ModelBehaviourTest {
         assertFalse(morning.overlaps(null));
     }
 
+    /**
+     * Checks that an incident reports unresolved assignments before closure.
+     */
     @Test
     @DisplayName("TC-MD-06 an incident reports unresolved assignments before "
             + "closure")
@@ -101,6 +121,9 @@ class ModelBehaviourTest {
         assertFalse(incident.hasUnresolvedAssignments());
     }
 
+    /**
+     * Checks that the report toString() omits the reporter's contact details.
+     */
     @Test
     @DisplayName("TC-MD-07 the report toString() omits the reporter's contact "
             + "details")
@@ -121,6 +144,10 @@ class ModelBehaviourTest {
                 "Restricted contact data must not appear in a general summary");
     }
 
+    /**
+     * Checks that the assessment toString() shows the factors, score and
+     * override.
+     */
     @Test
     @DisplayName("TC-MD-08 the assessment toString() shows the factors, score "
             + "and override")
@@ -141,6 +168,9 @@ class ModelBehaviourTest {
         assertTrue(text.contains("Sprinkler system confirmed operating"));
     }
 
+    /**
+     * Checks that the user toString() never exposes the stored credentials.
+     */
     @Test
     @DisplayName("TC-MD-09 the user toString() never exposes the stored "
             + "credentials")
@@ -157,6 +187,9 @@ class ModelBehaviourTest {
         assertFalse(text.contains("hashvalue"));
     }
 
+    /**
+     * Checks that a report of type OTHER displays its written category.
+     */
     @Test
     @DisplayName("TC-MD-10 a report of type OTHER displays its written "
             + "category")
@@ -168,11 +201,24 @@ class ModelBehaviourTest {
         assertEquals("Landslide", report.getTypeLabel());
     }
 
+    /**
+     * Checks that priority ranking orders P1 ahead of P4.
+     */
     @Test
     @DisplayName("TC-MD-11 priority ranking orders P1 ahead of P4")
     void priorityRanking() {
         assertTrue(Priority.P1.getRank() < Priority.P2.getRank());
         assertTrue(Priority.P2.getRank() < Priority.P3.getRank());
         assertTrue(Priority.P3.getRank() < Priority.P4.getRank());
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "ModelBehaviourTest: tests for the model classes";
     }
 }

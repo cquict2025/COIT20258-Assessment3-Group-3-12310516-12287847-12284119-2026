@@ -21,6 +21,11 @@ class ModuleRegistryTest {
     private static final String TEST_LIST =
             "/au/edu/cqu/drs/server/test-modules.properties";
 
+    /**
+     * Checks that a listed module is loaded and its handler runs.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-MR-01 a listed module is loaded and its handler runs")
     void loadsListedModule() throws Exception {
@@ -34,6 +39,11 @@ class ModuleRegistryTest {
         assertEquals(request.getRequestId(), response.getRequestId());
     }
 
+    /**
+     * Checks that a module constructor taking the context receives it.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-MR-02 a module constructor taking the context receives "
             + "it")
@@ -46,6 +56,10 @@ class ModuleRegistryTest {
         assertEquals("ctx", response.getValue());
     }
 
+    /**
+     * Checks that missing, broken and non-module classes are skipped without
+     * stopping the others.
+     */
     @Test
     @DisplayName("TC-MR-03 missing, broken and non-module classes are "
             + "skipped without stopping the others")
@@ -62,6 +76,11 @@ class ModuleRegistryTest {
                 p -> p.contains("failed to start")));
     }
 
+    /**
+     * Checks that a command already served keeps its first handler.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-MR-04 a command already served keeps its first handler")
     void firstHandlerWins() throws Exception {
@@ -78,6 +97,10 @@ class ModuleRegistryTest {
                 .getValue());
     }
 
+    /**
+     * Checks that the shipped list loads with no modules installed and does
+     * not fail.
+     */
     @Test
     @DisplayName("TC-MR-05 the shipped list loads with no modules installed "
             + "and does not fail")
@@ -90,6 +113,9 @@ class ModuleRegistryTest {
         assertNull(registry.find(Command.ISSUE_WARNING));
     }
 
+    /**
+     * Checks that a missing module list gives an empty registry.
+     */
     @Test
     @DisplayName("TC-MR-06 a missing module list gives an empty registry")
     void missingListGivesEmptyRegistry() {
@@ -99,5 +125,15 @@ class ModuleRegistryTest {
         assertTrue(registry.getHandlers().isEmpty());
         assertEquals(1, registry.getProblems().size());
         assertTrue(registry.toString().contains("1 problem(s)"));
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "ModuleRegistryTest: tests for ModuleRegistry";
     }
 }

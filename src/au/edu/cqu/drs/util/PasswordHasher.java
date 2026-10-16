@@ -40,6 +40,9 @@ public final class PasswordHasher {
     private static final int SALT_BYTES = 16;
     private static final SecureRandom RANDOM = new SecureRandom();
 
+    /**
+     * Prevents instances; every member is static.
+     */
     private PasswordHasher() {
         // Utility class - not instantiated.
     }
@@ -122,6 +125,15 @@ public final class PasswordHasher {
                 || !storedHash.startsWith(PBKDF2_PREFIX + ITERATIONS + "$");
     }
 
+    /**
+     * Derives a PBKDF2-HMAC-SHA256 key from a password, clearing the copy of
+     * the password afterwards.
+     *
+     * @param password the password
+     * @param salt     the salt, Base64 encoded
+     * @param rounds   the number of PBKDF2 rounds
+     * @return the 256-bit derived key
+     */
     private static byte[] pbkdf2(String password, String salt, int rounds) {
         char[] chars = password.toCharArray();
         PBEKeySpec spec = new PBEKeySpec(chars,
@@ -141,6 +153,10 @@ public final class PasswordHasher {
     /**
      * DRS-Initial's hash: SHA-256 of the salt text followed by the password.
      * Kept only to verify accounts created before the upgrade.
+     *
+     * @param password the password typed
+     * @param salt     the account's stored salt
+     * @return the Base64 hash
      */
     private static String legacySha256(String password, String salt) {
         try {
@@ -153,5 +169,16 @@ public final class PasswordHasher {
             throw new IllegalStateException("SHA-256 is not available in "
                     + "this JVM", e);
         }
+    }
+
+    /**
+     * Describes the hashing used for new passwords.
+     *
+     * @return the algorithm and number of rounds
+     */
+    @Override
+    public String toString() {
+        return "PasswordHasher[" + ALGORITHM + ", " + ITERATIONS
+                + " rounds]";
     }
 }

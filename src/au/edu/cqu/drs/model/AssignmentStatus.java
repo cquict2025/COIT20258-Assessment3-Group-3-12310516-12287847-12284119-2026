@@ -19,22 +19,39 @@ public enum AssignmentStatus {
 
     private final String displayName;
 
+    /**
+     * Creates a constant with the name shown to users.
+     *
+     * @param displayName the name shown to users
+     */
     AssignmentStatus(String displayName) {
         this.displayName = displayName;
     }
 
+    /**
+     * Returns the display name.
+     *
+     * @return the display name
+     */
     public String getDisplayName() {
         return this.displayName;
     }
 
     /**
-     * An assignment is resolved when it no longer blocks incident closure
-     * (UC-13).
+     * Tells whether an assignment in this status no longer blocks incident
+     * closure (UC-13).
+     *
+     * @return {@code true} for Accepted, Rejected and Completed
      */
     public boolean isResolved() {
         return this == ACCEPTED || this == REJECTED || this == COMPLETED;
     }
 
+    /**
+     * Returns the display name, so the constant reads well in lists and logs.
+     *
+     * @return the display name
+     */
     @Override
     public String toString() {
         return this.displayName;

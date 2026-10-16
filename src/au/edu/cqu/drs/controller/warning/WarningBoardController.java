@@ -71,15 +71,12 @@ public class WarningBoardController {
     }
 
     /**
-     * Describes the controller.
+     * Rebuilds the board with one card per warning in force, an empty-state
+     * message when there are none, or the error if the list could not be
+     * loaded.
      *
-     * @return the screen it drives
+     * @param result the server's answer to the public warnings request
      */
-    @Override
-    public String toString() {
-        return "WarningBoardController: warning-board.fxml";
-    }
-
     private void show(ServiceResult<List<Warning>> result) {
         this.cardBox.getChildren().clear();
         if (result.isFailure()) {
@@ -102,6 +99,14 @@ public class WarningBoardController {
         }
     }
 
+    /**
+     * Builds the card for one warning: its level badge and call to action, the
+     * affected area, the message, any recommended action and evacuation
+     * centre, and the code, version, issue time and expiry.
+     *
+     * @param warning the warning to show
+     * @return the card, styled by the warning's level
+     */
     private VBox card(Warning warning) {
         String style = WarningCalls.levelStyle(warning.getLevel());
         Label level = new Label(warning.getLevel().getDisplayName()
@@ -137,10 +142,26 @@ public class WarningBoardController {
         return card;
     }
 
+    /**
+     * Makes a wrapping label for one line of detail on a card.
+     *
+     * @param text the text to show
+     * @return the styled label
+     */
     private static Label detail(String text) {
         Label label = new Label(text);
         label.getStyleClass().add("card-detail");
         label.setWrapText(true);
         return label;
+    }
+
+    /**
+     * Describes the controller.
+     *
+     * @return the screen it drives
+     */
+    @Override
+    public String toString() {
+        return "WarningBoardController: warning-board.fxml";
     }
 }

@@ -19,6 +19,9 @@ import java.util.List;
  */
 final class MySqlSupport {
 
+    /**
+     * Prevents instances; every member is static.
+     */
     private MySqlSupport() {
         // Utility class - not instantiated.
     }
@@ -200,6 +203,14 @@ final class MySqlSupport {
         private final String prefix;
         private final int digits;
 
+        /**
+         * Creates a code key.
+         *
+         * @param table  the table that holds the code
+         * @param column the column that holds the code
+         * @param prefix the letters before the number, for example INC
+         * @param digits how many digits the number is padded to
+         */
         CodeKey(String table, String column, String prefix, int digits) {
             this.table = table;
             this.column = column;
@@ -245,5 +256,15 @@ final class MySqlSupport {
         public String toString() {
             return this.table + "." + this.column + " (" + format(1) + ")";
         }
+    }
+
+    /**
+     * Describes this utility class and the code keys it holds.
+     *
+     * @return the class name and the number of code keys
+     */
+    @Override
+    public String toString() {
+        return "MySqlSupport[" + CodeKey.values().length + " code keys]";
     }
 }

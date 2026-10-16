@@ -15,10 +15,23 @@ public class SqliteFieldUpdateRepository implements FieldUpdateRepository {
 
     private final Database database;
 
+    /**
+     * Creates a SQLite field update repository.
+     *
+     * @param database the database
+     */
     public SqliteFieldUpdateRepository(Database database) {
         this.database = database;
     }
 
+    /**
+     * Inserts a new field update. A new update is given the next UPD-
+     * identifier.
+     *
+     * @param fieldUpdate the update to save
+     * @return the same update, with its identifier set
+     * @throws IllegalStateException if the row cannot be written
+     */
     @Override
     public FieldUpdate save(FieldUpdate fieldUpdate) {
         Connection connection = this.database.getConnection();
@@ -55,6 +68,13 @@ public class SqliteFieldUpdateRepository implements FieldUpdateRepository {
         }
     }
 
+    /**
+     * Finds the field updates posted against an incident, earliest first.
+     *
+     * @param incidentId the incident identifier
+     * @return the updates for the incident
+     * @throws IllegalStateException if the rows cannot be read
+     */
     @Override
     public List<FieldUpdate> findByIncidentId(String incidentId) {
         List<FieldUpdate> updates = new ArrayList<>();
@@ -90,5 +110,15 @@ public class SqliteFieldUpdateRepository implements FieldUpdateRepository {
                                             
                                             e);
         }
+    }
+
+    /**
+     * Describes the repository.
+     *
+     * @return the database it reads and writes
+     */
+    @Override
+    public String toString() {
+        return "SqliteFieldUpdateRepository: " + this.database;
     }
 }

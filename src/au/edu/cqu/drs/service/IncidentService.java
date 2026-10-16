@@ -28,6 +28,14 @@ public class IncidentService {
     private final AuthenticationService authenticationService;
     private final AuditService auditService;
 
+    /**
+     * Creates an incident service.
+     *
+     * @param incidentRepository    the incident repository
+     * @param fieldUpdateRepository the field update repository
+     * @param authenticationService the authentication service
+     * @param auditService          the audit service
+     */
     public IncidentService(IncidentRepository incidentRepository,
                            FieldUpdateRepository fieldUpdateRepository,
                            AuthenticationService authenticationService,
@@ -248,6 +256,9 @@ public class IncidentService {
     /**
      * Filters the prioritised dashboard by priority, as the dashboard screen
      * offers.
+     *
+     * @param priority the priority to keep
+     * @return the open incidents with that priority, in dashboard order
      */
     public List<Incident> findOpenIncidentsByPriority(Priority priority) {
         return findOpenIncidentsByPriority().stream()
@@ -255,15 +266,42 @@ public class IncidentService {
                 .toList();
     }
 
+    /**
+     * Returns the field updates recorded for an incident.
+     *
+     * @param incidentId the incident
+     * @return the field updates for that incident
+     */
     public List<FieldUpdate> findTimeline(String incidentId) {
         return this.fieldUpdateRepository.findByIncidentId(incidentId);
     }
 
+    /**
+     * Finds an incident by its identifier.
+     *
+     * @param incidentId the incident
+     * @return the incident, or empty when it does not exist
+     */
     public Optional<Incident> findById(String incidentId) {
         return this.incidentRepository.findById(incidentId);
     }
 
+    /**
+     * Returns every incident.
+     *
+     * @return all incidents
+     */
     public List<Incident> findAll() {
         return this.incidentRepository.findAll();
+    }
+
+    /**
+     * Describes what this service does.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "IncidentService: creates incidents and manages their lifecycle";
     }
 }

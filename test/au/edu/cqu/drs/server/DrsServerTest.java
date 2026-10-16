@@ -47,6 +47,11 @@ class DrsServerTest {
 
     private ServerBootstrap bootstrap;
 
+    /**
+     * Starts an in-memory server for the test.
+     *
+     * @throws Exception if the server cannot start
+     */
     @BeforeEach
     void setUp() throws Exception {
         this.bootstrap = new ServerBootstrap(
@@ -55,11 +60,19 @@ class DrsServerTest {
         this.bootstrap.start();
     }
 
+    /**
+     * Closes the server.
+     */
     @AfterEach
     void tearDown() {
         this.bootstrap.close();
     }
 
+    /**
+     * Checks that ten clients sign in and list incidents at the same time.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-DS-01 ten clients sign in and list incidents at the "
             + "same time")
@@ -85,6 +98,12 @@ class DrsServerTest {
                 .anyMatch(line -> line.contains("[drs-worker-")));
     }
 
+    /**
+     * Checks that a message that is not a valid request is answered with an
+     * error and the connection closes.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-DS-02 a message that is not a valid request is "
             + "answered with an error and the connection closes")
@@ -105,6 +124,12 @@ class DrsServerTest {
         assertTrue(waitForClients(0));
     }
 
+    /**
+     * Checks that the client count follows connections and drops when a client
+     * vanishes.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-DS-03 the client count follows connections and drops "
             + "when a client vanishes")
@@ -121,6 +146,12 @@ class DrsServerTest {
         assertTrue(waitForClients(0));
     }
 
+    /**
+     * Checks that settings reject bad values, MySQL is the default, and an
+     * unreachable MySQL stops the start.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-DS-04 settings reject bad values, MySQL is the "
             + "default, and an unreachable MySQL stops the start")
@@ -208,5 +239,15 @@ class DrsServerTest {
             Thread.sleep(20);
         }
         return false;
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "DrsServerTest: tests for DrsServer";
     }
 }

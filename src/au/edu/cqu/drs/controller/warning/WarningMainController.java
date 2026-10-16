@@ -253,16 +253,6 @@ public class WarningMainController {
     }
 
     /**
-     * Describes the controller.
-     *
-     * @return the screen it drives
-     */
-    @Override
-    public String toString() {
-        return "WarningMainController: warning-main.fxml";
-    }
-
-    /**
      * Asks the coordinator to confirm a cancellation.
      *
      * @param warning the selected warning
@@ -286,6 +276,10 @@ public class WarningMainController {
         return alert.showAndWait().filter(cancelIt::equals).isPresent();
     }
 
+    /**
+     * Replaces this screen with the liaison's acknowledgement screen, or with
+     * an explanation if that screen cannot be loaded.
+     */
     private void showAcknowledgementScreen() {
         try {
             this.root.getChildren().setAll(
@@ -296,6 +290,10 @@ public class WarningMainController {
         }
     }
 
+    /**
+     * Connects the table columns to the warning fields and shows the selected
+     * warning in the form when the selection changes.
+     */
     private void setUpTable() {
         this.codeColumn.setCellValueFactory(cell ->
                 new SimpleStringProperty(cell.getValue().getWarningId()));
@@ -320,9 +318,19 @@ public class WarningMainController {
                 .addListener((observed, before, now) -> select(now));
     }
 
+    /**
+     * Fills the level list, sets how incidents are shown in the incident list
+     * and defaults the expiry date to today.
+     */
     private void setUpForm() {
         this.levelCombo.getItems().setAll(WarningLevel.values());
         this.incidentCombo.setConverter(new StringConverter<>() {
+            /**
+             * Shows an incident as its code, title and priority.
+             *
+             * @param incident the incident, or null
+             * @return the text for the list, or an empty string for null
+             */
             @Override
             public String toString(Incident incident) {
                 return incident == null ? "" : incident.getIncidentId()
@@ -330,6 +338,12 @@ public class WarningMainController {
                         + incident.getPriority() + ")";
             }
 
+            /**
+             * Not used: the incident list cannot be typed into.
+             *
+             * @param text the typed text
+             * @return always null
+             */
             @Override
             public Incident fromString(String text) {
                 return null;
@@ -338,6 +352,10 @@ public class WarningMainController {
         this.expiryDate.setValue(LocalDateTime.now().toLocalDate());
     }
 
+    /**
+     * Disables the form and its buttons for users who are not coordinators,
+     * and explains why.
+     */
     private void readOnly() {
         for (Node control : List.of(this.incidentCombo, this.levelCombo,
                 this.areaField, this.messageArea, this.actionArea,
@@ -351,6 +369,9 @@ public class WarningMainController {
                 + "acknowledged it.");
     }
 
+    /**
+     * Loads the open incidents into the incident list in the background.
+     */
     private void loadIncidents() {
         BackgroundCall.run(this.root,
                 () -> this.calls.send(Command.LIST_OPEN_INCIDENTS,
@@ -368,6 +389,12 @@ public class WarningMainController {
                 });
     }
 
+    /**
+     * Shows the warnings in the table, keeping the previously selected warning
+     * selected, or shows the error if the list could not be loaded.
+     *
+     * @param result the server's answer to the list request
+     */
     private void showWarnings(ServiceResult<List<Warning>> result) {
         if (result.isFailure()) {
             showError(result.getMessage());
@@ -384,6 +411,8 @@ public class WarningMainController {
 
     /**
      * Fills the form, acknowledgement lists and history for a warning.
+     *
+     * @param warning the selected warning, or null when nothing is selected
      */
     private void select(Warning warning) {
         this.acknowledgedList.getItems().clear();
@@ -425,6 +454,12 @@ public class WarningMainController {
                 this::showHistory);
     }
 
+    /**
+     * Lists every version of the selected warning with its level, status, who
+     * issued it and when. Does nothing if the history could not be loaded.
+     *
+     * @param result the server's answer to the history request
+     */
     private void showHistory(ServiceResult<List<Warning>> result) {
         if (result.isFailure()) {
             return;
@@ -494,6 +529,13 @@ public class WarningMainController {
         return Optional.of(warning);
     }
 
+    /**
+     * Reports a successful issue, update or cancellation and reloads the
+     * table, or marks the field the server named as wrong.
+     *
+     * @param result the server's answer
+     * @param verb   what was done, for example "Issued"
+     */
     private void saved(ServiceResult<Warning> result, String verb) {
         if (result.isFailure()) {
             Node field = fieldFor(result.getAffectedField());
@@ -513,6 +555,12 @@ public class WarningMainController {
         handleRefresh();
     }
 
+    /**
+     * Finds the form control for a field name the server reported.
+     *
+     * @param affectedField the field name from the server, or null
+     * @return the control, or null if there is none for that name
+     */
     private Node fieldFor(String affectedField) {
         if (affectedField == null) {
             return null;
@@ -529,17 +577,33 @@ public class WarningMainController {
         return fields.get(affectedField);
     }
 
+    /**
+     * Marks a field as wrong and gives up reading the form.
+     *
+     * @param field   the control that is wrong
+     * @param message what is wrong with it
+     * @return always empty
+     */
     private Optional<Warning> fail(Node field, String message) {
         fieldError(field, message);
         return Optional.empty();
     }
 
+    /**
+     * Highlights a control, moves the focus to it and shows the message.
+     *
+     * @param field   the control that is wrong
+     * @param message what is wrong with it
+     */
     private void fieldError(Node field, String message) {
         field.getStyleClass().add("field-error");
         field.requestFocus();
         showError(message);
     }
 
+    /**
+     * Removes the error highlight from every form control.
+     */
     private void clearErrors() {
         for (Node field : List.of(this.incidentCombo, this.levelCombo,
                 this.areaField, this.messageArea, this.expiryDate,
@@ -549,22 +613,49 @@ public class WarningMainController {
         }
     }
 
+    /**
+     * Shows an error message under the form.
+     *
+     * @param message the message to show
+     */
     private void showError(String message) {
         this.messageLabel.getStyleClass().setAll("error-label");
         this.messageLabel.setText(message);
     }
 
+    /**
+     * Gives the code of the warning selected in the table.
+     *
+     * @return the code, or null when nothing is selected
+     */
     private String selectedId() {
         Warning selected = this.warningTable.getSelectionModel()
                 .getSelectedItem();
         return selected == null ? null : selected.getWarningId();
     }
 
+    /**
+     * Describes a warning's state for the table: cancelled, in force or
+     * expired.
+     *
+     * @param warning the warning
+     * @return "Cancelled", "In force" or "Expired"
+     */
     private static String status(Warning warning) {
         if (warning.getStatus() == WarningStatus.CANCELLED) {
             return "Cancelled";
         }
         return warning.isInForceAt(LocalDateTime.now()) ? "In force"
                 : "Expired";
+    }
+
+    /**
+     * Describes the controller.
+     *
+     * @return the screen it drives
+     */
+    @Override
+    public String toString() {
+        return "WarningMainController: warning-main.fxml";
     }
 }

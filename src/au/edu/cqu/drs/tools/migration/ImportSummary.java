@@ -82,6 +82,17 @@ public class ImportSummary {
     }
 
     /**
+     * Finds the counts for a table, starting a new row of zeros the first time
+     * the table is seen.
+     *
+     * @param table the table name
+     * @return the added, already-there and refused counts, in that order
+     */
+    private int[] row(String table) {
+        return this.counts.computeIfAbsent(table, name -> new int[3]);
+    }
+
+    /**
      * Prints the counts as a table, followed by any problems.
      *
      * @return the summary text
@@ -100,9 +111,5 @@ public class ImportSummary {
             text.append("Refused ").append(problem).append('\n');
         }
         return text.toString();
-    }
-
-    private int[] row(String table) {
-        return this.counts.computeIfAbsent(table, name -> new int[3]);
     }
 }

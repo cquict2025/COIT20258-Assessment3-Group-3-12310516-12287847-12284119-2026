@@ -283,15 +283,16 @@ public class WarningService {
     }
 
     /**
-     * Describes the service.
+     * Stamps a warning version with the coordinator and the time, saves it and
+     * records the change in the audit trail.
      *
-     * @return the storage in use
+     * @param coordinator the coordinator making the change
+     * @param warning     the version to save
+     * @param action      the audit action, for example ISSUE_WARNING
+     * @param detail      the audit detail
+     * @return the saved warning, or a conflict if another version with the
+     *         same number was saved first
      */
-    @Override
-    public String toString() {
-        return "WarningService: " + this.warningRepository;
-    }
-
     private ServiceResult<Warning> store(User coordinator, Warning warning,
             String action, String detail) {
         warning.setIssuedBy(coordinator.getUsername());
@@ -310,6 +311,9 @@ public class WarningService {
 
     /**
      * Checks the content of a warning. Returns null when it is valid.
+     *
+     * @param warning the warning to check
+     * @return the first problem found, or null when the warning is valid
      */
     private ServiceResult<Warning> validate(Warning warning) {
         if (warning.getIncidentId() == null
@@ -370,6 +374,16 @@ public class WarningService {
         return null;
     }
 
+    /**
+     * Finds the latest version of a warning and checks that it has not been
+     * cancelled.
+     *
+     * @param warningId the warning's code
+     * @param change    what is being attempted, for the error message, for
+     *                  example "updated"
+     * @return the latest version, or a failure if it does not exist or was
+     *         cancelled
+     */
     private ServiceResult<Warning> currentActive(String warningId,
             String change) {
         Optional<Warning> found = latest(warningId);
@@ -383,20 +397,43 @@ public class WarningService {
         return ServiceResult.success(found.get());
     }
 
+    /**
+     * Finds the latest version of a warning.
+     *
+     * @param warningId the warning's code, or null
+     * @return the latest version, or empty if the code is null or unknown
+     */
     private Optional<Warning> latest(String warningId) {
         return warningId == null ? Optional.empty()
                 : this.warningRepository.findLatest(warningId);
     }
 
+    /**
+     * Checks whether a user is signed in as a coordinator.
+     *
+     * @param user the user, or null
+     * @return true if the user may issue, update and cancel warnings
+     */
     private boolean isCoordinator(User user) {
         return this.authenticationService.isAuthorised(user,
                 UserRole.COORDINATOR);
     }
 
+    /**
+     * Gives the current time from the service's clock.
+     *
+     * @return the current time
+     */
     private LocalDateTime now() {
         return LocalDateTime.now(this.clock);
     }
 
+    /**
+     * Orders warnings with active ones first, then the most serious level
+     * first, then the most recently issued first.
+     *
+     * @return the comparator
+     */
     private static Comparator<Warning> byUrgency() {
         return Comparator.comparingInt(
                 (Warning w) -> w.getStatus() == WarningStatus.ACTIVE ? 0 : 1)
@@ -405,23 +442,62 @@ public class WarningService {
                         Comparator.nullsLast(Comparator.reverseOrder()));
     }
 
+    /**
+     * Checks whether text is missing or only spaces.
+     *
+     * @param text the text, or null
+     * @return true if there is no text
+     */
     private static boolean isBlank(String text) {
         return text == null || text.isBlank();
     }
 
+    /**
+     * Makes a validation failure that names the field at fault.
+     *
+     * @param message what is wrong
+     * @param field   the field at fault
+     * @param <T>     the result type
+     * @return the failure
+     */
     private static <T> ServiceResult<T> invalid(String message,
             String field) {
         return ServiceResult.failure(ErrorCode.VALIDATION_ERROR, message,
                 field);
     }
 
+    /**
+     * Makes the failure given when someone other than a coordinator tries to
+     * change a warning.
+     *
+     * @param action the attempted action, for example "issue"
+     * @param <T>    the result type
+     * @return the failure
+     */
     private static <T> ServiceResult<T> denied(String action) {
         return ServiceResult.failure(ErrorCode.PERMISSION_DENIED,
                 "Only a coordinator can " + action + " a warning.");
     }
 
+    /**
+     * Makes the failure given when a warning code is unknown.
+     *
+     * @param warningId the code that was not found
+     * @param <T>       the result type
+     * @return the failure
+     */
     private static <T> ServiceResult<T> notFound(String warningId) {
         return ServiceResult.failure(ErrorCode.NOT_FOUND,
                 "Warning " + warningId + " does not exist.");
+    }
+
+    /**
+     * Describes the service.
+     *
+     * @return the storage in use
+     */
+    @Override
+    public String toString() {
+        return "WarningService: " + this.warningRepository;
     }
 }

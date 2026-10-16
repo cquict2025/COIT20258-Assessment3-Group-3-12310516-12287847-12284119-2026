@@ -115,16 +115,13 @@ public class MySqlReportRepository implements ReportRepository {
     }
 
     /**
-     * Describes the repository.
+     * Runs a report query and maps every row it returns to a report.
      *
-     * @return the table it uses
+     * @param sql       the SELECT statement, with at most one parameter
+     * @param parameter the value for the parameter, or null when the query
+     *                  has none
+     * @return the reports found, in the order the query gives
      */
-    @Override
-    public String toString() {
-        return "MySqlReportRepository: reports, personal details "
-                + (this.cipher == null ? "not encrypted" : "encrypted");
-    }
-
     private List<DisasterReport> query(String sql, String parameter) {
         try {
             return this.database.withConnection(connection -> {
@@ -148,6 +145,16 @@ public class MySqlReportRepository implements ReportRepository {
         }
     }
 
+    /**
+     * Sets the report's column values on a statement, in the order of
+     * {@code COLUMNS}, encrypting the reporter's name and contact when a
+     * cipher is set. A missing location is stored as an empty one.
+     *
+     * @param statement the INSERT or UPDATE statement to fill
+     * @param first     the position of the first column's parameter
+     * @param report    the report whose values are bound
+     * @throws SQLException if a parameter cannot be set
+     */
     private void bind(PreparedStatement statement, int first,
             DisasterReport report) throws SQLException {
         Location location = report.getLocation() == null ? new Location()
@@ -173,6 +180,14 @@ public class MySqlReportRepository implements ReportRepository {
         statement.setString(i, report.getLinkedIncidentId());
     }
 
+    /**
+     * Builds a report from the current row of a result set, decrypting the
+     * reporter's name and contact when a cipher is set.
+     *
+     * @param rs the result set, positioned on a row
+     * @return the report read from the row
+     * @throws SQLException if a column cannot be read
+     */
     private DisasterReport map(ResultSet rs) throws SQLException {
         DisasterReport report = new DisasterReport();
         report.setReportId(rs.getString("report_id"));
@@ -195,14 +210,42 @@ public class MySqlReportRepository implements ReportRepository {
         return report;
     }
 
+    /**
+     * Encrypts a personal detail for its column, or returns it unchanged
+     * when there is no cipher.
+     *
+     * @param value  the plain value, may be null
+     * @param column the column it will be stored in
+     * @return the value to store
+     */
     private String seal(String value, String column) {
         return this.cipher == null ? value
                 : this.cipher.encrypt(value, column);
     }
 
+    /**
+     * Reads a personal detail from the current row and decrypts it, or
+     * returns it unchanged when there is no cipher.
+     *
+     * @param rs     the result set, positioned on a row
+     * @param column the column to read
+     * @return the plain value, or null if the column is null
+     * @throws SQLException if the column cannot be read
+     */
     private String open(ResultSet rs, String column) throws SQLException {
         String stored = rs.getString(column);
         return this.cipher == null ? stored
                 : this.cipher.decrypt(stored, column);
+    }
+
+    /**
+     * Describes the repository.
+     *
+     * @return the table it uses
+     */
+    @Override
+    public String toString() {
+        return "MySqlReportRepository: reports, personal details "
+                + (this.cipher == null ? "not encrypted" : "encrypted");
     }
 }

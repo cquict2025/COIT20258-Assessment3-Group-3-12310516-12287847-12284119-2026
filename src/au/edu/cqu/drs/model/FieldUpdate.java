@@ -27,9 +27,21 @@ public class FieldUpdate implements Serializable {
     private LocalDateTime nextReviewAt;
     private int incidentVersionSeen;
 
+    /**
+     * Creates an empty field update.
+     */
     public FieldUpdate() {
     }
 
+    /**
+     * Creates a field update.
+     *
+     * @param updateId     the update id
+     * @param incidentId   the incident id
+     * @param submittedBy  the submitted by
+     * @param submittedAt  the submitted at
+     * @param progressNote the progress note
+     */
     public FieldUpdate(String updateId, String incidentId, String submittedBy,
                        LocalDateTime submittedAt, String progressNote) {
         this.updateId = updateId;
@@ -39,78 +51,174 @@ public class FieldUpdate implements Serializable {
         this.progressNote = progressNote;
     }
 
+    /**
+     * Returns the update id.
+     *
+     * @return the update id
+     */
     public String getUpdateId() {
         return this.updateId;
     }
 
+    /**
+     * Sets the update id.
+     *
+     * @param updateId the update id
+     */
     public void setUpdateId(String updateId) {
         this.updateId = updateId;
     }
 
+    /**
+     * Returns the incident id.
+     *
+     * @return the incident id
+     */
     public String getIncidentId() {
         return this.incidentId;
     }
 
+    /**
+     * Sets the incident id.
+     *
+     * @param incidentId the incident id
+     */
     public void setIncidentId(String incidentId) {
         this.incidentId = incidentId;
     }
 
+    /**
+     * Returns the submitted by.
+     *
+     * @return the submitted by
+     */
     public String getSubmittedBy() {
         return this.submittedBy;
     }
 
+    /**
+     * Sets the submitted by.
+     *
+     * @param submittedBy the submitted by
+     */
     public void setSubmittedBy(String submittedBy) {
         this.submittedBy = submittedBy;
     }
 
+    /**
+     * Returns the submitted at.
+     *
+     * @return the submitted at
+     */
     public LocalDateTime getSubmittedAt() {
         return this.submittedAt;
     }
 
+    /**
+     * Sets the submitted at.
+     *
+     * @param submittedAt the submitted at
+     */
     public void setSubmittedAt(LocalDateTime submittedAt) {
         this.submittedAt = submittedAt;
     }
 
+    /**
+     * Returns the progress note.
+     *
+     * @return the progress note
+     */
     public String getProgressNote() {
         return this.progressNote;
     }
 
+    /**
+     * Sets the progress note.
+     *
+     * @param progressNote the progress note
+     */
     public void setProgressNote(String progressNote) {
         this.progressNote = progressNote;
     }
 
+    /**
+     * Returns the observed impact.
+     *
+     * @return the observed impact
+     */
     public String getObservedImpact() {
         return this.observedImpact;
     }
 
+    /**
+     * Sets the observed impact.
+     *
+     * @param observedImpact the observed impact
+     */
     public void setObservedImpact(String observedImpact) {
         this.observedImpact = observedImpact;
     }
 
+    /**
+     * Returns the resource needs.
+     *
+     * @return the resource needs
+     */
     public String getResourceNeeds() {
         return this.resourceNeeds;
     }
 
+    /**
+     * Sets the resource needs.
+     *
+     * @param resourceNeeds the resource needs
+     */
     public void setResourceNeeds(String resourceNeeds) {
         this.resourceNeeds = resourceNeeds;
     }
 
+    /**
+     * Returns the next review at.
+     *
+     * @return the next review at
+     */
     public LocalDateTime getNextReviewAt() {
         return this.nextReviewAt;
     }
 
+    /**
+     * Sets the next review at.
+     *
+     * @param nextReviewAt the next review at
+     */
     public void setNextReviewAt(LocalDateTime nextReviewAt) {
         this.nextReviewAt = nextReviewAt;
     }
 
+    /**
+     * Returns the incident version seen.
+     *
+     * @return the incident version seen
+     */
     public int getIncidentVersionSeen() {
         return this.incidentVersionSeen;
     }
 
+    /**
+     * Sets the incident version seen.
+     *
+     * @param incidentVersionSeen the incident version seen
+     */
     public void setIncidentVersionSeen(int incidentVersionSeen) {
         this.incidentVersionSeen = incidentVersionSeen;
     }
 
+    /**
+     * Describes the update: its incident, author, time, progress note
+     * and any resource needs.
+     *
+     * @return a one-line summary of this update
+     */
     @Override
     public String toString() {
         return String.format("Update %s | incident %s | by %s at %s | %s%s",

@@ -26,6 +26,10 @@ class ModuleViewLoaderTest {
     private final ModuleContext context = new UnconnectedModuleContext(
             new User("USR-1", "coordinator", "Casey", UserRole.COORDINATOR));
 
+    /**
+     * Checks that core views are found and module views are reported missing
+     * until installed.
+     */
     @Test
     @DisplayName("TC-MV-01 core views are found and module views are "
             + "reported missing until installed")
@@ -39,6 +43,10 @@ class ModuleViewLoaderTest {
         assertFalse(ModuleViewLoader.isInstalled("no-such-module.fxml"));
     }
 
+    /**
+     * Checks that a module controller receives the context, or is built with
+     * no arguments.
+     */
     @Test
     @DisplayName("TC-MV-02 a module controller receives the context, or is "
             + "built with no arguments")
@@ -53,6 +61,10 @@ class ModuleViewLoaderTest {
         assertInstanceOf(PlainController.class, plain);
     }
 
+    /**
+     * Checks that a controller without a usable constructor, or one that
+     * fails, is reported.
+     */
     @Test
     @DisplayName("TC-MV-03 a controller without a usable constructor, or "
             + "one that fails, is reported")
@@ -70,6 +82,10 @@ class ModuleViewLoaderTest {
         assertTrue(failing.getMessage().contains("failed to start"));
     }
 
+    /**
+     * Checks that without a connection every request is refused as
+     * unavailable.
+     */
     @Test
     @DisplayName("TC-MV-04 without a connection every request is refused "
             + "as unavailable")
@@ -186,5 +202,15 @@ class ModuleViewLoaderTest {
         public String toString() {
             return "FailingController";
         }
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "ModuleViewLoaderTest: tests for ModuleViewLoader";
     }
 }

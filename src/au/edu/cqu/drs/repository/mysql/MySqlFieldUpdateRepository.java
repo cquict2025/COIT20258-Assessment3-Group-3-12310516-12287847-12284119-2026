@@ -84,15 +84,14 @@ public class MySqlFieldUpdateRepository implements FieldUpdateRepository {
     }
 
     /**
-     * Describes the repository.
+     * Sets the field update's column values on a statement, in the order
+     * of {@code COLUMNS}.
      *
-     * @return the table it uses
+     * @param statement   the INSERT statement to fill
+     * @param first       the position of the first column's parameter
+     * @param fieldUpdate the update whose values are bound
+     * @throws SQLException if a parameter cannot be set
      */
-    @Override
-    public String toString() {
-        return "MySqlFieldUpdateRepository: field_updates";
-    }
-
     private void bind(PreparedStatement statement, int first,
             FieldUpdate fieldUpdate) throws SQLException {
         int i = first;
@@ -108,6 +107,13 @@ public class MySqlFieldUpdateRepository implements FieldUpdateRepository {
         statement.setInt(i, fieldUpdate.getIncidentVersionSeen());
     }
 
+    /**
+     * Builds a field update from the current row of a result set.
+     *
+     * @param rs the result set, positioned on a row
+     * @return the field update read from the row
+     * @throws SQLException if a column cannot be read
+     */
     private FieldUpdate map(ResultSet rs) throws SQLException {
         FieldUpdate update = new FieldUpdate();
         update.setUpdateId(rs.getString("update_id"));
@@ -121,5 +127,15 @@ public class MySqlFieldUpdateRepository implements FieldUpdateRepository {
                 "next_review_at"));
         update.setIncidentVersionSeen(rs.getInt("incident_version_seen"));
         return update;
+    }
+
+    /**
+     * Describes the repository.
+     *
+     * @return the table it uses
+     */
+    @Override
+    public String toString() {
+        return "MySqlFieldUpdateRepository: field_updates";
     }
 }

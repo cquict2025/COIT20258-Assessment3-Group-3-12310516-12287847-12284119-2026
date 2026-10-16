@@ -35,6 +35,12 @@ class RequestDispatcherTest {
     private ServerBootstrap bootstrap;
     private RequestDispatcher dispatcher;
 
+    /**
+     * Builds an in-memory server on a clock the test controls and takes its
+     * dispatcher.
+     *
+     * @throws Exception if the server cannot be built
+     */
     @BeforeEach
     void setUp() throws Exception {
         this.clock = new ServerTestSupport.MutableClock();
@@ -44,11 +50,17 @@ class RequestDispatcherTest {
         this.dispatcher = this.bootstrap.getDispatcher();
     }
 
+    /**
+     * Closes the server.
+     */
     @AfterEach
     void tearDown() {
         this.bootstrap.close();
     }
 
+    /**
+     * Checks that PING and SUBMIT_REPORT work without signing in.
+     */
     @Test
     @DisplayName("TC-RD-01 PING and SUBMIT_REPORT work without signing in")
     void publicCommandsWithoutLogin() {
@@ -64,6 +76,9 @@ class RequestDispatcherTest {
                 ((DisasterReport) submitted.getValue()).getStatus());
     }
 
+    /**
+     * Checks that LOGIN returns a token and the user without password details.
+     */
     @Test
     @DisplayName("TC-RD-02 LOGIN returns a token and the user without "
             + "password details")
@@ -81,6 +96,9 @@ class RequestDispatcherTest {
         assertTrue(incidents.isSuccess());
     }
 
+    /**
+     * Checks that a wrong password is refused by the service.
+     */
     @Test
     @DisplayName("TC-RD-03 a wrong password is refused by the service")
     void wrongPasswordRefused() {
@@ -95,6 +113,9 @@ class RequestDispatcherTest {
                 response.getMessage());
     }
 
+    /**
+     * Checks that a missing, invalid or expired token is refused.
+     */
     @Test
     @DisplayName("TC-RD-04 a missing, invalid or expired token is refused")
     void invalidOrExpiredToken() {
@@ -115,6 +136,9 @@ class RequestDispatcherTest {
         }
     }
 
+    /**
+     * Checks that the policy refuses a command outside the user's role.
+     */
     @Test
     @DisplayName("TC-RD-05 the policy refuses a command outside the user's "
             + "role")
@@ -131,6 +155,9 @@ class RequestDispatcherTest {
         assertNull(response.getAffectedField());
     }
 
+    /**
+     * Checks that a coordinator takes a report through to an incident.
+     */
     @Test
     @DisplayName("TC-RD-06 a coordinator takes a report through to an "
             + "incident")
@@ -163,6 +190,10 @@ class RequestDispatcherTest {
                         .getIncidentId());
     }
 
+    /**
+     * Checks that a missing argument names the field, and an unknown reference
+     * is NOT_FOUND.
+     */
     @Test
     @DisplayName("TC-RD-07 a missing argument names the field, and an "
             + "unknown reference is NOT_FOUND")
@@ -185,6 +216,10 @@ class RequestDispatcherTest {
         assertEquals(ErrorCode.NOT_FOUND, unknown.getErrorCode());
     }
 
+    /**
+     * Checks that a command with no installed module is reported as
+     * unavailable.
+     */
     @Test
     @DisplayName("TC-RD-08 a command with no installed module is reported "
             + "as unavailable")
@@ -205,6 +240,10 @@ class RequestDispatcherTest {
         assertTrue(response.getMessage().contains("not installed"));
     }
 
+    /**
+     * Checks that a handler fault becomes a failure without a stack trace, and
+     * modules cannot replace core commands.
+     */
     @Test
     @DisplayName("TC-RD-09 a handler fault becomes a failure without a stack "
             + "trace, and modules cannot replace core commands")
@@ -216,12 +255,22 @@ class RequestDispatcherTest {
         });
         ModuleRegistry modules = new ModuleRegistry();
         modules.register(new CommandModule() {
+            /**
+             * Offers a PING handler that tries to replace the core one.
+             *
+             * @return the module's PING handler
+             */
             @Override
             public Map<Command, CommandHandler> handlers() {
                 return Map.of(Command.PING, (request, user) ->
                         Response.success(request.getRequestId(), "module"));
             }
 
+            /**
+             * Names the module in the server log.
+             *
+             * @return the module's name
+             */
             @Override
             public String toString() {
                 return "PING module";
@@ -241,6 +290,9 @@ class RequestDispatcherTest {
                 .anyMatch(line -> line.contains("PING ignored")));
     }
 
+    /**
+     * Checks that LOGOUT ends the session.
+     */
     @Test
     @DisplayName("TC-RD-10 LOGOUT ends the session")
     void logoutEndsSession() {
@@ -254,5 +306,15 @@ class RequestDispatcherTest {
         assertEquals(Boolean.TRUE, logout.getValue());
         assertEquals(ErrorCode.PERMISSION_DENIED, after.getErrorCode());
         assertNull(this.dispatcher.dispatch(null).getRequestId());
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "RequestDispatcherTest: tests for RequestDispatcher";
     }
 }

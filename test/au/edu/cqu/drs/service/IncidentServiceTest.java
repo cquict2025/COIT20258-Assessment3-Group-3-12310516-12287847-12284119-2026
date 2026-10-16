@@ -31,6 +31,9 @@ class IncidentServiceTest {
     private User coordinator;
     private User responder;
 
+    /**
+     * Creates fresh fixtures, a coordinator and a responder.
+     */
     @BeforeEach
     void setUp() {
         fixtures = new TestFixtures();
@@ -38,6 +41,9 @@ class IncidentServiceTest {
         responder = fixtures.createUser("responder", UserRole.RESPONDER);
     }
 
+    /**
+     * Checks that an incident can only be created from a validated report.
+     */
     @Test
     @DisplayName("TC-IN-01 an incident can only be created from a validated "
             + "report")
@@ -75,6 +81,9 @@ class IncidentServiceTest {
                 .contains(submitted.getReportId()));
     }
 
+    /**
+     * Checks that a permitted lifecycle transition is accepted.
+     */
     @Test
     @DisplayName("TC-IN-02 a permitted lifecycle transition is accepted")
     void permittedTransitionIsAccepted() {
@@ -88,6 +97,9 @@ class IncidentServiceTest {
         assertEquals(IncidentStatus.MONITORING, result.getValue().getStatus());
     }
 
+    /**
+     * Checks that an invalid lifecycle transition is refused.
+     */
     @Test
     @DisplayName("TC-IN-03 an invalid lifecycle transition is refused")
     void invalidTransitionIsRefused() {
@@ -104,6 +116,9 @@ class IncidentServiceTest {
         assertEquals(ErrorCode.CONFLICT, result.getErrorCode());
     }
 
+    /**
+     * Checks that closure without an outcome is refused.
+     */
     @Test
     @DisplayName("TC-IN-04 closure without an outcome is refused")
     void closureWithoutOutcomeIsRefused() {
@@ -117,6 +132,10 @@ class IncidentServiceTest {
         assertEquals("outcome", result.getAffectedField());
     }
 
+    /**
+     * Checks that closure is blocked while a departmental request is
+     * unresolved.
+     */
     @Test
     @DisplayName("TC-IN-05 closure is blocked while a departmental request is "
             + "unresolved")
@@ -134,6 +153,10 @@ class IncidentServiceTest {
         assertEquals(ErrorCode.CONFLICT, result.getErrorCode());
     }
 
+    /**
+     * Checks that a field update records the author, the time and the first
+     * response.
+     */
     @Test
     @DisplayName("TC-IN-06 a field update records the author, the time and the "
             + "first response")
@@ -155,6 +178,9 @@ class IncidentServiceTest {
                 .orElseThrow().getFirstResponseAt());
     }
 
+    /**
+     * Checks that an update without a progress note is refused.
+     */
     @Test
     @DisplayName("TC-IN-07 an update without a progress note is refused")
     void updateWithoutNoteIsRefused() {
@@ -170,6 +196,10 @@ class IncidentServiceTest {
         assertEquals("progressNote", result.getAffectedField());
     }
 
+    /**
+     * Checks that an update written against a stale incident version is
+     * refused.
+     */
     @Test
     @DisplayName("TC-IN-08 an update written against a stale incident version "
             + "is refused")
@@ -191,6 +221,10 @@ class IncidentServiceTest {
         assertEquals(ErrorCode.CONFLICT, result.getErrorCode());
     }
 
+    /**
+     * Checks that the dashboard orders open incidents by priority and then by
+     * age.
+     */
     @Test
     @DisplayName("TC-IN-09 the dashboard orders open incidents by priority and "
             + "then by age")
@@ -210,6 +244,9 @@ class IncidentServiceTest {
         assertEquals(newP2.getIncidentId(), ordered.get(2).getIncidentId());
     }
 
+    /**
+     * Checks that a closed incident is excluded from the open dashboard.
+     */
     @Test
     @DisplayName("TC-IN-10 a closed incident is excluded from the open "
             + "dashboard")
@@ -225,10 +262,23 @@ class IncidentServiceTest {
                         .equals(incident.getIncidentId())));
     }
 
+    /**
+     * Saves a fire incident with the given priority, created two minutes ago.
+     *
+     * @param priority the incident priority
+     * @return the saved incident
+     */
     private Incident openIncident(Priority priority) {
         return openIncidentAt(priority, LocalDateTime.now().minusMinutes(2));
     }
 
+    /**
+     * Saves a fire incident with the given priority and creation time.
+     *
+     * @param priority  the incident priority
+     * @param createdAt when the incident was created
+     * @return the saved incident
+     */
     private Incident openIncidentAt(Priority priority,
                                     LocalDateTime createdAt) {
         Incident incident = new Incident(null, "Test incident",
@@ -237,5 +287,15 @@ class IncidentServiceTest {
                              144.77), createdAt);
         incident.setPriority(priority);
         return fixtures.incidentRepository.save(incident);
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "IncidentServiceTest: tests for IncidentService";
     }
 }

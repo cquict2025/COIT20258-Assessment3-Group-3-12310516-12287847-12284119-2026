@@ -55,6 +55,13 @@ class A2DataImporterTest {
     private ServerConnection connection;
     private FieldCipher cipher;
 
+    /**
+     * Opens a fresh drs_test database, skipping the test when MySQL
+     * is not available, then starts a server on a free port with the
+     * import module and connects the client to it.
+     *
+     * @throws Exception if the server cannot be started
+     */
     @BeforeEach
     void startServer() throws Exception {
         try {
@@ -80,6 +87,10 @@ class A2DataImporterTest {
                 this.server.getPort());
     }
 
+    /**
+     * Closes the connection, the server, the context and the database,
+     * skipping any that were never opened.
+     */
     @AfterEach
     void stopServer() {
         if (this.connection != null) {
@@ -96,6 +107,11 @@ class A2DataImporterTest {
         }
     }
 
+    /**
+     * Checks that every Assessment 2 table is imported through the
+     * server with the expected counts, and that a second run adds
+     * nothing because every record is already there.
+     */
     @Test
     @DisplayName("TC-IM-01 every A2 table is loaded through the server, and "
             + "a second run adds nothing")
@@ -128,6 +144,13 @@ class A2DataImporterTest {
                 second.getAlreadyThere("audit events"));
     }
 
+    /**
+     * Checks that imported data keeps its links, that the reporter
+     * name is stored encrypted but read back in clear, and that the
+     * audit chain is still intact.
+     *
+     * @throws Exception if the database cannot be read
+     */
     @Test
     @DisplayName("TC-IM-02 imported data keeps its links, its reporter "
             + "details are encrypted, and the audit chain stays intact")
@@ -159,6 +182,10 @@ class A2DataImporterTest {
                 .isIntact());
     }
 
+    /**
+     * Checks that a coordinator is refused permission to import a
+     * record.
+     */
     @Test
     @DisplayName("TC-IM-03 only an administrator may import")
     void onlyAdministratorsImport() {
@@ -170,5 +197,18 @@ class A2DataImporterTest {
                         .put(ImportModule.RECORD, new DisasterReport()));
 
         assertEquals(ErrorCode.PERMISSION_DENIED, response.getErrorCode());
+    }
+
+    /**
+     * Describes this test class and the fixture it uses.
+     *
+     * @return the class name and the fixture state
+     */
+    @Override
+    public String toString() {
+        return "A2DataImporterTest[folder=" + this.folder
+                + ", database=" + this.database
+                + ", server=" + this.server
+                + ", connection=" + this.connection + "]";
     }
 }

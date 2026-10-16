@@ -144,4 +144,14 @@ public final class TestModules {
             return "Broken test module";
         }
     }
+
+    /**
+     * Describes this helper class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "TestModules: command modules for registry tests";
+    }
 }

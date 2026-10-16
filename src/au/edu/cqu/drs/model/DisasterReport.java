@@ -31,11 +31,23 @@ public class DisasterReport implements Serializable {
     private String decisionReason;
     private String linkedIncidentId;
 
+    /**
+     * Creates an empty disaster report.
+     */
     public DisasterReport() {
         this.status = ReportStatus.DRAFT;
         this.location = new Location();
     }
 
+    /**
+     * Creates a disaster report.
+     *
+     * @param reportId     the report id
+     * @param disasterType the disaster type
+     * @param location     the location
+     * @param observedAt   the observed at
+     * @param description  the description
+     */
     public DisasterReport(String reportId, DisasterType disasterType,
                           Location location, 
                           LocalDateTime observedAt, String description) {
@@ -47,113 +59,245 @@ public class DisasterReport implements Serializable {
         this.description = description;
     }
 
+    /**
+     * Returns the report id.
+     *
+     * @return the report id
+     */
     public String getReportId() {
         return this.reportId;
     }
 
+    /**
+     * Sets the report id.
+     *
+     * @param reportId the report id
+     */
     public void setReportId(String reportId) {
         this.reportId = reportId;
     }
 
+    /**
+     * Returns the disaster type.
+     *
+     * @return the disaster type
+     */
     public DisasterType getDisasterType() {
         return this.disasterType;
     }
 
+    /**
+     * Sets the disaster type.
+     *
+     * @param disasterType the disaster type
+     */
     public void setDisasterType(DisasterType disasterType) {
         this.disasterType = disasterType;
     }
 
+    /**
+     * Returns the other type description.
+     *
+     * @return the other type description
+     */
     public String getOtherTypeDescription() {
         return this.otherTypeDescription;
     }
 
+    /**
+     * Sets the other type description.
+     *
+     * @param otherTypeDescription the other type description
+     */
     public void setOtherTypeDescription(String otherTypeDescription) {
         this.otherTypeDescription = otherTypeDescription;
     }
 
+    /**
+     * Returns the location.
+     *
+     * @return the location
+     */
     public Location getLocation() {
         return this.location;
     }
 
+    /**
+     * Sets the location.
+     *
+     * @param location the location
+     */
     public void setLocation(Location location) {
         this.location = location;
     }
 
+    /**
+     * Returns the observed at.
+     *
+     * @return the observed at
+     */
     public LocalDateTime getObservedAt() {
         return this.observedAt;
     }
 
+    /**
+     * Sets the observed at.
+     *
+     * @param observedAt the observed at
+     */
     public void setObservedAt(LocalDateTime observedAt) {
         this.observedAt = observedAt;
     }
 
+    /**
+     * Returns the submitted at.
+     *
+     * @return the submitted at
+     */
     public LocalDateTime getSubmittedAt() {
         return this.submittedAt;
     }
 
+    /**
+     * Sets the submitted at.
+     *
+     * @param submittedAt the submitted at
+     */
     public void setSubmittedAt(LocalDateTime submittedAt) {
         this.submittedAt = submittedAt;
     }
 
+    /**
+     * Returns the description.
+     *
+     * @return the description
+     */
     public String getDescription() {
         return this.description;
     }
 
+    /**
+     * Sets the description.
+     *
+     * @param description the description
+     */
     public void setDescription(String description) {
         this.description = description;
     }
 
+    /**
+     * Returns the immediate risks.
+     *
+     * @return the immediate risks
+     */
     public String getImmediateRisks() {
         return this.immediateRisks;
     }
 
+    /**
+     * Sets the immediate risks.
+     *
+     * @param immediateRisks the immediate risks
+     */
     public void setImmediateRisks(String immediateRisks) {
         this.immediateRisks = immediateRisks;
     }
 
+    /**
+     * Returns the reporter name.
+     *
+     * @return the reporter name
+     */
     public String getReporterName() {
         return this.reporterName;
     }
 
+    /**
+     * Sets the reporter name.
+     *
+     * @param reporterName the reporter name
+     */
     public void setReporterName(String reporterName) {
         this.reporterName = reporterName;
     }
 
+    /**
+     * Returns the reporter contact.
+     *
+     * @return the reporter contact
+     */
     public String getReporterContact() {
         return this.reporterContact;
     }
 
+    /**
+     * Sets the reporter contact.
+     *
+     * @param reporterContact the reporter contact
+     */
     public void setReporterContact(String reporterContact) {
         this.reporterContact = reporterContact;
     }
 
+    /**
+     * Returns the status.
+     *
+     * @return the status
+     */
     public ReportStatus getStatus() {
         return this.status;
     }
 
+    /**
+     * Sets the status.
+     *
+     * @param status the status
+     */
     public void setStatus(ReportStatus status) {
         this.status = status;
     }
 
+    /**
+     * Returns the decision reason.
+     *
+     * @return the decision reason
+     */
     public String getDecisionReason() {
         return this.decisionReason;
     }
 
+    /**
+     * Sets the decision reason.
+     *
+     * @param decisionReason the decision reason
+     */
     public void setDecisionReason(String decisionReason) {
         this.decisionReason = decisionReason;
     }
 
+    /**
+     * Returns the linked incident id.
+     *
+     * @return the linked incident id
+     */
     public String getLinkedIncidentId() {
         return this.linkedIncidentId;
     }
 
+    /**
+     * Sets the linked incident id.
+     *
+     * @param linkedIncidentId the linked incident id
+     */
     public void setLinkedIncidentId(String linkedIncidentId) {
         this.linkedIncidentId = linkedIncidentId;
     }
 
     /**
-     * Label used on screen, expanding the free-text category when OTHER is
-     * chosen.
+     * Returns the label used on screen, expanding the free-text category
+     * when OTHER is chosen.
+     *
+     * @return the disaster type label
      */
     public String getTypeLabel() {
         if (this.disasterType == DisasterType.OTHER && this.otherTypeDescription
@@ -166,9 +310,11 @@ public class DisasterReport implements Serializable {
     }
 
     /**
-     * Reporter contact is restricted data (NFR-05), so it is deliberately
-     * absent
-     * from this summary; only an authorised coordinator screen may display it.
+     * Summarises the report. Reporter contact is restricted data (NFR-05),
+     * so it is deliberately absent from this summary; only an authorised
+     * coordinator screen may display it.
+     *
+     * @return the reference, type, suburb, observed time and status
      */
     @Override
     public String toString() {

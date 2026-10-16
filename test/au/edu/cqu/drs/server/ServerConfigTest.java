@@ -19,6 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class ServerConfigTest {
 
+    /**
+     * Checks that the MySQL settings come from the mysql.* keys.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-CF-01 the MySQL settings come from the mysql.* keys")
     void readsMySqlSettings() throws Exception {
@@ -39,6 +44,12 @@ class ServerConfigTest {
         assertFalse(config.hasKeystorePassword());
     }
 
+    /**
+     * Checks that passwords in the environment override the file and never
+     * appear in the description.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-CF-02 passwords in the environment override the file "
             + "and never appear in the description")
@@ -68,6 +79,12 @@ class ServerConfigTest {
         assertTrue(described.contains("mysql storage"), described);
     }
 
+    /**
+     * Checks that an invalid MySQL setting is refused only when MySQL is the
+     * storage.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-CF-03 an invalid MySQL setting is refused only when "
             + "MySQL is the storage")
@@ -82,5 +99,15 @@ class ServerConfigTest {
                 () -> new ServerConfig(mysql, Map.of()));
         assertEquals(ServerConfig.Backend.MEMORY,
                 new ServerConfig(memory, Map.of()).getBackend());
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "ServerConfigTest: tests for ServerConfig";
     }
 }

@@ -25,6 +25,10 @@ class AuthorisationPolicyTest {
 
     private final RoleBasedPolicy policy = new RoleBasedPolicy();
 
+    /**
+     * Checks that public commands are allowed without a user and others are
+     * refused.
+     */
     @Test
     @DisplayName("TC-AP-01 public commands are allowed without a user and "
             + "others are refused")
@@ -39,6 +43,9 @@ class AuthorisationPolicyTest {
         assertFalse(this.policy.isAllowed(user(UserRole.COORDINATOR), null));
     }
 
+    /**
+     * Checks that the policy mirrors the role checks in the services.
+     */
     @Test
     @DisplayName("TC-AP-02 the policy mirrors the role checks in the "
             + "services")
@@ -65,6 +72,10 @@ class AuthorisationPolicyTest {
                 this.policy.rolesFor(Command.ISSUE_WARNING));
     }
 
+    /**
+     * Checks that accounts and imports are for administrators; reads are open
+     * to any signed-in user.
+     */
     @Test
     @DisplayName("TC-AP-03 accounts and imports are for administrators; "
             + "reads are open to any signed-in user")
@@ -82,6 +93,9 @@ class AuthorisationPolicyTest {
                 this.policy.rolesFor(Command.LIST_INCIDENTS));
     }
 
+    /**
+     * Checks that an inactive user is refused everything that needs a login.
+     */
     @Test
     @DisplayName("TC-AP-04 an inactive user is refused everything that "
             + "needs a login")
@@ -96,6 +110,10 @@ class AuthorisationPolicyTest {
         }
     }
 
+    /**
+     * Checks that the access matrix is used through a static or an instance
+     * method.
+     */
     @Test
     @DisplayName("TC-AP-05 the access matrix is used through a static or an "
             + "instance method")
@@ -120,6 +138,9 @@ class AuthorisationPolicyTest {
         assertTrue(instanceMatrix.toString().contains("InstanceMatrix"));
     }
 
+    /**
+     * Checks that a missing, faulty or wrongly typed matrix falls back safely.
+     */
     @Test
     @DisplayName("TC-AP-06 a missing, faulty or wrongly typed matrix falls "
             + "back safely")
@@ -147,5 +168,15 @@ class AuthorisationPolicyTest {
     private static User user(UserRole role) {
         return new User("USR-1", role.name().toLowerCase(), "Test User",
                 role);
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "AuthorisationPolicyTest: tests for the authorisation policies";
     }
 }

@@ -152,15 +152,14 @@ public class MySqlAssignmentRepository implements AssignmentRepository {
     }
 
     /**
-     * Describes the repository.
+     * Runs an assignment query and loads each assignment's allocations on
+     * the same connection.
      *
-     * @return the tables it uses
+     * @param sql       the SELECT statement, with at most one parameter
+     * @param parameter the value for the parameter, or null when the query
+     *                  has none
+     * @return the assignments found, each with its allocations
      */
-    @Override
-    public String toString() {
-        return "MySqlAssignmentRepository: assignments, allocations";
-    }
-
     private List<DepartmentAssignment> queryAssignments(String sql,
             String parameter) {
         try {
@@ -192,6 +191,13 @@ public class MySqlAssignmentRepository implements AssignmentRepository {
         }
     }
 
+    /**
+     * Runs an allocation query on a connection borrowed from the pool.
+     *
+     * @param sql       the SELECT statement, with one parameter
+     * @param parameter the value for the parameter
+     * @return the allocations found
+     */
     private List<ResourceAllocation> queryAllocations(String sql,
             String parameter) {
         try {
@@ -206,6 +212,12 @@ public class MySqlAssignmentRepository implements AssignmentRepository {
     /**
      * Reads allocations on a connection the caller already holds, so loading
      * an assignment never needs a second connection from the pool.
+     *
+     * @param connection the connection to use
+     * @param sql        the SELECT statement, with one parameter
+     * @param parameter  the value for the parameter
+     * @return the allocations found, in the query's order
+     * @throws SQLException if the query fails
      */
     private List<ResourceAllocation> allocations(Connection connection,
             String sql, String parameter) throws SQLException {
@@ -221,6 +233,15 @@ public class MySqlAssignmentRepository implements AssignmentRepository {
         return allocations;
     }
 
+    /**
+     * Sets the assignment's column values on a statement, in the order of
+     * {@code ASSIGNMENT_COLUMNS}.
+     *
+     * @param statement  the INSERT or UPDATE statement to fill
+     * @param first      the position of the first column's parameter
+     * @param assignment the assignment whose values are bound
+     * @throws SQLException if a parameter cannot be set
+     */
     private void bind(PreparedStatement statement, int first,
             DepartmentAssignment assignment) throws SQLException {
         int i = first;
@@ -241,6 +262,15 @@ public class MySqlAssignmentRepository implements AssignmentRepository {
         statement.setInt(i, assignment.getDeliveryAttempts());
     }
 
+    /**
+     * Sets the allocation's column values on a statement, in the order of
+     * {@code ALLOCATION_COLUMNS}.
+     *
+     * @param statement  the INSERT or UPDATE statement to fill
+     * @param first      the position of the first column's parameter
+     * @param allocation the allocation whose values are bound
+     * @throws SQLException if a parameter cannot be set
+     */
     private void bind(PreparedStatement statement, int first,
             ResourceAllocation allocation) throws SQLException {
         int i = first;
@@ -255,6 +285,14 @@ public class MySqlAssignmentRepository implements AssignmentRepository {
         statement.setString(i, allocation.getStagingPoint());
     }
 
+    /**
+     * Builds an assignment, without its allocations, from the current row
+     * of a result set.
+     *
+     * @param rs the result set, positioned on a row
+     * @return the assignment read from the row
+     * @throws SQLException if a column cannot be read
+     */
     private DepartmentAssignment map(ResultSet rs) throws SQLException {
         DepartmentAssignment assignment = new DepartmentAssignment();
         assignment.setAssignmentId(rs.getString("assignment_id"));
@@ -277,6 +315,13 @@ public class MySqlAssignmentRepository implements AssignmentRepository {
         return assignment;
     }
 
+    /**
+     * Builds a resource allocation from the current row of a result set.
+     *
+     * @param rs the result set, positioned on a row
+     * @return the allocation read from the row
+     * @throws SQLException if a column cannot be read
+     */
     private ResourceAllocation mapAllocation(ResultSet rs)
             throws SQLException {
         ResourceAllocation allocation = new ResourceAllocation();
@@ -292,5 +337,15 @@ public class MySqlAssignmentRepository implements AssignmentRepository {
                 "available_to"));
         allocation.setStagingPoint(rs.getString("staging_point"));
         return allocation;
+    }
+
+    /**
+     * Describes the repository.
+     *
+     * @return the tables it uses
+     */
+    @Override
+    public String toString() {
+        return "MySqlAssignmentRepository: assignments, allocations";
     }
 }

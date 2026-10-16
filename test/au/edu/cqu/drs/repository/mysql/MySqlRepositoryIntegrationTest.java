@@ -77,6 +77,11 @@ class MySqlRepositoryIntegrationTest {
     private MySqlFieldUpdateRepository fieldUpdates;
     private MySqlAuditRepository audit;
 
+    /**
+     * Opens a freshly emptied drs_test database once before all the tests. If
+     * MySQL cannot be reached, records the reason so that every test is
+     * skipped with that message.
+     */
     @BeforeAll
     static void connect() {
         try {
@@ -88,6 +93,9 @@ class MySqlRepositoryIntegrationTest {
         }
     }
 
+    /**
+     * Closes the shared database after all the tests, if it was opened.
+     */
     @AfterAll
     static void disconnect() {
         if (database != null) {
@@ -95,6 +103,12 @@ class MySqlRepositoryIntegrationTest {
         }
     }
 
+    /**
+     * Skips the test when MySQL is not available; otherwise empties every DRS
+     * table and creates fresh repositories over the shared database.
+     *
+     * @throws Exception if the database cannot be reached or a query fails
+     */
     @BeforeEach
     void emptyTables() throws Exception {
         Assumptions.assumeTrue(database != null, () -> skipReason);
@@ -117,6 +131,10 @@ class MySqlRepositoryIntegrationTest {
         audit = new MySqlAuditRepository(database);
     }
 
+    /**
+     * Checks that a saved staff account is read back with all its details and
+     * is given the first user code.
+     */
     @Test
     @DisplayName("TC-MY-10 a staff account round-trips and gets a code")
     void userRoundTrip() {
@@ -136,6 +154,10 @@ class MySqlRepositoryIntegrationTest {
         assertTrue(loaded.isActive());
     }
 
+    /**
+     * Checks that saving an existing account again updates its row instead of
+     * adding a second one.
+     */
     @Test
     @DisplayName("TC-MY-11 saving an existing account updates its row")
     void savingAgainUpdates() {
@@ -156,6 +178,10 @@ class MySqlRepositoryIntegrationTest {
                 loaded.getLastLoginAt());
     }
 
+    /**
+     * Checks that a second account with the same user name is refused and the
+     * first account is left unchanged.
+     */
     @Test
     @DisplayName("TC-MY-12 a duplicate user name is refused")
     void duplicateUsernameIsRefused() {
@@ -173,6 +199,10 @@ class MySqlRepositoryIntegrationTest {
                 users.findByUsername("admin").orElseThrow().getFullName());
     }
 
+    /**
+     * Checks that a saved report is read back with its code, type, location
+     * and observed time, and can be found by its status.
+     */
     @Test
     @DisplayName("TC-MY-13 a report round-trips with its location and status")
     void reportRoundTrip() {
@@ -193,6 +223,12 @@ class MySqlRepositoryIntegrationTest {
         assertTrue(reports.findByStatus(ReportStatus.REJECTED).isEmpty());
     }
 
+    /**
+     * Checks that the reporter's name and contact are stored encrypted in the
+     * reports table but are returned as plain text through the repository.
+     *
+     * @throws Exception if the database cannot be reached or a query fails
+     */
     @Test
     @DisplayName("TC-MY-23 reporter details are encrypted in the database "
             + "and readable through the repository")
@@ -224,6 +260,10 @@ class MySqlRepositoryIntegrationTest {
         assertEquals("0400 111 222", loaded.getReporterContact());
     }
 
+    /**
+     * Checks that an incident keeps its link to its source report, its
+     * priority and its updated status when saved and read back.
+     */
     @Test
     @DisplayName("TC-MY-14 an incident keeps its source report links")
     void incidentKeepsSourceReports() {
@@ -245,6 +285,10 @@ class MySqlRepositoryIntegrationTest {
                 incidents.findByStatus(IncidentStatus.MONITORING).size());
     }
 
+    /**
+     * Checks that an incident linked to a report that does not exist is
+     * refused and the incident row is rolled back.
+     */
     @Test
     @DisplayName("TC-MY-15 a link to a report that does not exist is "
             + "refused and nothing is saved")
@@ -258,6 +302,10 @@ class MySqlRepositoryIntegrationTest {
                 "the incident row must be rolled back with the link");
     }
 
+    /**
+     * Checks that the newest of two saved assessment versions is returned as
+     * the latest for an incident.
+     */
     @Test
     @DisplayName("TC-MY-16 the latest assessment version is returned")
     void latestAssessmentVersionIsReturned() {
@@ -286,6 +334,10 @@ class MySqlRepositoryIntegrationTest {
                 .findByIncidentId(incident.getIncidentId()).size());
     }
 
+    /**
+     * Checks that a department assignment is read back with its status and
+     * resource allocation, and is listed against its incident.
+     */
     @Test
     @DisplayName("TC-MY-17 an assignment round-trips with its allocations")
     void assignmentRoundTripWithAllocations() {
@@ -316,6 +368,10 @@ class MySqlRepositoryIntegrationTest {
                 .orElseThrow().getAssignments().size());
     }
 
+    /**
+     * Checks that field updates for an incident are returned in the order they
+     * were submitted, not the order they were saved.
+     */
     @Test
     @DisplayName("TC-MY-18 the timeline is returned in submission order")
     void timelineIsOrdered() {
@@ -333,6 +389,10 @@ class MySqlRepositoryIntegrationTest {
         assertEquals("Fire contained", timeline.get(1).getProgressNote());
     }
 
+    /**
+     * Checks that audit events are listed newest first and can be found by the
+     * entity they concern.
+     */
     @Test
     @DisplayName("TC-MY-19 audit events can be read back by entity")
     void auditEventsAreQueryableByEntity() {
@@ -350,6 +410,10 @@ class MySqlRepositoryIntegrationTest {
                 audit.findByEntity("Incident", "INC-0001").get(0).getActor());
     }
 
+    /**
+     * Checks that an audit chain no one has changed verifies as intact and
+     * counts every record.
+     */
     @Test
     @DisplayName("TC-MY-24 an untouched audit chain verifies")
     void untouchedChainVerifies() {
@@ -361,6 +425,12 @@ class MySqlRepositoryIntegrationTest {
         assertEquals(3, result.getChecked());
     }
 
+    /**
+     * Checks that editing an audit row directly in the database breaks the
+     * chain at that row.
+     *
+     * @throws Exception if the database cannot be reached or a query fails
+     */
     @Test
     @DisplayName("TC-MY-25 an edited audit row breaks the chain at that row")
     void editedRowBreaksTheChain() throws Exception {
@@ -375,6 +445,12 @@ class MySqlRepositoryIntegrationTest {
         assertEquals("its content was changed", result.getReason());
     }
 
+    /**
+     * Checks that deleting an audit row breaks the chain at the row that
+     * follows it.
+     *
+     * @throws Exception if the database cannot be reached or a query fails
+     */
     @Test
     @DisplayName("TC-MY-26 a deleted audit row breaks the chain at the next "
             + "row")
@@ -388,6 +464,12 @@ class MySqlRepositoryIntegrationTest {
         assertEquals("AUD-00003", result.getFirstBrokenEventId());
     }
 
+    /**
+     * Checks that back-dating an audit row's time stamp breaks the chain at
+     * that row.
+     *
+     * @throws Exception if the database cannot be reached or a query fails
+     */
     @Test
     @DisplayName("TC-MY-27 a back-dated time stamp breaks the chain")
     void changedTimeStampBreaksTheChain() throws Exception {
@@ -399,6 +481,12 @@ class MySqlRepositoryIntegrationTest {
                 audit.verifyChain().getFirstBrokenEventId());
     }
 
+    /**
+     * Checks that audit events saved by ten threads at once still form a
+     * single intact chain.
+     *
+     * @throws Exception if a save fails or a thread is interrupted
+     */
     @Test
     @DisplayName("TC-MY-28 audit rows written by ten clients at once still "
             + "form one chain")
@@ -424,6 +512,11 @@ class MySqlRepositoryIntegrationTest {
         assertEquals(10, result.getChecked());
     }
 
+    /**
+     * Checks that warning versions are stored, the newest version is returned
+     * with its level and evacuation centre, and the latest version of each
+     * warning is listed.
+     */
     @Test
     @DisplayName("TC-MY-29 warning versions are stored and the newest is "
             + "returned")
@@ -452,6 +545,9 @@ class MySqlRepositoryIntegrationTest {
                         .map(Warning::getWarningId).toList());
     }
 
+    /**
+     * Checks that saving the same version of a warning twice is refused.
+     */
     @Test
     @DisplayName("TC-MY-30 the same warning version cannot be saved twice")
     void duplicateWarningVersionRefused() {
@@ -464,6 +560,10 @@ class MySqlRepositoryIntegrationTest {
                 () -> warnings.saveVersion(clash));
     }
 
+    /**
+     * Checks that a department can acknowledge a warning only once and the
+     * acknowledgement is stored.
+     */
     @Test
     @DisplayName("TC-MY-31 a department acknowledges a warning only once")
     void acknowledgementsAreUniquePerDepartment() {
@@ -482,6 +582,10 @@ class MySqlRepositoryIntegrationTest {
                 warning.getWarningId()).get(0).getDepartment());
     }
 
+    /**
+     * Checks that records imported from DRS-Initial keep their codes and that
+     * importing them a second time adds nothing.
+     */
     @Test
     @DisplayName("TC-MY-32 A2 records keep their codes, and a second import "
             + "adds nothing")
@@ -525,6 +629,10 @@ class MySqlRepositoryIntegrationTest {
         assertEquals(1, fieldUpdates.findByIncidentId("INC-0003").size());
     }
 
+    /**
+     * Checks that an imported account whose user name already exists is
+     * skipped, and a new one is given the next free code.
+     */
     @Test
     @DisplayName("TC-MY-33 an existing user name is not imported again")
     void importedUsersMatchByUsername() {
@@ -553,6 +661,12 @@ class MySqlRepositoryIntegrationTest {
                 users.findByUsername("liaison2").orElseThrow().getUserId());
     }
 
+    /**
+     * Checks that an imported audit event is added once, keeps its DRS-Initial
+     * code in its detail, hides the reporter's name and joins the chain.
+     *
+     * @throws Exception if the database cannot be reached or a query fails
+     */
     @Test
     @DisplayName("TC-MY-34 imported audit events join the chain, keep their "
             + "A2 code and never name a reporter")
@@ -575,6 +689,12 @@ class MySqlRepositoryIntegrationTest {
         assertTrue(audit.verifyChain().isIntact());
     }
 
+    /**
+     * Checks that reports saved by ten threads at once are all stored with
+     * different codes.
+     *
+     * @throws Exception if a save fails or a thread is interrupted
+     */
     @Test
     @DisplayName("TC-MY-20 ten clients saving at once all get different "
             + "codes")
@@ -596,12 +716,17 @@ class MySqlRepositoryIntegrationTest {
         }
     }
 
+    /**
+     * Checks that a committed report can still be read after opening a new
+     * connection pool to the database.
+     */
     @Test
     @DisplayName("TC-MY-21 committed data survives closing and reopening")
     void dataSurvivesReopening() {
         reports.save(newReport());
 
-        try (MySqlDatabase reopened = new MySqlDatabase(MySqlTestDatabase.settings())) {
+        try (MySqlDatabase reopened =
+                new MySqlDatabase(MySqlTestDatabase.settings())) {
             MySqlReportRepository afterRestart =
                     new MySqlReportRepository(reopened);
             assertFalse(afterRestart.findAll().isEmpty(),
@@ -610,6 +735,11 @@ class MySqlRepositoryIntegrationTest {
         }
     }
 
+    /**
+     * Checks that every table in the schema exists in the drs_test database.
+     *
+     * @throws Exception if the database cannot be reached or a query fails
+     */
     @Test
     @DisplayName("TC-MY-22 the server creates every table on start-up")
     void everyTableExists() throws Exception {
@@ -630,6 +760,13 @@ class MySqlRepositoryIntegrationTest {
         assertNotNull(database.toString());
     }
 
+    /**
+     * Builds an active Watch and Act warning for the given incident, version
+     * 1, issued by the coordinator.
+     *
+     * @param incident the incident the warning is for
+     * @return the warning, not yet saved
+     */
     private Warning newWarning(Incident incident) {
         Warning warning = new Warning(incident.getIncidentId(),
                 WarningLevel.WATCH_AND_ACT, "Laverton, Altona North",
@@ -642,6 +779,12 @@ class MySqlRepositoryIntegrationTest {
         return warning;
     }
 
+    /**
+     * Saves the given number of report-decision audit events, one minute
+     * apart.
+     *
+     * @param count how many audit events to save
+     */
     private void saveAuditTrail(int count) {
         for (int i = 1; i <= count; i++) {
             audit.save(new AuditEvent("coordinator", "DECIDE_REPORT",
@@ -650,6 +793,13 @@ class MySqlRepositoryIntegrationTest {
         }
     }
 
+    /**
+     * Runs an SQL update directly on the database, bypassing the repositories.
+     *
+     * @param sql the SQL statement to run
+     * @throws Exception if the database cannot be reached or the statement
+     *         fails
+     */
     private void execute(String sql) throws Exception {
         database.withConnection(connection -> {
             try (Statement statement = connection.createStatement()) {
@@ -658,6 +808,11 @@ class MySqlRepositoryIntegrationTest {
         });
     }
 
+    /**
+     * Builds a submitted fire report at Laverton with valid values.
+     *
+     * @return the report, not yet saved
+     */
     private DisasterReport newReport() {
         DisasterReport report = new DisasterReport();
         report.setDisasterType(DisasterType.FIRE);
@@ -669,6 +824,11 @@ class MySqlRepositoryIntegrationTest {
         return report;
     }
 
+    /**
+     * Builds a P1 warehouse fire incident at Laverton with no code yet.
+     *
+     * @return the incident, not yet saved
+     */
     private Incident newIncident() {
         Incident incident = new Incident(null, "Warehouse fire - Laverton",
                 DisasterType.FIRE,
@@ -678,6 +838,14 @@ class MySqlRepositoryIntegrationTest {
         return incident;
     }
 
+    /**
+     * Builds a responder's field update for the given incident.
+     *
+     * @param incident the incident the update is for
+     * @param note the progress note
+     * @param at when the update was submitted
+     * @return the field update, not yet saved
+     */
     private FieldUpdate update(Incident incident, String note,
             LocalDateTime at) {
         FieldUpdate fieldUpdate = new FieldUpdate();
@@ -686,5 +854,18 @@ class MySqlRepositoryIntegrationTest {
         fieldUpdate.setSubmittedAt(at);
         fieldUpdate.setProgressNote(note);
         return fieldUpdate;
+    }
+
+    /**
+     * Describes this test class and the fixture it uses.
+     *
+     * @return the class name and the repositories it tests
+     */
+    @Override
+    public String toString() {
+        return "MySqlRepositoryIntegrationTest[database=" + database
+                + ", users=" + this.users + ", reports=" + this.reports
+                + ", incidents=" + this.incidents + ", audit=" + this.audit
+                + "]";
     }
 }

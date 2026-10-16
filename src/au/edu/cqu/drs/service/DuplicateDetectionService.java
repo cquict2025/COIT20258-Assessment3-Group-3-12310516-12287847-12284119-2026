@@ -51,6 +51,11 @@ public class DuplicateDetectionService {
 
     private final ReportRepository reportRepository;
 
+    /**
+     * Creates a duplicate detection service.
+     *
+     * @param reportRepository the report repository
+     */
     public DuplicateDetectionService(ReportRepository reportRepository) {
         this.reportRepository = reportRepository;
     }
@@ -111,6 +116,15 @@ public class DuplicateDetectionService {
                 .toList();
     }
 
+    /**
+     * Builds a duplicate candidate comparing another report with the given
+     * report, recording the similarity, distance (-1 when unknown), time gap
+     * and whether the types match.
+     *
+     * @param report the report being checked
+     * @param other  the possible duplicate
+     * @return the candidate describing how closely the reports match
+     */
     private DuplicateCandidate toCandidate(DisasterReport report,
                                            DisasterReport other) {
         double distanceKm = report.getLocation() == null
@@ -124,11 +138,30 @@ public class DuplicateDetectionService {
                 report.getDisasterType() == other.getDisasterType());
     }
 
+    /**
+     * Works out the minutes between the observed times of two reports. When
+     * either time is missing, the full time window is returned.
+     *
+     * @param first  the first report
+     * @param second the second report
+     * @return the absolute gap in minutes
+     */
     private long minutesBetween(DisasterReport first, DisasterReport second) {
         if (first.getObservedAt() == null || second.getObservedAt() == null) {
             return TIME_WINDOW_MINUTES;
         }
         return Math.abs(Duration.between(first.getObservedAt(),
                 second.getObservedAt()).toMinutes());
+    }
+
+    /**
+     * Describes what this service does.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "DuplicateDetectionService: suggests reports that may be "
+                + "duplicates";
     }
 }

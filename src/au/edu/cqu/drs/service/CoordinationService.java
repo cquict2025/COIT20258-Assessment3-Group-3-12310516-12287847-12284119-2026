@@ -69,6 +69,15 @@ public class CoordinationService {
     private final AuthenticationService authenticationService;
     private final AuditService auditService;
 
+    /**
+     * Creates a coordination service.
+     *
+     * @param assignmentRepository  the assignment repository
+     * @param incidentRepository    the incident repository
+     * @param partnerGateway        the partner gateway
+     * @param authenticationService the authentication service
+     * @param auditService          the audit service
+     */
     public CoordinationService(AssignmentRepository assignmentRepository,
                                IncidentRepository incidentRepository,
                                PartnerGateway partnerGateway,
@@ -366,11 +375,33 @@ public class CoordinationService {
         return ServiceResult.success(saved);
     }
 
+    /**
+     * Returns the departmental assignments made for an incident.
+     *
+     * @param incidentId the incident
+     * @return the assignments for that incident
+     */
     public List<DepartmentAssignment> findByIncident(String incidentId) {
         return this.assignmentRepository.findByIncidentId(incidentId);
     }
 
+    /**
+     * Returns every departmental assignment.
+     *
+     * @return all assignments
+     */
     public List<DepartmentAssignment> findAll() {
         return this.assignmentRepository.findAll();
+    }
+
+    /**
+     * Describes what this service does.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "CoordinationService: requests departments and allocates "
+                + "resources";
     }
 }

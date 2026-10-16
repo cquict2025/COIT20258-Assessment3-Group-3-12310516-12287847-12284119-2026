@@ -19,6 +19,12 @@ public class DemoDataSeeder {
     private final AuthenticationService authenticationService;
     private final UserRepository userRepository;
 
+    /**
+     * Creates a demo data seeder.
+     *
+     * @param authenticationService the authentication service
+     * @param userRepository        the user repository
+     */
     public DemoDataSeeder(AuthenticationService authenticationService,
                           UserRepository userRepository) {
         this.authenticationService = authenticationService;
@@ -37,6 +43,15 @@ public class DemoDataSeeder {
         create("admin", "Robin Administrator", UserRole.ADMINISTRATOR, null);
     }
 
+    /**
+     * Registers one demonstration account with the shared demonstration
+     * password, and sets its department when one is given.
+     *
+     * @param username   the account name
+     * @param fullName   the person's full name
+     * @param role       the role the account is given
+     * @param department the department for a liaison, or null for none
+     */
     private void create(String username, String fullName, UserRole role,
                         Department department) {
         ServiceResult<User> result =
@@ -47,5 +62,16 @@ public class DemoDataSeeder {
             user.setDepartment(department);
             this.userRepository.save(user);
         }
+    }
+
+    /**
+     * Describes what this seeder does.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "DemoDataSeeder: creates the demonstration accounts when none "
+                + "exist";
     }
 }

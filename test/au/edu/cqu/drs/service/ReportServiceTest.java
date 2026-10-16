@@ -28,12 +28,19 @@ class ReportServiceTest {
     private TestFixtures fixtures;
     private User coordinator;
 
+    /**
+     * Creates fresh fixtures and a coordinator.
+     */
     @BeforeEach
     void setUp() {
         fixtures = new TestFixtures();
         coordinator = fixtures.createUser("coordinator", UserRole.COORDINATOR);
     }
 
+    /**
+     * Checks that a complete report is accepted and receives an identifier and
+     * timestamp.
+     */
     @Test
     @DisplayName("TC-RP-01 a complete report is accepted and receives an "
             + "identifier and timestamp")
@@ -51,6 +58,9 @@ class ReportServiceTest {
         assertEquals(ReportStatus.SUBMITTED, result.getValue().getStatus());
     }
 
+    /**
+     * Checks that the reporter's name never reaches the audit log.
+     */
     @Test
     @DisplayName("TC-RP-12 the reporter's name never reaches the audit log")
     void reporterNameStaysOutOfAuditLog() {
@@ -71,6 +81,10 @@ class ReportServiceTest {
                 .contains("Priya") || e.toString().contains("0400")));
     }
 
+    /**
+     * Checks that a report with no disaster type is refused and names the
+     * field.
+     */
     @Test
     @DisplayName("TC-RP-02 a report with no disaster type is refused and names "
             + "the field")
@@ -86,6 +100,9 @@ class ReportServiceTest {
         assertEquals("disasterType", result.getAffectedField());
     }
 
+    /**
+     * Checks that the type OTHER requires a written description.
+     */
     @Test
     @DisplayName("TC-RP-03 the type OTHER requires a written description")
     void otherTypeRequiresDescription() {
@@ -100,6 +117,9 @@ class ReportServiceTest {
         assertEquals("otherTypeDescription", result.getAffectedField());
     }
 
+    /**
+     * Checks that a blank suburb is refused.
+     */
     @Test
     @DisplayName("TC-RP-04 a blank suburb is refused")
     void blankSuburbIsRefused() {
@@ -113,6 +133,9 @@ class ReportServiceTest {
         assertEquals("suburb", result.getAffectedField());
     }
 
+    /**
+     * Checks that a latitude outside the valid range is refused.
+     */
     @Test
     @DisplayName("TC-RP-05 a latitude outside the valid range is refused")
     void latitudeOutOfRangeIsRefused() {
@@ -127,6 +150,9 @@ class ReportServiceTest {
         assertEquals("latitude", result.getAffectedField());
     }
 
+    /**
+     * Checks that an observed time in the future is refused.
+     */
     @Test
     @DisplayName("TC-RP-06 an observed time in the future is refused")
     void futureObservedTimeIsRefused() {
@@ -141,6 +167,10 @@ class ReportServiceTest {
         assertEquals("observedAt", result.getAffectedField());
     }
 
+    /**
+     * Checks that a description at the length limit is accepted and one over
+     * is refused.
+     */
     @Test
     @DisplayName("TC-RP-07 a description at the length limit is accepted and "
             + "one over is refused")
@@ -164,6 +194,9 @@ class ReportServiceTest {
         assertEquals("description", refused.getAffectedField());
     }
 
+    /**
+     * Checks that a draft is stored without passing the submission rules.
+     */
     @Test
     @DisplayName("TC-RP-08 a draft is stored without passing the submission "
             + "rules")
@@ -179,6 +212,9 @@ class ReportServiceTest {
         assertEquals(ReportStatus.DRAFT, result.getValue().getStatus());
     }
 
+    /**
+     * Checks that rejecting a report without a reason is refused.
+     */
     @Test
     @DisplayName("TC-RP-09 rejecting a report without a reason is refused")
     void rejectionWithoutReasonIsRefused() {
@@ -195,6 +231,9 @@ class ReportServiceTest {
         assertEquals("reason", result.getAffectedField());
     }
 
+    /**
+     * Checks that a responder cannot decide a report.
+     */
     @Test
     @DisplayName("TC-RP-10 a responder cannot decide a report")
     void responderCannotDecideReport() {
@@ -212,6 +251,9 @@ class ReportServiceTest {
         assertEquals(ErrorCode.PERMISSION_DENIED, result.getErrorCode());
     }
 
+    /**
+     * Checks that a report can only be decided once.
+     */
     @Test
     @DisplayName("TC-RP-11 a report can only be decided once")
     void reportCannotBeDecidedTwice() {
@@ -229,5 +271,15 @@ class ReportServiceTest {
 
         assertTrue(second.isFailure());
         assertEquals(ErrorCode.CONFLICT, second.getErrorCode());
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "ReportServiceTest: tests for ReportService";
     }
 }

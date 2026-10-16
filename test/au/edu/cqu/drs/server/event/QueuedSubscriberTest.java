@@ -35,6 +35,9 @@ class QueuedSubscriberTest {
     private final List<QueuedSubscriber> subscribers = new ArrayList<>();
     private final CountDownLatch release = new CountDownLatch(1);
 
+    /**
+     * Releases any stalled subscriber and closes every subscriber.
+     */
     @AfterEach
     void tearDown() {
         this.release.countDown();
@@ -43,6 +46,12 @@ class QueuedSubscriberTest {
         }
     }
 
+    /**
+     * Checks that a stalled subscriber does not delay the others; its queue
+     * keeps the newest 500 events.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-EV-04 a stalled subscriber does not delay the others; "
             + "its queue keeps the newest 500 events")
@@ -80,6 +89,12 @@ class QueuedSubscriberTest {
                 - QueuedSubscriber.CAPACITY - 1, slow.toString());
     }
 
+    /**
+     * Checks that a quiet channel sends heartbeats, and a closed subscriber
+     * runs its close action once.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-EV-05 a quiet channel sends heartbeats, and a closed "
             + "subscriber runs its close action once")
@@ -105,6 +120,11 @@ class QueuedSubscriberTest {
 
     /**
      * Creates a started subscriber on a stream.
+     *
+     * @param name     the client name
+     * @param out      the stream to write to
+     * @param capacity the queue capacity
+     * @return the started subscriber
      */
     private QueuedSubscriber subscriber(String name, ObjectOutputStream out,
                                         int capacity) {
@@ -120,6 +140,12 @@ class QueuedSubscriberTest {
      * Creates a subscriber whose client reads every event and counts the
      * changes. Its queue holds every event, so only the stalled
      * subscriber can drop any.
+     *
+     * @param name  the client name
+     * @param count counts the change events read
+     * @param done  released when every event has arrived
+     * @return the started subscriber
+     * @throws IOException if the pipe cannot be opened
      */
     private QueuedSubscriber healthy(String name, AtomicInteger count,
                                      CountDownLatch done) throws IOException {
@@ -212,5 +238,15 @@ class QueuedSubscriberTest {
         public String toString() {
             return "StallingStream, stalled " + this.stalled;
         }
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "QueuedSubscriberTest: tests for QueuedSubscriber";
     }
 }

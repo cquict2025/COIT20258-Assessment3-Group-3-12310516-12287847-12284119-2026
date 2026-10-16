@@ -12,11 +12,34 @@ import java.util.Optional;
  */
 public interface UserRepository {
 
+    /**
+     * Saves a user account, giving it an identifier if it has none yet.
+     *
+     * @param user the account to save
+     * @return the saved account, with its identifier set
+     */
     User save(User user);
 
+    /**
+     * Finds a user account by its username.
+     *
+     * @param username the username to look up
+     * @return the account, or empty if there is none
+     */
     Optional<User> findByUsername(String username);
 
+    /**
+     * Finds a user account by its identifier.
+     *
+     * @param userId the user identifier
+     * @return the account, or empty if there is none
+     */
     Optional<User> findById(String userId);
 
+    /**
+     * Lists every stored user account.
+     *
+     * @return all accounts
+     */
     List<User> findAll();
 }

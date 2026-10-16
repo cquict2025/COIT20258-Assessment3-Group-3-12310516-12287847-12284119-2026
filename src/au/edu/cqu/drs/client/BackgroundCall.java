@@ -54,6 +54,11 @@ public final class BackgroundCall {
                                Supplier<ServiceResult<T>> call,
                                Consumer<ServiceResult<T>> onDone) {
         Task<ServiceResult<T>> task = new Task<>() {
+            /**
+             * Makes the server call on the background thread.
+             *
+             * @return the result of the call
+             */
             @Override
             protected ServiceResult<T> call() {
                 return call.get();

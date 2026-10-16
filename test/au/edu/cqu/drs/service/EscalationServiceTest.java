@@ -34,11 +34,20 @@ class EscalationServiceTest {
 
     private TestFixtures fixtures;
 
+    /**
+     * Creates fresh fixtures.
+     */
     @BeforeEach
     void setUp() {
         fixtures = new TestFixtures();
     }
 
+    /**
+     * Checks that the P1 target of 15 minutes changes state at 75% and 100%.
+     *
+     * @param minutesElapsed minutes since the incident was created
+     * @param expectedState  the escalation state expected at that time
+     */
     @ParameterizedTest(name = "TC-ES-01 P1 after {0} minutes is {1}")
     @CsvSource({
             "0, ON_TRACK",
@@ -64,6 +73,9 @@ class EscalationServiceTest {
         assertEquals(minutesElapsed, alert.getMinutesElapsed());
     }
 
+    /**
+     * Checks that each priority carries the documented target response time.
+     */
     @Test
     @DisplayName("TC-ES-02 each priority carries the documented target "
             + "response time")
@@ -74,6 +86,9 @@ class EscalationServiceTest {
         assertEquals(1440, Priority.P4.getTargetResponseMinutes());
     }
 
+    /**
+     * Checks that remaining time becomes negative once the target is exceeded.
+     */
     @Test
     @DisplayName("TC-ES-03 remaining time becomes negative once the target is "
             + "exceeded")
@@ -88,6 +103,9 @@ class EscalationServiceTest {
         assertEquals(150, alert.getPercentageOfTargetUsed());
     }
 
+    /**
+     * Checks that the clock stops at the first field response.
+     */
     @Test
     @DisplayName("TC-ES-04 the clock stops at the first field response")
     void clockStopsAtFirstResponse() {
@@ -102,6 +120,9 @@ class EscalationServiceTest {
         assertEquals(EscalationState.ON_TRACK, alert.getState());
     }
 
+    /**
+     * Checks that only incidents needing attention appear in the alert list.
+     */
     @Test
     @DisplayName("TC-ES-05 only incidents needing attention appear in the "
             + "alert list")
@@ -119,6 +140,9 @@ class EscalationServiceTest {
         assertEquals(EscalationState.AT_RISK, alerts.get(1).getState());
     }
 
+    /**
+     * Checks that a closed incident never raises an alert.
+     */
     @Test
     @DisplayName("TC-ES-06 a closed incident never raises an alert")
     void closedIncidentRaisesNoAlert() {
@@ -129,6 +153,10 @@ class EscalationServiceTest {
         assertTrue(fixtures.escalationService.findAlerts(NOW).isEmpty());
     }
 
+    /**
+     * Checks that evaluating without an incident is rejected rather than
+     * silently ignored.
+     */
     @Test
     @DisplayName("TC-ES-07 evaluating without an incident is rejected rather "
             + "than silently ignored")
@@ -137,6 +165,13 @@ class EscalationServiceTest {
                 () -> fixtures.escalationService.evaluate(null, NOW));
     }
 
+    /**
+     * Saves a fire incident with the given priority and creation time.
+     *
+     * @param priority  the incident priority
+     * @param createdAt when the incident was created
+     * @return the saved incident
+     */
     private Incident incident(Priority priority, LocalDateTime createdAt) {
         Incident incident = new Incident(null,
                                          priority.name() + " test incident", 
@@ -145,5 +180,15 @@ class EscalationServiceTest {
                 createdAt);
         incident.setPriority(priority);
         return fixtures.incidentRepository.save(incident);
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "EscalationServiceTest: tests for EscalationService";
     }
 }

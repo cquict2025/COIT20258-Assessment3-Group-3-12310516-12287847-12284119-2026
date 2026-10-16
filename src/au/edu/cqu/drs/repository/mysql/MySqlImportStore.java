@@ -194,18 +194,12 @@ public class MySqlImportStore {
     }
 
     /**
-     * Describes the store.
-     *
-     * @return the database it writes to
-     */
-    @Override
-    public String toString() {
-        return "MySqlImportStore: " + this.database;
-    }
-
-    /**
      * DRS-Initial recorded a public report's actor as the reporter's name;
      * that name is personal data, so it becomes "public" here.
+     *
+     * @param event the imported audit event
+     * @return "public" for a public action whose actor is not a staff
+     *         account, otherwise the original actor
      */
     private String publicActor(AuditEvent event) {
         if (PUBLIC_ACTIONS.contains(event.getAction())
@@ -216,6 +210,14 @@ public class MySqlImportStore {
         return event.getActor();
     }
 
+    /**
+     * Checks whether a record with the given code is already stored.
+     *
+     * @param key  the table and code column to look in
+     * @param code the record's code, may be null
+     * @return true if a row has the code, false if not or if the code is
+     *         null
+     */
     private boolean exists(CodeKey key, String code) {
         if (code == null) {
             return false;
@@ -226,11 +228,26 @@ public class MySqlImportStore {
         return query(sql, code);
     }
 
+    /**
+     * Checks whether an audit event imported with the given tag is already
+     * stored, either as the whole detail or at the start of it.
+     *
+     * @param tag the import tag, for example [A2 AUD-00001]
+     * @return true if an event with the tag is stored
+     */
     private boolean auditTagExists(String tag) {
         return query("SELECT 1 FROM audit_events WHERE detail = ? "
                 + "OR detail LIKE CONCAT(?, ' %')", tag, tag);
     }
 
+    /**
+     * Runs a query with string parameters and reports whether it returned
+     * any row.
+     *
+     * @param sql        the SELECT statement
+     * @param parameters the values for its parameters, in order
+     * @return true if the query returned at least one row
+     */
     private boolean query(String sql, String... parameters) {
         try {
             return this.database.withConnection(connection -> {
@@ -248,5 +265,15 @@ public class MySqlImportStore {
             throw new IllegalStateException("Could not check the database "
                     + "before importing.", e);
         }
+    }
+
+    /**
+     * Describes the store.
+     *
+     * @return the database it writes to
+     */
+    @Override
+    public String toString() {
+        return "MySqlImportStore: " + this.database;
     }
 }

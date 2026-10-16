@@ -29,6 +29,10 @@ class CoordinationServiceTest {
     private User liaison;
     private Incident incident;
 
+    /**
+     * Creates fresh fixtures, a coordinator, a liaison and a saved fire
+     * incident.
+     */
     @BeforeEach
     void setUp() {
         fixtures = new TestFixtures();
@@ -41,6 +45,9 @@ class CoordinationServiceTest {
                 LocalDateTime.now().minusMinutes(3)));
     }
 
+    /**
+     * Checks that a fire recommends fire and emergency first.
+     */
     @Test
     @DisplayName("TC-CO-01 a fire recommends fire and emergency first")
     void fireRecommendsFireAndEmergency() {
@@ -52,6 +59,9 @@ class CoordinationServiceTest {
                 .contains(Department.WATER_SUPPLY));
     }
 
+    /**
+     * Checks that a valid request is stored and awaits a response.
+     */
     @Test
     @DisplayName("TC-CO-02 a valid request is stored and awaits a response")
     void validRequestAwaitsResponse() {
@@ -68,6 +78,10 @@ class CoordinationServiceTest {
         assertEquals(1, result.getValue().getDeliveryAttempts());
     }
 
+    /**
+     * Checks that a second open request to the same department is refused as a
+     * conflict.
+     */
     @Test
     @DisplayName("TC-CO-03 a second open request to the same department is "
             + "refused as a conflict")
@@ -85,6 +99,10 @@ class CoordinationServiceTest {
         assertEquals(ErrorCode.CONFLICT, second.getErrorCode());
     }
 
+    /**
+     * Checks that an unreachable partner leaves the request saved as delivery
+     * failed.
+     */
     @Test
     @DisplayName("TC-CO-04 an unreachable partner leaves the request saved as "
             + "delivery failed")
@@ -105,6 +123,10 @@ class CoordinationServiceTest {
                         + "rejection");
     }
 
+    /**
+     * Checks that retrying a failed delivery succeeds once the partner is
+     * reachable.
+     */
     @Test
     @DisplayName("TC-CO-05 retrying a failed delivery succeeds once the "
             + "partner is reachable")
@@ -126,6 +148,9 @@ class CoordinationServiceTest {
         assertEquals(2, retry.getValue().getDeliveryAttempts());
     }
 
+    /**
+     * Checks that accepting a request without an ETA is refused.
+     */
     @Test
     @DisplayName("TC-CO-06 accepting a request without an ETA is refused")
     void acceptanceWithoutEtaIsRefused() {
@@ -144,6 +169,9 @@ class CoordinationServiceTest {
         assertEquals("estimatedArrival", result.getAffectedField());
     }
 
+    /**
+     * Checks that rejecting a request without a reason is refused.
+     */
     @Test
     @DisplayName("TC-CO-07 rejecting a request without a reason is refused")
     void rejectionWithoutReasonIsRefused() {
@@ -161,6 +189,9 @@ class CoordinationServiceTest {
         assertEquals("reason", result.getAffectedField());
     }
 
+    /**
+     * Checks that a coordinator cannot answer on behalf of a department.
+     */
     @Test
     @DisplayName("TC-CO-08 a coordinator cannot answer on behalf of a "
             + "department")
@@ -180,6 +211,9 @@ class CoordinationServiceTest {
         assertEquals(ErrorCode.PERMISSION_DENIED, result.getErrorCode());
     }
 
+    /**
+     * Checks that an overlapping allocation of the same resource is refused.
+     */
     @Test
     @DisplayName("TC-CO-09 an overlapping allocation of the same resource is "
             + "refused")
@@ -211,6 +245,10 @@ class CoordinationServiceTest {
         assertEquals(ErrorCode.CONFLICT, clash.getErrorCode());
     }
 
+    /**
+     * Checks that an adjacent allocation that only touches at an endpoint is
+     * accepted.
+     */
     @Test
     @DisplayName("TC-CO-10 an adjacent allocation that only touches at an "
             + "endpoint is accepted")
@@ -243,6 +281,9 @@ class CoordinationServiceTest {
                         + "again from that time");
     }
 
+    /**
+     * Checks that an allocation window that ends before it starts is refused.
+     */
     @Test
     @DisplayName("TC-CO-11 an allocation window that ends before it starts is "
             + "refused")
@@ -266,6 +307,10 @@ class CoordinationServiceTest {
         assertEquals("availableFrom", result.getAffectedField());
     }
 
+    /**
+     * Checks that an accepted request counts as resolved but an awaited one
+     * does not.
+     */
     @Test
     @DisplayName("TC-CO-12 an accepted request counts as resolved but an "
             + "awaited one does not")
@@ -274,5 +319,15 @@ class CoordinationServiceTest {
         assertTrue(AssignmentStatus.REJECTED.isResolved());
         assertFalse(AssignmentStatus.AWAITING_RESPONSE.isResolved());
         assertFalse(AssignmentStatus.DELIVERY_FAILED.isResolved());
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "CoordinationServiceTest: tests for CoordinationService";
     }
 }

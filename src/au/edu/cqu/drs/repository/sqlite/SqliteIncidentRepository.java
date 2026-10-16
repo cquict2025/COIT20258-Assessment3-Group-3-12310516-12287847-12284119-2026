@@ -23,10 +23,24 @@ public class SqliteIncidentRepository implements IncidentRepository {
 
     private final Database database;
 
+    /**
+     * Creates a SQLite incident repository.
+     *
+     * @param database the database
+     */
     public SqliteIncidentRepository(Database database) {
         this.database = database;
     }
 
+    /**
+     * Inserts an incident, or updates the stored row with the same
+     * identifier, then records its links to source reports. A new incident
+     * is given the next INC- identifier.
+     *
+     * @param incident the incident to save
+     * @return the same incident, with its identifier set
+     * @throws IllegalStateException if the rows cannot be written
+     */
     @Override
     public Incident save(Incident incident) {
         Connection connection = this.database.getConnection();
@@ -87,6 +101,14 @@ public class SqliteIncidentRepository implements IncidentRepository {
         }
     }
 
+    /**
+     * Finds an incident by its identifier, with its source reports and
+     * assignments.
+     *
+     * @param incidentId the incident identifier
+     * @return the incident, or empty if there is none
+     * @throws IllegalStateException if the rows cannot be read
+     */
     @Override
     public Optional<Incident> findById(String incidentId) {
         try (PreparedStatement statement = this.database.getConnection()
@@ -101,11 +123,22 @@ public class SqliteIncidentRepository implements IncidentRepository {
         }
     }
 
+    /**
+     * Lists every incident, ordered by identifier.
+     *
+     * @return all incidents
+     */
     @Override
     public List<Incident> findAll() {
         return query("SELECT * FROM incidents ORDER BY incident_id", null);
     }
 
+    /**
+     * Finds the incidents that have a given status, ordered by identifier.
+     *
+     * @param status the status to match
+     * @return the incidents with that status
+     */
     @Override
     public List<Incident> findByStatus(IncidentStatus status) {
         return query("SELECT * FROM incidents WHERE status = ? ORDER BY "
@@ -116,6 +149,14 @@ public class SqliteIncidentRepository implements IncidentRepository {
                      status.name());
     }
 
+    /**
+     * Records the links between an incident and its source reports, as one
+     * batch. Links that already exist are ignored.
+     *
+     * @param connection the live connection
+     * @param incident the incident whose links are saved
+     * @throws SQLException if the links cannot be written
+     */
     private void saveSourceReports(Connection connection,
                                    Incident incident) throws SQLException {
         String sql = "INSERT OR IGNORE INTO incident_reports (incident_id, "
@@ -130,6 +171,14 @@ public class SqliteIncidentRepository implements IncidentRepository {
         }
     }
 
+    /**
+     * Runs a query against the incidents table and maps every row.
+     *
+     * @param sql the query to run
+     * @param parameter the single query parameter, or null if there is none
+     * @return the incidents found
+     * @throws IllegalStateException if the rows cannot be read
+     */
     private List<Incident> query(String sql, String parameter) {
         List<Incident> incidents = new ArrayList<>();
         try (PreparedStatement statement = this.database.getConnection()
@@ -148,6 +197,14 @@ public class SqliteIncidentRepository implements IncidentRepository {
         }
     }
 
+    /**
+     * Builds an incident from the current row of a result set and loads
+     * its source reports and assignments.
+     *
+     * @param rs the result set, positioned on the row to read
+     * @return the incident read from the row
+     * @throws SQLException if a column or linked row cannot be read
+     */
     private Incident map(ResultSet rs) throws SQLException {
         Incident incident = new Incident();
         incident.setIncidentId(rs.getString("incident_id"));
@@ -174,6 +231,12 @@ public class SqliteIncidentRepository implements IncidentRepository {
         return incident;
     }
 
+    /**
+     * Adds the identifiers of the reports linked to an incident.
+     *
+     * @param incident the incident to fill in
+     * @throws SQLException if the links cannot be read
+     */
     private void loadSourceReports(Incident incident) throws SQLException {
         try (PreparedStatement statement = this.database.getConnection()
                 .prepareStatement(
@@ -191,6 +254,9 @@ public class SqliteIncidentRepository implements IncidentRepository {
     /**
      * Loads assignment status only, which is all the incident needs in order to
      * answer {@code hasUnresolvedAssignments()} before closure (UC-13).
+     *
+     * @param incident the incident to fill in
+     * @throws SQLException if the assignments cannot be read
      */
     private void loadAssignments(Incident incident) throws SQLException {
         try (PreparedStatement statement = this.database.getConnection()
@@ -218,5 +284,15 @@ public class SqliteIncidentRepository implements IncidentRepository {
                 }
             }
         }
+    }
+
+    /**
+     * Describes the repository.
+     *
+     * @return the database it reads and writes
+     */
+    @Override
+    public String toString() {
+        return "SqliteIncidentRepository: " + this.database;
     }
 }
