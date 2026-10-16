@@ -61,6 +61,10 @@ class SqliteRepositoryIntegrationTest {
     private SqliteFieldUpdateRepository fieldUpdates;
     private SqliteAuditRepository audit;
 
+    /**
+     * Opens a fresh SQLite database in a temporary folder and creates a
+     * repository for each table.
+     */
     @BeforeEach
     void setUp() {
         database = new Database(
@@ -74,11 +78,17 @@ class SqliteRepositoryIntegrationTest {
         audit = new SqliteAuditRepository(database);
     }
 
+    /**
+     * Closes the database.
+     */
     @AfterEach
     void tearDown() {
         database.close();
     }
 
+    /**
+     * Checks that a staff account round-trips through the users table.
+     */
     @Test
     @DisplayName("TC-DB-01 a staff account round-trips through the users "
             + "table")
@@ -99,6 +109,9 @@ class SqliteRepositoryIntegrationTest {
         assertTrue(loaded.isActive());
     }
 
+    /**
+     * Checks that a report round-trips with its location and status.
+     */
     @Test
     @DisplayName("TC-DB-02 a report round-trips with its location and status")
     void reportRoundTrip() {
@@ -122,6 +135,9 @@ class SqliteRepositoryIntegrationTest {
         assertEquals(1, reports.findByStatus(ReportStatus.SUBMITTED).size());
     }
 
+    /**
+     * Checks that an incident keeps its source report links.
+     */
     @Test
     @DisplayName("TC-DB-03 an incident keeps its source report links")
     void incidentKeepsSourceReports() {
@@ -139,6 +155,9 @@ class SqliteRepositoryIntegrationTest {
         assertEquals(IncidentStatus.ACTIVE, loaded.getStatus());
     }
 
+    /**
+     * Checks that the latest assessment version is returned.
+     */
     @Test
     @DisplayName("TC-DB-04 the latest assessment version is returned")
     void latestAssessmentVersionIsReturned() {
@@ -166,6 +185,9 @@ class SqliteRepositoryIntegrationTest {
                 .findByIncidentId(incident.getIncidentId()).size());
     }
 
+    /**
+     * Checks that an assignment round-trips with its allocations.
+     */
     @Test
     @DisplayName("TC-DB-05 an assignment round-trips with its allocations")
     void assignmentRoundTripWithAllocations() {
@@ -194,6 +216,9 @@ class SqliteRepositoryIntegrationTest {
                 .findAllocationsByResourceName("pumper 12").size());
     }
 
+    /**
+     * Checks that the timeline is returned in submission order.
+     */
     @Test
     @DisplayName("TC-DB-06 the timeline is returned in submission order")
     void timelineIsOrdered() {
@@ -210,6 +235,9 @@ class SqliteRepositoryIntegrationTest {
         assertEquals("Fire contained", timeline.get(1).getProgressNote());
     }
 
+    /**
+     * Checks that audit events can be read back by entity.
+     */
     @Test
     @DisplayName("TC-DB-07 audit events can be read back by entity")
     void auditEventsAreQueryableByEntity() {
@@ -224,6 +252,9 @@ class SqliteRepositoryIntegrationTest {
                 audit.findByEntity("Incident", "INC-0001").get(0).getActor());
     }
 
+    /**
+     * Checks that committed data survives closing and reopening.
+     */
     @Test
     @DisplayName("TC-DB-08 committed data survives closing and reopening")
     void dataSurvivesReopening() {
@@ -241,6 +272,11 @@ class SqliteRepositoryIntegrationTest {
         reopened.close();
     }
 
+    /**
+     * Saves a submitted fire report at Laverton.
+     *
+     * @return the saved report
+     */
     private DisasterReport savedReport() {
         DisasterReport report = new DisasterReport();
         report.setDisasterType(DisasterType.FIRE);
@@ -252,6 +288,11 @@ class SqliteRepositoryIntegrationTest {
         return reports.save(report);
     }
 
+    /**
+     * Builds an unsaved P1 fire incident at Laverton.
+     *
+     * @return the new incident
+     */
     private Incident newIncident() {
         Incident incident = new Incident(null, "Warehouse fire - Laverton",
                 DisasterType.FIRE,
@@ -261,6 +302,14 @@ class SqliteRepositoryIntegrationTest {
         return incident;
     }
 
+    /**
+     * Builds an unsaved field update from the responder.
+     *
+     * @param incident the incident the update is for
+     * @param note     the progress note
+     * @param at       when the update was submitted
+     * @return the new field update
+     */
     private FieldUpdate update(Incident incident, String note,
             LocalDateTime at) {
         FieldUpdate fieldUpdate = new FieldUpdate();
@@ -269,5 +318,16 @@ class SqliteRepositoryIntegrationTest {
         fieldUpdate.setSubmittedAt(at);
         fieldUpdate.setProgressNote(note);
         return fieldUpdate;
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "SqliteRepositoryIntegrationTest: tests for the SQLite "
+                + "repositories";
     }
 }

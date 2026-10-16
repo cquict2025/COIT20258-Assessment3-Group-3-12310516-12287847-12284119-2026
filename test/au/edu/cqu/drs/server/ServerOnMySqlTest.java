@@ -59,6 +59,10 @@ class ServerOnMySqlTest {
 
     private ServerBootstrap bootstrap;
 
+    /**
+     * Empties the MySQL test database, or records why the tests must be
+     * skipped when MySQL cannot be reached.
+     */
     @BeforeAll
     static void emptyTheTestDatabase() {
         try (MySqlDatabase database = MySqlTestDatabase.openFresh()) {
@@ -69,12 +73,20 @@ class ServerOnMySqlTest {
         }
     }
 
+    /**
+     * Starts the server on MySQL, unless the tests are being skipped.
+     *
+     * @throws Exception if the server cannot start
+     */
     @BeforeEach
     void start() throws Exception {
         Assumptions.assumeTrue(skipReason == null, skipReason);
         this.bootstrap = startServer();
     }
 
+    /**
+     * Closes the server, if one was started.
+     */
     @AfterEach
     void stop() {
         if (this.bootstrap != null) {
@@ -82,6 +94,12 @@ class ServerOnMySqlTest {
         }
     }
 
+    /**
+     * Checks that on MySQL the server signs in a seeded account, encrypts the
+     * reporter's name and keeps data after a restart.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-CF-04 on MySQL the server signs in a seeded account, "
             + "encrypts the reporter's name and keeps data after a "
@@ -117,6 +135,12 @@ class ServerOnMySqlTest {
                 ((DisasterReport) found.getValue()).getReporterName());
     }
 
+    /**
+     * Checks that on MySQL the warning module stores warnings in the database,
+     * the import module is active and permissions come from the access matrix.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-CF-05 on MySQL the warning module stores warnings in "
             + "the database, the import module is active and permissions "
@@ -146,6 +170,9 @@ class ServerOnMySqlTest {
 
     /**
      * Starts a server on drs_test with a keystore in the test folder.
+     *
+     * @return the started server
+     * @throws Exception if the settings cannot be read or the port opened
      */
     private ServerBootstrap startServer() throws Exception {
         Properties properties = ServerConfig.defaults();
@@ -174,6 +201,8 @@ class ServerOnMySqlTest {
 
     /**
      * Creates an open incident from a validated report.
+     *
+     * @return the incident reference
      */
     private String openIncident() {
         ServerContext context = this.bootstrap.getContext();
@@ -192,6 +221,11 @@ class ServerOnMySqlTest {
 
     /**
      * Reads the reporter name exactly as it is stored.
+     *
+     * @param context  the server context
+     * @param reportId the report
+     * @return the stored value, encrypted or not
+     * @throws Exception if the query fails
      */
     private static String storedReporterName(ServerContext context,
                                              String reportId)
@@ -210,6 +244,10 @@ class ServerOnMySqlTest {
 
     /**
      * Counts the rows of a table.
+     *
+     * @param table the table name
+     * @return the number of rows
+     * @throws Exception if the query fails
      */
     private int countRows(String table) throws Exception {
         return this.bootstrap.getContext().getMySqlDatabase()
@@ -226,6 +264,10 @@ class ServerOnMySqlTest {
 
     /**
      * Reads an environment variable with a fallback.
+     *
+     * @param name     the variable
+     * @param fallback the value used when it is unset
+     * @return the value
      */
     private static String env(String name, String fallback) {
         String value = System.getenv(name);
@@ -233,5 +275,15 @@ class ServerOnMySqlTest {
             return fallback;
         }
         return value;
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "ServerOnMySqlTest: tests for the server running on MySQL";
     }
 }

@@ -41,6 +41,11 @@ class EventListenerTest {
     private final BlockingQueue<String> statuses =
             new LinkedBlockingQueue<>();
 
+    /**
+     * Starts an in-memory server for the test.
+     *
+     * @throws Exception if the server cannot start
+     */
     @BeforeEach
     void setUp() throws Exception {
         this.bootstrap = new ServerBootstrap(
@@ -49,6 +54,9 @@ class EventListenerTest {
         this.bootstrap.start();
     }
 
+    /**
+     * Stops the listener, if one was started, and closes the server.
+     */
     @AfterEach
     void tearDown() {
         if (this.listener != null) {
@@ -57,6 +65,12 @@ class EventListenerTest {
         this.bootstrap.close();
     }
 
+    /**
+     * Checks that a signed-in client receives a change made by someone else,
+     * and the connected-client count.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-EV-11 a signed-in client receives a change made by "
             + "someone else, and the connected-client count")
@@ -81,6 +95,12 @@ class EventListenerTest {
         assertEquals(change.getEntityId(), recent.get(0).getEntityId());
     }
 
+    /**
+     * Checks that a refused subscription stops the listener with the server's
+     * reason.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-EV-12 a refused subscription stops the listener with "
             + "the server's reason")
@@ -93,6 +113,12 @@ class EventListenerTest {
         assertTrue(waitUntilStopped());
     }
 
+    /**
+     * Checks that when the server is unavailable the listener keeps trying to
+     * reconnect.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-EV-13 when the server is unavailable the listener "
             + "keeps trying to reconnect")
@@ -112,6 +138,10 @@ class EventListenerTest {
 
     /**
      * Starts a listener whose deliveries run straight away.
+     *
+     * @param port        the server port
+     * @param token       the session token to subscribe with
+     * @param retryMillis milliseconds between reconnect attempts
      */
     private void start(int port, String token, int retryMillis) {
         this.listener = new EventListener("localhost", port, token,
@@ -123,6 +153,9 @@ class EventListenerTest {
 
     /**
      * Waits for the next event.
+     *
+     * @return the event
+     * @throws InterruptedException if the wait is interrupted
      */
     private ServerEvent next() throws InterruptedException {
         ServerEvent event = this.events.poll(WAIT_SECONDS, TimeUnit.SECONDS);
@@ -132,6 +165,9 @@ class EventListenerTest {
 
     /**
      * Waits for the next status.
+     *
+     * @return the status
+     * @throws InterruptedException if the wait is interrupted
      */
     private String nextStatus() throws InterruptedException {
         String status = this.statuses.poll(WAIT_SECONDS, TimeUnit.SECONDS);
@@ -141,6 +177,9 @@ class EventListenerTest {
 
     /**
      * Waits for the listener to stop running.
+     *
+     * @return {@code true} if it stopped in time
+     * @throws InterruptedException if the wait is interrupted
      */
     private boolean waitUntilStopped() throws InterruptedException {
         long deadline = System.currentTimeMillis() + WAIT_SECONDS * 1000;
@@ -149,5 +188,15 @@ class EventListenerTest {
             Thread.sleep(20);
         }
         return !this.listener.isRunning();
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "EventListenerTest: tests for EventListener";
     }
 }

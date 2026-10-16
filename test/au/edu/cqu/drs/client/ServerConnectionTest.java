@@ -39,6 +39,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class ServerConnectionTest {
 
+    /**
+     * Checks that a client signs in and works through the real server.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-SC-01 a client signs in and works through the real "
             + "server")
@@ -71,6 +76,12 @@ class ServerConnectionTest {
         }
     }
 
+    /**
+     * Checks that a session that is not signed in can submit but not read
+     * incidents, and logout ends the session.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-SC-02 a session that is not signed in can submit but "
             + "not read incidents, and logout ends the session")
@@ -99,6 +110,11 @@ class ServerConnectionTest {
         }
     }
 
+    /**
+     * Checks that with no server running the answer is 'Server unavailable'.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-SC-03 with no server running the answer is 'Server "
             + "unavailable'")
@@ -120,6 +136,12 @@ class ServerConnectionTest {
         assertFalse(connection.isConnected());
     }
 
+    /**
+     * Checks that a connection the server has closed is reopened once and the
+     * request sent again.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-SC-04 a connection the server has closed is reopened "
             + "once and the request sent again")
@@ -142,6 +164,11 @@ class ServerConnectionTest {
         }
     }
 
+    /**
+     * Checks that a request with no answer in time is not sent again.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-SC-05 a request with no answer in time is not sent "
             + "again")
@@ -242,5 +269,15 @@ class ServerConnectionTest {
         } catch (IOException | ClassNotFoundException e) {
             // The listening socket was closed by the test.
         }
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "ServerConnectionTest: tests for ServerConnection";
     }
 }

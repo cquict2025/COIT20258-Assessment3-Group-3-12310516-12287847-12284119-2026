@@ -29,11 +29,17 @@ class DuplicateDetectionServiceTest {
 
     private TestFixtures fixtures;
 
+    /**
+     * Creates fresh fixtures.
+     */
     @BeforeEach
     void setUp() {
         fixtures = new TestFixtures();
     }
 
+    /**
+     * Checks that two identical reports score 1.0.
+     */
     @Test
     @DisplayName("TC-DD-01 two identical reports score 1.0")
     void identicalReportsScoreOne() {
@@ -48,6 +54,9 @@ class DuplicateDetectionServiceTest {
                      TOLERANCE);
     }
 
+    /**
+     * Checks that a different type removes exactly the type weight.
+     */
     @Test
     @DisplayName("TC-DD-02 a different type removes exactly the type weight")
     void differentTypeRemovesTypeWeight() {
@@ -61,6 +70,10 @@ class DuplicateDetectionServiceTest {
                         second), TOLERANCE);
     }
 
+    /**
+     * Checks that a report beyond the proximity radius loses the whole
+     * proximity weight.
+     */
     @Test
     @DisplayName("TC-DD-03 a report beyond the proximity radius loses the "
             + "whole proximity weight")
@@ -75,6 +88,10 @@ class DuplicateDetectionServiceTest {
                         second), TOLERANCE);
     }
 
+    /**
+     * Checks that a report outside the time window loses the whole recency
+     * weight.
+     */
     @Test
     @DisplayName("TC-DD-04 a report outside the time window loses the whole "
             + "recency weight")
@@ -90,6 +107,10 @@ class DuplicateDetectionServiceTest {
                         second), TOLERANCE);
     }
 
+    /**
+     * Checks that a report of a different type at a different place is not a
+     * candidate.
+     */
     @Test
     @DisplayName("TC-DD-05 a report of a different type at a different place "
             + "is not a candidate")
@@ -102,6 +123,10 @@ class DuplicateDetectionServiceTest {
                 .isEmpty());
     }
 
+    /**
+     * Checks that a nearby report of the same type minutes later is offered as
+     * a candidate.
+     */
     @Test
     @DisplayName("TC-DD-06 a nearby report of the same type minutes later is "
             + "offered as a candidate")
@@ -122,6 +147,9 @@ class DuplicateDetectionServiceTest {
         assertTrue(candidates.get(0).isSameType());
     }
 
+    /**
+     * Checks that candidates are returned strongest match first.
+     */
     @Test
     @DisplayName("TC-DD-07 candidates are returned strongest match first")
     void candidatesAreOrderedByScore() {
@@ -142,6 +170,9 @@ class DuplicateDetectionServiceTest {
                 .getSimilarityScore());
     }
 
+    /**
+     * Checks that a rejected report is never offered as a duplicate.
+     */
     @Test
     @DisplayName("TC-DD-08 a rejected report is never offered as a duplicate")
     void rejectedReportIsExcluded() {
@@ -156,6 +187,9 @@ class DuplicateDetectionServiceTest {
                 .isEmpty());
     }
 
+    /**
+     * Checks that a report is never a duplicate of itself.
+     */
     @Test
     @DisplayName("TC-DD-09 a report is never a duplicate of itself")
     void reportIsNeverItsOwnDuplicate() {
@@ -168,6 +202,10 @@ class DuplicateDetectionServiceTest {
                         .equals(report.getReportId())));
     }
 
+    /**
+     * Checks that detection only recommends: the candidate report keeps its
+     * own status.
+     */
     @Test
     @DisplayName("TC-DD-10 detection only recommends: the candidate report "
             + "keeps its own status")
@@ -187,6 +225,15 @@ class DuplicateDetectionServiceTest {
                         + "automatically");
     }
 
+    /**
+     * Builds a valid report at Laverton without submitting it.
+     *
+     * @param type       the disaster type
+     * @param latitude   the latitude
+     * @param longitude  the longitude
+     * @param observedAt when the disaster was observed
+     * @return the new report
+     */
     private DisasterReport report(DisasterType type, double latitude,
                                   double longitude, 
                                   LocalDateTime observedAt) {
@@ -194,11 +241,32 @@ class DuplicateDetectionServiceTest {
                                     observedAt);
     }
 
+    /**
+     * Builds a valid report at Laverton and submits it through the report
+     * service.
+     *
+     * @param type       the disaster type
+     * @param latitude   the latitude
+     * @param longitude  the longitude
+     * @param observedAt when the disaster was observed
+     * @return the saved report
+     */
     private DisasterReport submit(DisasterType type, double latitude,
                                   double longitude, 
                                   LocalDateTime observedAt) {
         return fixtures.reportService
                 .submitReport(report(type, latitude, longitude, observedAt))
                 .getValue();
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "DuplicateDetectionServiceTest: tests for "
+                + "DuplicateDetectionService";
     }
 }

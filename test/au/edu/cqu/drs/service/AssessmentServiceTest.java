@@ -33,6 +33,10 @@ class AssessmentServiceTest {
     private User coordinator;
     private Incident incident;
 
+    /**
+     * Creates fresh fixtures, a coordinator and a saved fire incident to
+     * assess.
+     */
     @BeforeEach
     void setUp() {
         fixtures = new TestFixtures();
@@ -44,6 +48,9 @@ class AssessmentServiceTest {
         incident = fixtures.incidentRepository.save(incident);
     }
 
+    /**
+     * Checks that the maximum factor values normalise to a score of 100.
+     */
     @Test
     @DisplayName("TC-AS-01 the maximum factor values normalise to a score of "
             + "100")
@@ -51,6 +58,9 @@ class AssessmentServiceTest {
         assertEquals(100, fixtures.assessmentService.calculateScore(5, 5, 5));
     }
 
+    /**
+     * Checks that the minimum factor values normalise to a score of zero.
+     */
     @Test
     @DisplayName("TC-AS-02 the minimum factor values normalise to a score of "
             + "zero")
@@ -58,6 +68,12 @@ class AssessmentServiceTest {
         assertEquals(0, fixtures.assessmentService.calculateScore(0, 0, 0));
     }
 
+    /**
+     * Checks that each threshold boundary maps to the documented priority.
+     *
+     * @param score            the normalised score being mapped
+     * @param expectedPriority the priority the score should map to
+     */
     @ParameterizedTest(name = "TC-AS-03 score {0} maps to {1}")
     @CsvSource({
             "100, P1",
@@ -76,6 +92,10 @@ class AssessmentServiceTest {
                 fixtures.assessmentService.recommendPriority(score));
     }
 
+    /**
+     * Checks that scoring stores the recommendation but does not confirm a
+     * priority.
+     */
     @Test
     @DisplayName("TC-AS-04 scoring stores the recommendation but does not "
             + "confirm a priority")
@@ -93,6 +113,10 @@ class AssessmentServiceTest {
                 "A recommendation must not confirm itself");
     }
 
+    /**
+     * Checks that a factor above the permitted range is rejected with the
+     * field named.
+     */
     @Test
     @DisplayName("TC-AS-05 a factor above the permitted range is rejected with "
             + "the field named")
@@ -108,6 +132,9 @@ class AssessmentServiceTest {
         assertEquals("threatToLife", result.getAffectedField());
     }
 
+    /**
+     * Checks that confidence below the clarification floor blocks scoring.
+     */
     @Test
     @DisplayName("TC-AS-06 confidence below the clarification floor blocks "
             + "scoring")
@@ -122,6 +149,10 @@ class AssessmentServiceTest {
         assertEquals("sourceConfidence", result.getAffectedField());
     }
 
+    /**
+     * Checks that confirming the recommendation needs no reason and updates
+     * the incident.
+     */
     @Test
     @DisplayName("TC-AS-07 confirming the recommendation needs no reason and "
             + "updates the incident")
@@ -141,6 +172,9 @@ class AssessmentServiceTest {
                         .orElseThrow().getPriority());
     }
 
+    /**
+     * Checks that an override without a reason is refused.
+     */
     @Test
     @DisplayName("TC-AS-08 an override without a reason is refused")
     void overrideWithoutReasonIsRefused() {
@@ -156,6 +190,10 @@ class AssessmentServiceTest {
         assertEquals("overrideReason", result.getAffectedField());
     }
 
+    /**
+     * Checks that an override with a reason is accepted and written to the
+     * audit log.
+     */
     @Test
     @DisplayName("TC-AS-09 an override with a reason is accepted and written "
             + "to the audit log")
@@ -179,6 +217,9 @@ class AssessmentServiceTest {
                 "The override reason must appear in the audit log");
     }
 
+    /**
+     * Checks that a responder cannot assess an incident.
+     */
     @Test
     @DisplayName("TC-AS-10 a responder cannot assess an incident")
     void responderCannotAssess() {
@@ -200,6 +241,10 @@ class AssessmentServiceTest {
         assertEquals(ErrorCode.PERMISSION_DENIED, result.getErrorCode());
     }
 
+    /**
+     * Checks that a second assessment of the same incident increments the
+     * version.
+     */
     @Test
     @DisplayName("TC-AS-11 a second assessment of the same incident increments "
             + "the version")
@@ -221,5 +266,15 @@ class AssessmentServiceTest {
 
         assertNotNull(second.getValue());
         assertEquals(2, second.getValue().getVersion());
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "AssessmentServiceTest: tests for AssessmentService";
     }
 }

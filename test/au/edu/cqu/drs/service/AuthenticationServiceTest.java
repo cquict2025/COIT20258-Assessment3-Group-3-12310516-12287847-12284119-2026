@@ -19,11 +19,17 @@ class AuthenticationServiceTest {
 
     private TestFixtures fixtures;
 
+    /**
+     * Creates fresh fixtures.
+     */
     @BeforeEach
     void setUp() {
         fixtures = new TestFixtures();
     }
 
+    /**
+     * Checks that correct credentials sign a user in and record the login.
+     */
     @Test
     @DisplayName("TC-AU-01 correct credentials sign a user in and record the "
             + "login")
@@ -37,6 +43,10 @@ class AuthenticationServiceTest {
         assertNotNull(result.getValue().getLastLoginAt());
     }
 
+    /**
+     * Checks that an incorrect password is refused without revealing which
+     * field was wrong.
+     */
     @Test
     @DisplayName("TC-AU-02 an incorrect password is refused without revealing "
             + "which field was wrong")
@@ -52,6 +62,9 @@ class AuthenticationServiceTest {
         assertEquals("Username or password is incorrect.", result.getMessage());
     }
 
+    /**
+     * Checks that an unknown username is refused with the same message.
+     */
     @Test
     @DisplayName("TC-AU-03 an unknown username is refused with the same "
             + "message")
@@ -65,6 +78,9 @@ class AuthenticationServiceTest {
         assertEquals("Username or password is incorrect.", result.getMessage());
     }
 
+    /**
+     * Checks that a disabled account cannot sign in.
+     */
     @Test
     @DisplayName("TC-AU-04 a disabled account cannot sign in")
     void disabledAccountCannotSignIn() {
@@ -81,6 +97,9 @@ class AuthenticationServiceTest {
         assertTrue(result.getMessage().contains("disabled"));
     }
 
+    /**
+     * Checks that the password is never stored in plaintext.
+     */
     @Test
     @DisplayName("TC-AU-05 the password is never stored in plaintext")
     void passwordIsNeverStoredInPlaintext() {
@@ -92,6 +111,10 @@ class AuthenticationServiceTest {
                 "toString must not expose the stored hash");
     }
 
+    /**
+     * Checks that two accounts with the same password receive different
+     * hashes.
+     */
     @Test
     @DisplayName("TC-AU-06 two accounts with the same password receive "
             + "different hashes")
@@ -102,6 +125,9 @@ class AuthenticationServiceTest {
         assertNotEquals(first.getPasswordHash(), second.getPasswordHash());
     }
 
+    /**
+     * Checks that a password shorter than eight characters is refused.
+     */
     @Test
     @DisplayName("TC-AU-07 a password shorter than eight characters is refused")
     void shortPasswordIsRefused() {
@@ -113,6 +139,9 @@ class AuthenticationServiceTest {
         assertEquals("password", result.getAffectedField());
     }
 
+    /**
+     * Checks that a duplicate username is refused as a conflict.
+     */
     @Test
     @DisplayName("TC-AU-08 a duplicate username is refused as a conflict")
     void duplicateUsernameIsRefused() {
@@ -126,6 +155,9 @@ class AuthenticationServiceTest {
         assertEquals(ErrorCode.CONFLICT, result.getErrorCode());
     }
 
+    /**
+     * Checks that authorisation permits only the listed roles.
+     */
     @Test
     @DisplayName("TC-AU-09 authorisation permits only the listed roles")
     void authorisationPermitsOnlyListedRoles() {
@@ -137,5 +169,15 @@ class AuthenticationServiceTest {
                 .isAuthorised(responder, UserRole.COORDINATOR));
         assertFalse(fixtures.authenticationService
                 .isAuthorised(null, UserRole.RESPONDER));
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "AuthenticationServiceTest: tests for AuthenticationService";
     }
 }

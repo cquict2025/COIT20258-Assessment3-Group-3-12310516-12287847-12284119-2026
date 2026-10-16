@@ -40,6 +40,10 @@ class EscalationMonitorTest {
     private EscalationMonitor monitor;
     private List<ServerEvent> received;
 
+    /**
+     * Builds an escalation monitor over in-memory incidents, with a clock the
+     * test controls, and collects every event it publishes.
+     */
     @BeforeEach
     void setUp() {
         this.clock = new MutableClock();
@@ -57,6 +61,10 @@ class EscalationMonitorTest {
                 new ServerLog());
     }
 
+    /**
+     * Checks that a P1 with no field update is flagged At risk, then Breached
+     * after 15 minutes, and announced once.
+     */
     @Test
     @DisplayName("TC-EV-06 a P1 with no field update is flagged At risk, "
             + "then Breached after 15 minutes, and announced once")
@@ -91,6 +99,10 @@ class EscalationMonitorTest {
         assertEquals(EscalationState.BREACHED, this.monitor.lastStateOf(id));
     }
 
+    /**
+     * Checks that a P1 answered in time stays On track and is never announced;
+     * a closed incident is forgotten.
+     */
     @Test
     @DisplayName("TC-EV-07 a P1 answered in time stays On track and is "
             + "never announced; a closed incident is forgotten")
@@ -112,6 +124,9 @@ class EscalationMonitorTest {
 
     /**
      * Saves an open incident raised now by the test clock.
+     *
+     * @param priority the incident priority
+     * @return the saved incident
      */
     private Incident saveIncident(Priority priority) {
         Incident incident = new Incident(null, "Flood - Laverton",
@@ -123,10 +138,23 @@ class EscalationMonitorTest {
 
     /**
      * Marks an incident closed.
+     *
+     * @param incident the incident
+     * @return the same incident, now closed
      */
     private Incident closed(Incident incident) {
         incident.setStatus(IncidentStatus.CLOSED);
         incident.setClosedAt(LocalDateTime.now(this.clock));
         return incident;
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "EscalationMonitorTest: tests for EscalationMonitor";
     }
 }

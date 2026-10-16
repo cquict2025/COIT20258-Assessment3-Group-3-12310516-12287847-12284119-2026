@@ -28,6 +28,10 @@ class SessionManagerTest {
     private final User user =
             new User("USR-1", "coordinator", "Casey", UserRole.COORDINATOR);
 
+    /**
+     * Checks that a token identifies its user and unknown tokens identify
+     * nobody.
+     */
     @Test
     @DisplayName("TC-SM-01 a token identifies its user and unknown tokens "
             + "identify nobody")
@@ -40,6 +44,9 @@ class SessionManagerTest {
         assertEquals(43, token.length());
     }
 
+    /**
+     * Checks that tokens are unique.
+     */
     @Test
     @DisplayName("TC-SM-02 tokens are unique")
     void tokensAreUnique() {
@@ -51,6 +58,10 @@ class SessionManagerTest {
         assertEquals(1000, tokens.size());
     }
 
+    /**
+     * Checks that a session expires after 30 idle minutes, and use restarts
+     * the timer.
+     */
     @Test
     @DisplayName("TC-SM-03 a session expires after 30 idle minutes, and use "
             + "restarts the timer")
@@ -66,6 +77,9 @@ class SessionManagerTest {
         assertNull(this.sessions.resolve(idle));
     }
 
+    /**
+     * Checks that logout ends a session and purging removes expired ones.
+     */
     @Test
     @DisplayName("TC-SM-04 logout ends a session and purging removes "
             + "expired ones")
@@ -80,5 +94,15 @@ class SessionManagerTest {
         assertEquals(1, this.sessions.purgeExpired());
         assertEquals(0, this.sessions.count());
         assertFalse(this.sessions.toString().contains(loggedOut));
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "SessionManagerTest: tests for SessionManager";
     }
 }

@@ -38,6 +38,11 @@ class EventChannelTest {
     private ServerBootstrap bootstrap;
     private final List<Socket> sockets = new ArrayList<>();
 
+    /**
+     * Starts an in-memory server for the test.
+     *
+     * @throws Exception if the server cannot start
+     */
     @BeforeEach
     void setUp() throws Exception {
         this.bootstrap = new ServerBootstrap(
@@ -46,6 +51,11 @@ class EventChannelTest {
         this.bootstrap.start();
     }
 
+    /**
+     * Closes every socket the test opened, then the server.
+     *
+     * @throws IOException if a socket cannot be closed
+     */
     @AfterEach
     void tearDown() throws IOException {
         for (Socket socket : this.sockets) {
@@ -54,6 +64,12 @@ class EventChannelTest {
         this.bootstrap.close();
     }
 
+    /**
+     * Checks that a report submitted by the public reaches three subscribed
+     * clients.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-EV-08 a report submitted by the public reaches three "
             + "subscribed clients")
@@ -78,6 +94,12 @@ class EventChannelTest {
         }
     }
 
+    /**
+     * Checks that the clients are told how many are connected, and the count
+     * drops when one leaves.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-EV-09 the clients are told how many are connected, "
             + "and the count drops when one leaves")
@@ -97,6 +119,12 @@ class EventChannelTest {
                 .getSubscriberCount());
     }
 
+    /**
+     * Checks that subscribing without a valid session is refused and the
+     * connection still answers requests.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-EV-10 subscribing without a valid session is refused "
             + "and the connection still answers requests")
@@ -120,6 +148,9 @@ class EventChannelTest {
 
     /**
      * Signs in a demonstration account.
+     *
+     * @param account the demonstration account
+     * @return the session token
      */
     private String signIn(String account) {
         return ServerTestSupport.login(this.bootstrap.getDispatcher(),
@@ -128,6 +159,10 @@ class EventChannelTest {
 
     /**
      * Opens a second connection and subscribes it to live events.
+     *
+     * @param token the session token
+     * @return the stream the events arrive on
+     * @throws Exception if the connection fails
      */
     private ObjectInputStream subscribe(String token) throws Exception {
         Socket socket = open();
@@ -142,6 +177,9 @@ class EventChannelTest {
 
     /**
      * Connects to the test server.
+     *
+     * @return the connected socket
+     * @throws IOException if the server cannot be reached
      */
     private Socket open() throws IOException {
         Socket socket = new Socket("localhost",
@@ -153,6 +191,11 @@ class EventChannelTest {
 
     /**
      * Reads events until one of the given type arrives.
+     *
+     * @param in   the event stream
+     * @param type the event type wanted
+     * @return the first event of that type
+     * @throws Exception if the stream fails or times out
      */
     private static ServerEvent nextOfType(ObjectInputStream in,
                                           EventType type) throws Exception {
@@ -162,5 +205,15 @@ class EventChannelTest {
                 return event;
             }
         }
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "EventChannelTest: tests for the event channel";
     }
 }

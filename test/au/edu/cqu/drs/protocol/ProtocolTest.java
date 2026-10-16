@@ -57,6 +57,12 @@ class ProtocolTest {
     private static final LocalDateTime OBSERVED =
             LocalDateTime.of(2026, 10, 12, 9, 30);
 
+    /**
+     * Checks that a request keeps its ID, command, token, time, arguments and
+     * signature.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-PR-01 a request keeps its ID, command, token, time, "
             + "arguments and signature")
@@ -83,6 +89,12 @@ class ProtocolTest {
         assertEquals(-37.86, sent.getLocation().getLatitude(), 0.0001);
     }
 
+    /**
+     * Checks that a successful response carries a whole incident with its
+     * assignments and allocations.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-PR-02 a successful response carries a whole incident "
             + "with its assignments and allocations")
@@ -104,6 +116,11 @@ class ProtocolTest {
                 assignment.getAllocations().get(0).getResourceName());
     }
 
+    /**
+     * Checks that a failed response keeps its error code, message and field.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-PR-03 a failed response keeps its error code, message "
             + "and field")
@@ -122,6 +139,11 @@ class ProtocolTest {
         assertNull(copy.getValue());
     }
 
+    /**
+     * Checks that every model class survives a round trip.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-PR-04 every model class survives a round trip")
     void everyModelClassRoundTrips() throws Exception {
@@ -150,6 +172,11 @@ class ProtocolTest {
         }
     }
 
+    /**
+     * Checks that lists, sets and maps from java.util are accepted.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-PR-05 lists, sets and maps from java.util are accepted")
     void collectionsAreAccepted() throws Exception {
@@ -174,6 +201,9 @@ class ProtocolTest {
         assertEquals(counts, copy.get("enumMap", Map.class));
     }
 
+    /**
+     * Checks that a response converts to and from a service result.
+     */
     @Test
     @DisplayName("TC-PR-06 a response converts to and from a service result")
     void serviceResultConversion() {
@@ -202,6 +232,11 @@ class ProtocolTest {
                         ServiceResult.success(new Object())));
     }
 
+    /**
+     * Checks that an object changed and sent again arrives with the change.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-PR-07 an object changed and sent again arrives with "
             + "the change")
@@ -224,6 +259,11 @@ class ProtocolTest {
                 ((Incident) second.getValue()).getTitle());
     }
 
+    /**
+     * Checks that reading a message of the wrong type fails.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-PR-08 reading a message of the wrong type fails")
     void wrongMessageTypeIsRejected() throws Exception {
@@ -236,6 +276,10 @@ class ProtocolTest {
                 () -> MessageStreams.readResponse(in));
     }
 
+    /**
+     * Checks that only PING, LOGIN, SUBMIT_REPORT, SAVE_DRAFT and
+     * LIST_PUBLIC_WARNINGS work without a login.
+     */
     @Test
     @DisplayName("TC-PR-09 only PING, LOGIN, SUBMIT_REPORT, SAVE_DRAFT and "
             + "LIST_PUBLIC_WARNINGS work without a login")
@@ -252,6 +296,10 @@ class ProtocolTest {
                 Command.LIST_PUBLIC_WARNINGS), open);
     }
 
+    /**
+     * Checks that a request refuses a missing command, a blank argument name
+     * and a value of the wrong type.
+     */
     @Test
     @DisplayName("TC-PR-10 a request refuses a missing command, a blank "
             + "argument name and a value of the wrong type")
@@ -271,6 +319,11 @@ class ProtocolTest {
                 () -> request.getPayload().put("x", "y"));
     }
 
+    /**
+     * Checks that a request and response cross a real socket.
+     *
+     * @throws Exception if the test cannot complete its setup or I/O
+     */
     @Test
     @DisplayName("TC-PR-11 a request and response cross a real socket")
     void requestAndResponseOverSocket() throws Exception {
@@ -294,6 +347,9 @@ class ProtocolTest {
         }
     }
 
+    /**
+     * Checks that toString is readable and never shows the full session token.
+     */
     @Test
     @DisplayName("TC-PR-12 toString is readable and never shows the full "
             + "session token")
@@ -397,5 +453,15 @@ class ProtocolTest {
                 OBSERVED, OBSERVED.plusHours(6)));
         incident.addAssignment(assignment);
         return incident;
+    }
+
+    /**
+     * Describes this test class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "ProtocolTest: tests for the request and response protocol";
     }
 }

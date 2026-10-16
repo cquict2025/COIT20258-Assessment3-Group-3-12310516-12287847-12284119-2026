@@ -130,4 +130,14 @@ public final class FakeAccessMatrices {
             return "WrongTypeMatrix";
         }
     }
+
+    /**
+     * Describes this helper class.
+     *
+     * @return a short description of this object
+     */
+    @Override
+    public String toString() {
+        return "FakeAccessMatrices: stand-in access matrices for policy tests";
+    }
 }
